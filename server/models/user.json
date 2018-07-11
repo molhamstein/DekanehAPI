@@ -1,0 +1,56 @@
+{
+  "name": "user",
+  "base": "User",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "phoneNumber": {
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "pending"
+    },
+    "gender": {
+      "type": "string"
+    },
+    "clientType": {
+      "type": "string",
+      "required": true,
+      "default": "retailCostumer"
+    },
+    "ownerName": {
+      "type": "string"
+    },
+    "shopName": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "area": {
+      "type": "belongsTo",
+      "model": "area"
+    },
+    "roles": {
+      "type": "referencesMany",
+      "model": "role"
+    },
+    "privileges": {
+      "type": "referencesMany",
+      "model": "privilege"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
