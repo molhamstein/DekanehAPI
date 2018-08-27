@@ -11,6 +11,18 @@
     "password": "",
     "name": "mongoDb",
     "user": "",
+    "allowExtendedOperators": true,
     "connector": "mongodb"
+  },
+  "storage": {
+    "name": "storage",
+    "connector": "loopback-component-storage",
+    "provider": "filesystem",
+    "root": "./files",
+    "nameConflict": "makeUnique",
+    "maxFileSize": "5000000000",
+    "allowedContentTypes": [
+      "image/png"
+    ]
   }
 }

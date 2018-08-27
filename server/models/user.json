@@ -5,6 +5,10 @@
   "options": {
     "validateUpsert": true
   },
+  "hidden": [
+    "credentials",
+    "challenges"
+  ],
   "properties": {
     "phoneNumber": {
       "type": "string",
@@ -15,7 +19,7 @@
       "required": true,
       "default": "pending"
     },
-    "gender": {
+    "email": {
       "type": "string"
     },
     "clientType": {
@@ -31,6 +35,12 @@
     },
     "location": {
       "type": "string"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "long": {
+      "type": "number"
     },
     "notes": {
       "type": "string"
@@ -51,6 +61,34 @@
       "model": "privilege"
     }
   },
-  "acls": [],
+  "acls": [
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "staffLogin"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "forgotPassword"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "getResetPassword"
+    }
+  ],
   "methods": {}
 }

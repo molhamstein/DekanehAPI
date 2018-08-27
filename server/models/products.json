@@ -1,0 +1,110 @@
+{
+  "name": "products",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {
+    "include": [
+      "category",
+      "subCategory",
+      "products"
+    ]
+  },
+  "properties": {
+    "nameAr": {
+      "type": "string"
+    },
+    "nameEn": {
+      "type": "string",
+      "required": true
+    },
+    "image": {
+      "type": "string"
+    },
+    "pack": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "retailPrice": {
+      "type": "number",
+      "required": true
+    },
+    "wholeSalePrice": {
+      "type": "number",
+      "required": true
+    },
+    "wholeSaleMarketPrice": {
+      "type": "number",
+      "required": true
+    },
+    "marketPrice": {
+      "type": "number"
+    },
+    "retailPriceDiscount": {
+      "type": "number"
+    },
+    "wholeSalePriceDiscount": {
+      "type": "number"
+    },
+    "isFeatured": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "available"
+    },
+    "isOffer": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    }
+  },
+  "validations": [],
+  "relations": {
+    "category": {
+      "type": "belongsTo",
+      "model": "categories"
+    },
+    "subCategory": {
+      "type": "belongsTo",
+      "model": "categories"
+    },
+    "manufacturer": {
+      "type": "belongsTo",
+      "model": "manufacturers"
+    },
+    "offers": {
+      "type": "referencesMany",
+      "model": "products",
+      "foreignKey": "offersIds",
+      "options": {
+        "validate": true
+      }
+    },
+    "tags": {
+      "type": "referencesMany",
+      "model": "tags",
+      "foreignKey": "tagsIds",
+      "options": {
+        "validate": true
+      }
+    },
+    "products": {
+      "type": "referencesMany",
+      "model": "products",
+      "foreignKey": "productsIds",
+      "options": {
+        "validate": true
+      }
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

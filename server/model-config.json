@@ -41,9 +41,7 @@
     "public": true,
     "options": {
       "remoting": {
-        "sharedMethods": {
-         
-        }
+        "sharedMethods": {}
       }
     }
   },
@@ -56,6 +54,26 @@
     "public": true
   },
   "privilege": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "categories": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "products": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "attachment": {
+    "dataSource": "storage",
+    "public": true
+  },
+  "tags": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "manufacturers": {
     "dataSource": "mongoDb",
     "public": true
   }

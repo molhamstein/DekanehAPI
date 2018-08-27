@@ -13,12 +13,15 @@
   "dependencies": {
     "compression": "^1.0.3",
     "cors": "^2.5.2",
+    "excel-export": "^0.5.1",
     "helmet": "^3.10.0",
     "loopback": "^2.22.0",
     "loopback-boot": "^2.6.5",
     "loopback-component-explorer": "^2.4.0",
+    "loopback-component-storage": "^3.5.0",
     "loopback-connector-mongodb": "^1.18.1",
     "loopback-datasource-juggler": "^2.39.0",
+    "mongo-xlsx": "^1.0.12",
     "serve-favicon": "^2.0.1",
     "strong-error-handler": "^2.0.0"
   },

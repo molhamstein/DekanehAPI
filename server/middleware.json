@@ -54,6 +54,9 @@
   },
   "files": {},
   "final": {
+    "loopback#static": {
+      "params": "$!../files"
+    },
     "loopback#urlNotFound": {}
   },
   "final:after": {

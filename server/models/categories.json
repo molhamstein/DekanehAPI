@@ -1,26 +1,26 @@
 {
-  "name": "privilege",
+  "name": "categories",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "code": {
-      "type": "string",
-      "id": true,
-      "required": true
-    },
-    "nameAr": {
+    "titleAr": {
       "type": "string"
     },
-    "nameEn": {
+    "titleEn": {
       "type": "string",
       "required": true
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "parentCategory": {
+      "type": "belongsTo",
+      "model": "categories"
+    }
+  },
   "acls": [],
   "methods": {}
 }

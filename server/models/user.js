@@ -7,7 +7,6 @@ module.exports = function(User) {
 	User.validatesUniquenessOf('phoneNumber',{message: 'phoneNumber already exists'});
 	// user.validatesLengthOf('phoneNumber', {min: 9,max: 10 message: {min: 'phoneNumber is not syrian Number'}});
 	// User.validatesNumericalityOf('phoneNumber');
-	User.validatesInclusionOf('gender', {in: ['male', 'female']});
 	User.validatesInclusionOf('status', {in: ['pending', 'activated','deactivated']});
 	User.validatesInclusionOf('clientType', {in: ['wholesale', 'retailCostumer']});
 
@@ -17,10 +16,10 @@ module.exports = function(User) {
 	// 	User.disableRemoteMethod(f, false);
 	// })
 
-	User.beforeRemote('create', function(ctx, modelInstance, next) {
-		ctx.req.body.phoneNumber = Number(ctx.req.body.phoneNumber)
-	    next();
-	});
+	// User.beforeRemote('create', function(ctx, modelInstance, next) {
+	// 	ctx.req.body.phoneNumber = Number(ctx.req.body.phoneNumber)
+	//     next();
+	// });
 
 	User.login = function(credentials, include, fn){
 		var self = this;
@@ -42,19 +41,19 @@ module.exports = function(User) {
 
 
 	    var query = {
-	    	phoneNumber : Number(credentials.phoneNumber)	    
+	    	phoneNumber : credentials.phoneNumber   
 	    }
 	    
 	    if (!query.phoneNumber) {
 	      var err2 = new Error(g.f('{{phoneNumber}} is required'));
 	      err2.statusCode = 400;
-	      err2.code = 'PHONENUMBER_EMAIL_REQUIRED';
+	      err2.code = 'PHONENUMBER_REQUIRED';
 	      fn(err2);
 	      return fn.promise;
 	    }
 
 	    self.findOne({where: query}, function(err, user) {
-	    	console.log(query,err,user);
+	      console.log(query,err,user);
 	      var defaultError = new Error(g.f('login failed'));
 	      defaultError.statusCode = 401;
 	      defaultError.code = 'LOGIN_FAILED';
@@ -118,4 +117,72 @@ module.exports = function(User) {
 			user.save(next)
 		});
 	});
+
+
+
+
+	User.staffLogin = function(email,password,fn){
+		var self = this;
+	   
+	    var query = {
+	    	email : email   
+	    }
+	    
+	    if (!query.email) {
+	      var err2 = new Error(g.f('{{email}} is required'));
+	      err2.statusCode = 400;
+	      err2.code = 'EMAIL_REQUIRED';
+	      return fn(err)
+	    }
+
+	    self.findOne({where: query}, function(err, user) {
+	      var defaultError = new Error(g.f('login failed'));
+	      defaultError.statusCode = 401;
+	      defaultError.code = 'LOGIN_FAILED';
+
+	      function tokenHandler(err, token) {
+	        if (err) 
+	        	return fn(err);
+	        console.log(token)
+	        fn(err, token);
+	      }
+
+	      if (err) {
+	        debug('An error is reported from User.findOne: %j', err);
+	        return fn(defaultError);
+	      } else if (user) {
+	        user.hasPassword(password, function(err, isMatch) {
+	          if (err) {
+	            debug('An error is reported from User.hasPassword: %j', err);
+	            return fn(defaultError);
+	          } else if (isMatch) {
+	            
+	            if (user.createAccessToken.length === 2) {
+	                user.createAccessToken(undefined, tokenHandler);
+	            } else {
+	                user.createAccessToken(undefined, {email : email, password : password}, tokenHandler);
+	            }
+	            
+	          } else {
+	            debug('The password is invalid for user %s', query.email || query.username);
+	            return fn(defaultError);
+	          }
+	        });
+	      } else {
+	        debug('No matching record is found for user %s', query.email);
+	        return fn(defaultError);
+	      }
+	    });
+	    console.log("Done");
+	    return fn.promise;
+	}
+	User.remoteMethod('staffLogin', {
+    	description: 'staff user login',
+		accepts: [
+			{arg: 'email', type: 'string', required: true, http: {source: 'form'}},
+			{arg: 'password', type: 'string', required: true, http: {source: 'form'}},
+		],
+		returns: {arg: 'body', type: 'body',root: true},
+		http: {verb: 'post',path: '/staffLogin'},
+    });
 };
