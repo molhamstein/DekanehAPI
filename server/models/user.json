@@ -36,11 +36,8 @@
     "location": {
       "type": "string"
     },
-    "lat": {
-      "type": "number"
-    },
-    "long": {
-      "type": "number"
+    "locationPoint": {
+      "type": "geopoint"
     },
     "notes": {
       "type": "string"
