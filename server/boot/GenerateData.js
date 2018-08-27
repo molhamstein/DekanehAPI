@@ -122,7 +122,7 @@ createData('area',area,function(err,areas){
 							    "categoryId": parentCategories[0].id.toString(),
 							    "subCategoryId": childCategories[0].id.toString(),
 							    "manufacturerId": manufacturers[0].id.toString(),
-							    "tagsIds": [tags[0].id.toString(),tags[1].toString()]
+							    "tagsIds": [tags[0].id.toString(),tags[1].id.toString()]
 							},
 							{
 								"nameAr": "لحم لانشون",
@@ -141,7 +141,7 @@ createData('area',area,function(err,areas){
 							    "isOffer": false,
 							    "categoryId": parentCategories[0].id.toString(),
 							    "manufacturerId": manufacturers[0].id.toString(),
-							    "tagsIds": [tags[1].id.toString(),tags[2].toString()]
+							    "tagsIds": [tags[1].id.toString(),tags[2].id.toString()]
 							}
 						]
 
