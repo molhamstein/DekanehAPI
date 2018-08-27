@@ -17,6 +17,7 @@ createData('area',area,function(err,areas){
 	server.models['user'].remove({"phoneNumber": "0936207611"},function(err,d){
 		if(err)
 			return console.log(err);
+		server.models['user'].remove({"phoneNumber": "09123456789"},function(err,d){
 		var users = [
 			{
 			  "username": "ahmad ataya",
@@ -160,6 +161,7 @@ createData('area',area,function(err,areas){
 				});
 			});
 		});
+	});
 	});
 });
 
