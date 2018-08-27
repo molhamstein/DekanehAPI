@@ -6,7 +6,7 @@
   "mongoDb": {
     "host": "localhost",
     "port": 27017,
-    "url": "mongodb://localhost:27017/dekaneh",
+    "url": "mongodb://localhost:27017/dekaneh1",
     "database": "dekaneh",
     "password": "",
     "name": "mongoDb",
