@@ -39,8 +39,7 @@
       "required": true
     },
     "wholeSaleMarketPrice": {
-      "type": "number",
-      "required": true
+      "type": "number"
     },
     "marketPrice": {
       "type": "number"

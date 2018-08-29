@@ -19,6 +19,73 @@ module.exports = function(Products) {
 
 	});	
 
+	Products.getCategoriesWithProducts = function(cb){
+		Products.getDataSource().connector.collection('products')
+		.aggregate([
+			{ $match: {isOffer : false, status : "available" }},
+			{
+				$lookup:{
+			       from: 'categories',
+			       localField: 'categoryId',
+			       foreignField: '_id',
+			       as: 'category'
+			    }
+			},
+			{
+				$lookup:{
+			       from: 'categories',
+			       localField: 'subCategoryId',
+			       foreignField: '_id',
+			       as: 'subCategory'
+			    }
+			},
+			{
+				$lookup:{
+			       from: 'manufacturers',
+			       localField: 'manufacturerId',
+			       foreignField: '_id',
+			       as: 'manufacturer'
+			    }
+			},
+			{ $project: { 
+					"nameAr": 1,
+				    "nameEn": 1,
+				    "image": 1,
+				    "pack": 1,
+				    "description": 1,
+				    "retailPrice": 1,
+				    "wholeSalePrice": 1,
+				    "wholeSaleMarketPrice": 1,
+				    "marketPrice": 1,
+				    "retailPriceDiscount": 1,
+				    "wholeSalePriceDiscount":1,
+				    "isFeatured": 1, 
+				    "status": 1,
+				    "isOffer": 1,
+				    "categoryId": 1,	
+				    "subCategoryId": 1,
+				    "offersIds": 1,
+				    "productsIds": 1,
+				    "tagsIds": 1,
+					"manufacturerId" : 1,
+					"category": { "$arrayElemAt": [ "$category", 0 ] },
+					"subCategory": { "$arrayElemAt": [ "$subCategory", 0 ] },
+					"manufacturer": { "$arrayElemAt": [ "$manufacturer", 0 ] }
+				}
+			},
+			{ $group : {_id : '$categoryId', info: { $first: "$category" }, products : {$push : '$$ROOT'}}}, 
+			{ $project : { info : 1,  products : {$slice: [ "$products", 10] }}}       
+	    ],cb)
+
+	}
+	Products.remoteMethod('getCategoriesWithProducts', {
+    	description: 'get products grouped by categories   == 10 product in each category',
+		accepts: [
+		],
+		returns: {arg: 'body', type: 'body',root: true},
+		http: {verb: 'get',path: '/groupedByCategories'},
+    });
+
 
 
 	// Products.testExcel = function(cb){
@@ -46,6 +113,7 @@ module.exports = function(Products) {
 
 
 
+// for import/export Excel
 var model = [
 	{
 	    displayName: "ID",

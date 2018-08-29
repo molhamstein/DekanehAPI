@@ -57,6 +57,10 @@ createData('area',area,function(err,areas){
 			{
 			  "titleEn": "dietetics",
 			  "titleAr": "غذائيات"
+			},
+			{
+			  "titleEn": "category 2",
+			  "titleAr": "category 2"
 			}
 		]
 		createData('categories',categories,function(err,parentCategories){
@@ -68,6 +72,16 @@ createData('area',area,function(err,areas){
 				  "titleEn": "mo3lbat",
 				  "titleAr": "معلبات",
 				  "parentCategoryId" : parentCategories[0].id.toString()
+				},
+				{
+				  "titleEn": "sardines",
+				  "titleAr": "سردين",
+				  "parentCategoryId" : parentCategories[1].id.toString()
+				},
+				{
+				  "titleEn": "Toon",
+				  "titleAr": "طون",
+				  "parentCategoryId" : parentCategories[1].id.toString()
 				}	
 			];
 			
@@ -121,6 +135,7 @@ createData('area',area,function(err,areas){
 
 						var Products = [
 							{
+								"id" :"5b86581e5404f62e708d9bee",
 								"nameAr": "متبل",
 							    "nameEn": "motabal",
 							    "image": "104.217.253.15:3003/images/4e3bc962-e624-4826-aae7-e013983e31b2.png",
@@ -141,6 +156,7 @@ createData('area',area,function(err,areas){
 							    "tagsIds": [tags[0].id.toString(),tags[1].id.toString()]
 							},
 							{
+							    "id": "5b86581e5404f62e708d9bef",
 								"nameAr": "لحم لانشون",
 							    "nameEn": "luncheon meat",
 							    "image": "104.217.253.15:3003/images/9f0806dd-d346-483c-bc80-2a4478b7f670.png",
@@ -160,6 +176,7 @@ createData('area',area,function(err,areas){
 							    "tagsIds": [tags[1].id.toString(),tags[2].id.toString()]
 							},
 							{
+							    "id": "5b86581e5404f62e708d9bf0",
 								"nameAr": "حلاوة  البرج",
 							    "nameEn": "halawa al burj",
 							    "image": "104.217.253.15:3003/images/d896dd06-9c07-4652-88af-6ec802ea0a80.png",
@@ -174,9 +191,11 @@ createData('area',area,function(err,areas){
 							    "isOffer": false,
 							    "categoryId": parentCategories[0].id.toString(),
 							    "manufacturerId": manufacturers[2].id.toString(),
-							    "tagsIds": [tags[0].id.toString(),tags[2].id.toString()]
+							    "tagsIds": [tags[0].id.toString(),tags[2].id.toString()],
+							    "offersIds" : ["5b864fcb35b3599cebaa7519"]
 							},
 							{
+							    "id": "5b86581e5404f62e708d9bf1",
 								"nameAr": "حلاوة الرفاعي بالفستق الحلبي",
 							    "nameEn": "halawa al refai",
 							    "image": "104.217.253.15:3003/images/a82f13e7-af3e-4d1b-b4c6-235e5122c341.png",
@@ -195,6 +214,7 @@ createData('area',area,function(err,areas){
 							    "tagsIds": [tags[0].id.toString(),tags[2].id.toString()]
 							},
 							{
+								"id": "5b86581e5404f62e708d9bf2",
 								"nameAr": "مخلل خيار",
 							    "nameEn": "pickled cueumber",
 							    "image": "104.217.253.15:3003/images/abc95393-e9ce-429c-96e3-22d549cda58b.png",
@@ -209,9 +229,11 @@ createData('area',area,function(err,areas){
 							    "isOffer": false,
 							    "categoryId": parentCategories[0].id.toString(),
 							    "manufacturerId": manufacturers[4].id.toString(),
-							    "tagsIds": []
+							    "tagsIds": [],
+							    "offersIds" : ["5b8650bb35b3599cebaa751a"]
 							},
 							{
+								"id": "5b86581e5404f62e708d9bf3",
 								"nameAr": "زيتون محشي فليفلة",
 							    "nameEn": "olives stuffed pepper",
 							    "image": "104.217.253.15:3003/images/787b6b22-2be0-4a9d-9757-4f17ad5eb242.png",
@@ -226,9 +248,11 @@ createData('area',area,function(err,areas){
 							    "isOffer": false,
 							    "categoryId": parentCategories[0].id.toString(),
 							    "manufacturerId": manufacturers[4].id.toString(),
-							    "tagsIds": [tags[0].id.toString()]
+							    "tagsIds": [tags[0].id.toString()],
+							    "offersIds" : ["5b8650bb35b3599cebaa751a"]
 							},
 							{
+							    "id": "5b86581e5404f62e708d9bf4",
 								"nameAr": "سردين",
 							    "nameEn": "sardines",
 							    "image": "104.217.253.15:3003/images/cf942b5d-aa85-40cc-aed8-64d7fee9a7bb.png",
@@ -241,12 +265,13 @@ createData('area',area,function(err,areas){
 							    "isFeatured":false,
 							    "status":"available",
 							    "isOffer": false,
-							    "categoryId": parentCategories[0].id.toString(),
-							    "subCategoryId": childCategories[0].id.toString(),
+							    "categoryId": parentCategories[1].id.toString(),
+							    "subCategoryId": childCategories[1].id.toString(),
 							    "manufacturerId": manufacturers[0].id.toString(),
 							    "tagsIds": [tags[0].id.toString(),tags[1].id.toString(),tags[2].id.toString()]
 							},
 							{
+							    "id": "5b86581e5404f62e708d9bf5",
 								"nameAr": "طون",
 							    "nameEn": "chicken luncheon meat",
 							    "image": "104.217.253.15:3003/images/9fcef387-0724-4eb5-b63a-0d4c252e65a6.png",
@@ -261,12 +286,13 @@ createData('area',area,function(err,areas){
 							    "isFeatured":false,
 							    "status":"available",
 							    "isOffer": false,
-							    "categoryId": parentCategories[0].id.toString(),
-							    "subCategoryId": childCategories[0].id.toString(),
+							    "categoryId": parentCategories[1].id.toString(),
+							    "subCategoryId": childCategories[2].id.toString(),
 							    "manufacturerId": manufacturers[0].id.toString(),
 							    "tagsIds": [tags[0].id.toString(),tags[1].id.toString(),tags[2].id.toString()]
 							},
 							{
+							    "id": "5b86581e5404f62e708d9bf6",
 								"nameAr": "طحينة",
 							    "nameEn": "tahini",
 							    "image": "104.217.253.15:3003/images/8f0063bc-ff30-4060-ac0c-4a659f3bd16f.png",
@@ -281,9 +307,11 @@ createData('area',area,function(err,areas){
 							    "isOffer": false,
 							    "categoryId": parentCategories[0].id.toString(),
 							    "manufacturerId": manufacturers[2].id.toString(),
-							    "tagsIds": [tags[1].id.toString(),tags[2].id.toString()]
+							    "tagsIds": [tags[1].id.toString(),tags[2].id.toString()],
+							    "offersIds"  :["5b864fcb35b3599cebaa7519"]
 							},
 							{
+							    "id": "5b86581e5404f62e708d9bf7",
 								"nameAr": "مربى المشمش",
 							    "nameEn": "apricot jam",
 							    "image": "104.217.253.15:3003/images/60510596-ffdb-4a19-ad59-6903686efe54.png",
@@ -301,6 +329,7 @@ createData('area',area,function(err,areas){
 							    "tagsIds": [tags[1].id.toString(),tags[2].id.toString()]
 							},
 							{
+							    "id": "5b86581e5404f62e708d9bf8",
 								"nameAr": "ماء الزهر",
 							    "nameEn": "flower water",
 							    "image": "104.217.253.15:3003/images/36688068-8adb-49f6-98bf-7448d60c834c.png",
@@ -319,6 +348,49 @@ createData('area',area,function(err,areas){
 							    "manufacturerId": manufacturers[0].id.toString(),
 							    "tagsIds": [tags[1].id.toString(),tags[2].id.toString()]
 							},
+							{
+							    "id": "5b864fcb35b3599cebaa7519",
+							    "nameAr": "offer1",
+							    "nameEn": "offer1",
+							    "description": "string string string string string string string string string string string string ",
+							    "retailPrice": 2000,
+							    "wholeSalePrice": 2200,
+							    "wholeSaleMarketPrice": 2500,
+							    "retailPriceDiscount": 1800,
+							    "wholeSalePriceDiscount": 2000,
+							    "isFeatured": true,
+							    "status": "available",
+							    "isOffer": true,
+							    "categoryId": parentCategories[0].id.toString(),
+							    "productsIds": [
+							      "5b86581e5404f62e708d9bf6",
+							      "5b86581e5404f62e708d9bf0"
+							    ],
+							    "tagsIds": [],
+							    "manufacturerId": manufacturers[2].id.toString(),
+							},
+							{
+							    "id": "5b8650bb35b3599cebaa751a",
+							    "nameAr": "offer2",
+							    "nameEn": "offer2",
+							    "description": "string string string string string string string string string string string string ",
+							    "retailPrice": 1500,
+							    "wholeSalePrice": 1600,
+							    "wholeSaleMarketPrice": 1800,
+							    "retailPriceDiscount": 1400,
+							    "wholeSalePriceDiscount": 1500,
+							    "isFeatured": false,
+							    "status": "available",
+							    "isOffer": true,
+							    "categoryId": parentCategories[0].id.toString(),
+							    "offersIds": [],
+							    "tagsIds": [],
+							    "productsIds": [
+							      "5b86581e5404f62e708d9bf2",
+							      "5b86581e5404f62e708d9bf3"
+							    ],
+							    "manufacturerId": manufacturers[4].id.toString()
+							  }
 						]
 
 						createData('products',Products,function(err,products){
@@ -364,6 +436,21 @@ createData('area',area,function(err,areas){
 };
 
 
-var offers = {
+// var offers = {
+//   "nameAr": "offer1",
+//   "nameEn": "offer1",
+//   "description": "string string string string string string string string string string string string ",
+//   "retailPrice": 2000,
+//   "wholeSalePrice": 2200,
+//   "retailPriceDiscount": 1800,
+//   "wholeSalePriceDiscount": 2000,
+//   "isFeatured": true,
+//   "status": "available",
+//   "isOffer": true,
+//   "categoryId": ,
+//   "productsIds": [
+    
+//   ],
+//   "manufacturerId": 
 
-}
+// }
