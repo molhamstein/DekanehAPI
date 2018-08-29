@@ -74,7 +74,7 @@ module.exports = function(Products) {
 				}
 			},
 			{ $group : {_id : '$categoryId', info: { $first: "$category" }, products : {$push : '$$ROOT'}}}, 
-			{ $project : { info : 1,  products : {$slice: [ "$products", limitPerCategory] }}}       
+			{ $project : {titleEn : '$info.titleEn', titleAr : '$info.titleAr',  products : {$slice: [ "$products", limitPerCategory] }}}       
 	    ],cb)
 
 	}
