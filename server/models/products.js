@@ -19,7 +19,7 @@ module.exports = function(Products) {
 
 	});	
 
-	Products.getCategoriesWithProducts = function(cb){
+	Products.getCategoriesWithProducts = function(limitPerCategory= 10,cb){
 		Products.getDataSource().connector.collection('products')
 		.aggregate([
 			{ $match: {isOffer : false, status : "available" }},
@@ -74,13 +74,14 @@ module.exports = function(Products) {
 				}
 			},
 			{ $group : {_id : '$categoryId', info: { $first: "$category" }, products : {$push : '$$ROOT'}}}, 
-			{ $project : { info : 1,  products : {$slice: [ "$products", 10] }}}       
+			{ $project : { info : 1,  products : {$slice: [ "$products", limitPerCategory] }}}       
 	    ],cb)
 
 	}
 	Products.remoteMethod('getCategoriesWithProducts', {
     	description: 'get products grouped by categories   == 10 product in each category',
 		accepts: [
+			{arg: 'limit', type: 'number', 'http': {source: 'query'}}
 		],
 		returns: {arg: 'body', type: 'body',root: true},
 		http: {verb: 'get',path: '/groupedByCategories'},
