@@ -9,6 +9,7 @@
     "include": [
       "category",
       "subCategory",
+      "manufacturer",
       "products"
     ]
   },
@@ -45,10 +46,12 @@
       "type": "number"
     },
     "retailPriceDiscount": {
-      "type": "number"
+      "type": "number",
+      "default" : 0
     },
     "wholeSalePriceDiscount": {
-      "type": "number"
+      "type": "number",
+      "default" : 0
     },
     "isFeatured": {
       "type": "boolean",
