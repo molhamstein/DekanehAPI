@@ -22,7 +22,9 @@
     "nameConflict": "makeUnique",
     "maxFileSize": "5000000000",
     "allowedContentTypes": [
-      "image/png"
+      "image/png",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel"
     ]
   }
 }

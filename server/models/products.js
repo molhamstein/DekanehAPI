@@ -117,17 +117,16 @@ module.exports = function(Products) {
 
 
 
-
-    Products.importProducts = function(file,res,cb){
-    	// console.log(Object.keys(Products.app.models));
+    Products.importProducts = function(fileUrl,res,cb){
 		model[0].access = '_id';
-		mongoXlsx.xlsx2MongoData(path.join(__dirname,'../../files/excelFiles/testImport.xlsx'),model,{},function(err,rows){
-			// console.log(err,rows[0]);
+		var fileName = path.basename(fileUrl);
+		mongoXlsx.xlsx2MongoData(path.join(__dirname,'../../files/excelFiles',fileName),model,{},function(err,rows){
+			if(err)
+				return cb(err);
 			var newRecords = [];
 
 			var batch = Products.dataSource.adapter.collection('products').initializeUnorderedBulkOp();
 
-			var s = 1;
 			_.each(rows,function(row){
 				try{row._id = Products.dataSource.ObjectID(row._id)}catch(e){row._id =  Products.dataSource.ObjectID()};
 				if(row.manufacturerId) try {row.manufacturerId = Products.dataSource.ObjectID(row.manufacturerId)}catch(e){delete row.manufacturerId};
@@ -152,10 +151,10 @@ module.exports = function(Products) {
 	Products.remoteMethod('importProducts', {
     	description: 'import products from excel file',
 		accepts: [
-			{arg: 'file', type: 'file',http : {source: 'form'}},
+			{arg: 'fileUrl', type : 'string', description : 'url  file after uploaded on api/attachments/excelFiles/upload'},
 			{arg: 'res', http: {source: 'res'}}
 		],
-		http: {verb: 'get',path: '/importProducts'},
+		http: {verb: 'post',path: '/importProducts'},
     });
 };
 
