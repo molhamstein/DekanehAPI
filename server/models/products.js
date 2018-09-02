@@ -1,7 +1,9 @@
 'use strict';
+var mongoXlsx = require('mongo-xlsx');
 var _ = require('lodash');
+var path = require('path');
 module.exports = function(Products) {
-	Products.validatesInclusionOf('status', {in: ['available', 'unAvailable']});
+	// Products.validatesInclusionOf('status', {in: ['available', 'unAvailable']});
 	Products.validatesPresenceOf('categoryId');	
 
 	Products.afterRemote('create', function(ctx,result, next) {
@@ -89,27 +91,72 @@ module.exports = function(Products) {
 
 
 
-	// Products.testExcel = function(cb){
-	// 	var mongoXlsx = require('mongo-xlsx');
-	// 	Products.find({},function(err,data){
-	// 		// example 
-	// 		data[0].products = ["name=B","price=500"]
-	// 		var config = {path : 'files/excelFiles',save : true,fileName : 'products'+Date.now()+'.xlsx'};
-	// 		mongoXlsx.mongoData2Xlsx(data, model,config, function(err, data) {
-	// 			console.log(data)
-	// 			console.log('File saved at:', data.fullPath);
-	// 			mongoXlsx.xlsx2MongoData(data.fullPath,model,config,function(err,rows){
-	// 				console.log(err,rows);
-	// 			}) 
-	// 		});
 
 
-	// 	});
-	// }
-	// Products.remoteMethod('testExcel', {
-	// 	returns: {arg: 'message', type: 'string'},
-	// 	http: {verb: 'get',path: '/testExcel'},
- //    });
+
+	Products.exportProducts = function(res,cb){
+		Products.find({/*where : {status : 'available'}*/},function(err,data){
+			var config = {path : 'files/excelFiles',save : true,fileName : 'products'+Date.now()+'.xlsx'};
+			model[0].access = 'id';
+			mongoXlsx.mongoData2Xlsx(data, model,config, function(err, data) {
+				console.log('File saved at:',path.join(__dirname ,'../../',data.fullPath),data.fullPath);
+				return res.sendFile(path.join(__dirname ,'../../',data.fullPath))
+			});
+		});
+	}
+
+
+	Products.remoteMethod('exportProducts', {
+    	description: 'export products to excel file',
+		accepts: [
+			{arg: 'res', http: {source: 'res'}}
+		],
+		http: {verb: 'post',path: '/exportProducts'},
+    });
+
+
+
+
+
+    Products.importProducts = function(file,res,cb){
+    	// console.log(Object.keys(Products.app.models));
+		model[0].access = '_id';
+		mongoXlsx.xlsx2MongoData(path.join(__dirname,'../../files/excelFiles/testImport.xlsx'),model,{},function(err,rows){
+			// console.log(err,rows[0]);
+			var newRecords = [];
+
+			var batch = Products.dataSource.adapter.collection('products').initializeUnorderedBulkOp();
+
+			var s = 1;
+			_.each(rows,function(row){
+				try{row._id = Products.dataSource.ObjectID(row._id)}catch(e){row._id =  Products.dataSource.ObjectID()};
+				if(row.manufacturerId) try {row.manufacturerId = Products.dataSource.ObjectID(row.manufacturerId)}catch(e){delete row.manufacturerId};
+				if(row.categoryId) try {row.categoryId = Products.dataSource.ObjectID(row.categoryId)}catch(e){delete row.categoryId};
+				if(row.subCategoryId) try {row.subCategoryId = Products.dataSource.ObjectID(row.subCategoryId)}catch(e){delete row.subCategoryId};
+				if(row.tagsIds) try {row.tagsIds =JSON.parse(row.tagsIds)}catch(e){delete row.tagsIds};
+				if(row.productsIds) try {row.productsIds =JSON.parse(row.productsIds)}catch(e){delete row.tagsIds};
+				if(row.offersIds) try {row.offersIds =JSON.parse(row.offersIds)}catch(e){delete row.tagsIds};
+	      		batch.find({_id:row._id}).upsert().updateOne(row);
+			});
+		    batch.execute(function(err, result) {
+		    	if(err)
+		    		return cb(err);
+			    res.json({
+			     	nMatched : result.nMatched,
+			     	nInserted : result.nUpserted,
+			     	nModified : result.nModified
+			    })
+		    });
+		}) 
+	}
+	Products.remoteMethod('importProducts', {
+    	description: 'import products from excel file',
+		accepts: [
+			{arg: 'file', type: 'file',http : {source: 'form'}},
+			{arg: 'res', http: {source: 'res'}}
+		],
+		http: {verb: 'get',path: '/importProducts'},
+    });
 };
 
 
@@ -118,7 +165,7 @@ module.exports = function(Products) {
 var model = [
 	{
 	    displayName: "ID",
-	    access: "id",
+	    access: "_id",
 	    type: "string"
     },
     {
@@ -137,11 +184,6 @@ var model = [
 	    type: "string"
     },
     {
-	    displayName: "manufacturer",
-	    access: "manufacturer",
-	    type: "string"
-    },
-    {
 	    displayName: "pack",
 	    access: "pack",
 	    type: "string"
@@ -152,34 +194,34 @@ var model = [
 	    type: "string"
     },
     {
-	    displayName: "retailPrice",
+	    displayName: "retail price / before offer",
 	    access: "retailPrice",
 	    type: "number"
     },
     {
-	    displayName: "wholeSalePrice",
+	    displayName: "wholeSale price / before offer",
 	    access: "wholeSalePrice",
 	    type: "number"
     },
     {
-	    displayName: "marketPrice",
+    	displayName : "wholeSale market price",
+    	access : "wholeSaleMarketPrice",
+    	type : "number"
+    },
+    {
+	    displayName: "market price",
 	    access: "marketPrice",
 	    type: "number"
     },
     {
-	    displayName: "retailPriceDiscount",
+	    displayName: "retail Price discount / after offer",
 	    access: "retailPriceDiscount",
 	    type: "number"
     },
     {
-	    displayName: "wholeSalePriceDiscount",
+	    displayName: "wholeSale Price Discount / after offer",
 	    access: "wholeSalePriceDiscount",
 	    type: "number"
-    },
-    {
-	    displayName: "products",
-	    access: "products",
-	    type: "string"
     },
     {
 	    displayName: "is Featured",
@@ -192,6 +234,16 @@ var model = [
 	    type: "string"
     },
     {
+	    displayName: "is Offer",
+	    access: "isOffer",
+	    type: "boolean"
+    },
+    {
+	    displayName: "manufacturer ID",
+	    access: "manufacturerId",
+	    type: "string"
+    },
+    {
 	    displayName: "category ID",
 	    access: "categoryId",
 	    type: "string"
@@ -199,6 +251,21 @@ var model = [
     {
 	    displayName: "subCategory ID",
 	    access: "subCategoryId",
+	    type: "string"
+    },
+    {
+	    displayName: "tags",
+	    access: "tagsIds",
+	    type: "General"
+    },
+    {
+	    displayName: "products",
+	    access: "productsIds",
+	    type: "string"
+    },
+    {
+	    displayName: "related Offers",
+	    access: "offersIds",
 	    type: "string"
     },
 ]
