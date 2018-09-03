@@ -76,5 +76,13 @@
   "manufacturers": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "orders": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "orderProducts": {
+    "dataSource": "mongoDb",
+    "public": false
   }
 }

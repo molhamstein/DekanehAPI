@@ -1,0 +1,45 @@
+{
+  "name": "orders",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "orderDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "pending"
+    },
+    "totalPrice": {
+      "type": "number"
+    },
+    "clientType": {
+      "type": "string"
+    },
+    "products": {
+      "type": [
+        "orderProducts"
+      ],
+      "required" : true
+    }
+  },
+  "validations": [],
+  "relations": {
+    "client": {
+      "type": "belongsTo",
+      "model": "user"
+    },
+    "deliveryMember": {
+      "type": "belongsTo",
+      "model": "user"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

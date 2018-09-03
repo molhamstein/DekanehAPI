@@ -6,7 +6,6 @@ var debug = require('debug')('loopback:user');
 module.exports = function(User) {
 	User.validatesUniquenessOf('phoneNumber',{message: 'phoneNumber already exists'});
 	// user.validatesLengthOf('phoneNumber', {min: 9,max: 10 message: {min: 'phoneNumber is not syrian Number'}});
-	// User.validatesNumericalityOf('phoneNumber');
 	User.validatesInclusionOf('status', {in: ['pending', 'activated','deactivated']});
 	User.validatesInclusionOf('clientType', {in: ['wholesale', 'retailCostumer']});
 
