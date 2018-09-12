@@ -1,26 +1,30 @@
 {
-  "name": "privilege",
+  "name": "topSlider",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "code": {
+    "image": {
       "type": "string",
-      "id": true,
       "required": true
     },
-    "nameAr": {
+    "target": {
       "type": "string"
     },
-    "nameEn": {
+    "type": {
       "type": "string",
-      "required": true
+      "required": true,
+      "default": "external"
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "activated"
     },
     "creationDate": {
       "type": "date",
-      "required": true,
       "default": "$now"
     }
   },

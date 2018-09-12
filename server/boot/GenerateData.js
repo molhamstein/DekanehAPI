@@ -9,7 +9,17 @@ var area = [
 	{"nameAr" : "ميدان", "nameEn" : "midan"},
 	{"nameAr" : "زاهرة", "nameEn" : "Zahera"}
 ];
-
+var topSlider = [
+	{"image": "https://images.pexels.com/photos/104827/cat-pet-animal-domestic-104827.jpeg?auto=compress&cs=tinysrgb&h=350","type": "external"},
+	{"image": "http://104.217.253.15:3003/images/4e3bc962-e624-4826-aae7-e013983e31b2.png","target" : "5b86581e5404f62e708d9bee","type": "product"},
+	{"image": "http://104.217.253.15:3003/images/9f0806dd-d346-483c-bc80-2a4478b7f670.png","target" : "5b86581e5404f62e708d9bef","type": "product"},
+	{"image": "https://images.pexels.com/photos/104827/cat-pet-animal-domestic-104827.jpeg?auto=compress&cs=tinysrgb&h=350","type": "external"}
+];
+var suppliers = [
+	{"id" : "5b8fa87b917cd61848e3d56b", "titleEn" : "supplier1", "titleAr" : "مورد 1"},
+	{"id" : "5b8fa87c917cd61848e3d56c", "titleEn" : "supplier2", "titleAr" : "مورد 2"},
+	{"id" : "5b8fa87d917cd61848e3d56d", "titleEn" : "supplier3", "titleAr" : "مورد 3"}
+];
 
 createData('area',area,function(err,areas){
 	if(err)
@@ -22,6 +32,7 @@ createData('area',area,function(err,areas){
 		  "status" : "activated",
 		  "phoneNumber": "0936207611",
 		  "gender": "male",
+
 		  "ownerName" : "string",
 		  "shopName": "shop name",
 		  "locationPoint" : {
@@ -396,7 +407,55 @@ createData('area',area,function(err,areas){
 						createData('products',Products,function(err,products){
 							if(err)
 								return console.log(err);
-							console.log("Done");
+							createData('topSlider',topSlider,function(err,topSliders){
+								if(err)
+									return console.log(err);
+								var ordersFromSuppliers = [
+									{
+										"staffId" : users[0].id.toString(),
+										"supplierId" : "5b8fa87b917cd61848e3d56b",
+										"products": [
+										    {"count": 1,"price": 100 ,"nameAr": "متبل","nameEn": "motabal","productId": "5b86581e5404f62e708d9bee"},
+										    {"count": 2,"price": 200 ,"nameAr": "لحم لانشون","nameEn": "luncheon meat","productId": "5b86581e5404f62e708d9bef"},
+										    {"count": 24,"price": 800 ,"nameAr": "زيتون محشي فليفلة","nameEn": "olives stuffed pepper","productId": "5b86581e5404f62e708d9bf3"},
+										    {"count": 9,"price": 450 ,"nameAr": "سردين","nameEn": "sardines","productId": "5b86581e5404f62e708d9bf4"},
+										    {"count": 5,"price": 900 ,"nameAr": "طون","nameEn": "chicken luncheon meat","productId": "5b86581e5404f62e708d9bf5"},
+										    {"count": 1,"price": 1150 ,"nameAr": "طحينة","nameEn": "tahini","productId": "5b86581e5404f62e708d9bf6"}
+										],
+										"totalPrice" : 	29400
+									},
+									{
+										"staffId" : users[1].id.toString(),
+										"supplierId" : "5b8fa87c917cd61848e3d56c",
+										"products": [
+										    {"count": 5,"price": 1000,"nameAr": "حلاوة  البرج", "nameEn": "halawa al burj","productId": "5b86581e5404f62e708d9bf0"},
+										    {"count": 10,"price": 350,"nameAr": "حلاوة الرفاعي بالفستق الحلبي", "nameEn": "halawa al refai","productId": "5b86581e5404f62e708d9bf1"},
+										    {"count": 3,"price": 600 ,"nameAr": "مخلل خيار", "nameEn": "pickled cueumber","productId": "5b86581e5404f62e708d9bf2"}
+										],
+										"totalPrice" : 	10300
+									},
+									{
+										"staffId" : users[0].id.toString(),
+										"supplierId" : "5b8fa87d917cd61848e3d56d",
+										"products": [
+										    {"count": 1,"price": 1000,"nameAr": "حلاوة  البرج", "nameEn": "halawa al burj","productId": "5b86581e5404f62e708d9bf0"},
+										    {"count": 2,"price": 200 ,"nameAr": "لحم لانشون","nameEn": "luncheon meat","productId": "5b86581e5404f62e708d9bef"},
+										    {"count": 3,"price": 750 ,"nameAr": "ماء الزهر", "nameEn": "flower water","productId": "5b86581e5404f62e708d9bf8"}
+										],
+										"totalPrice" : 	3650
+									},
+								];
+
+								createData('suppliers',suppliers,function(err,Suppliers){
+									if(err)
+										return console.log(err);
+									createData('ordersFromSuppliers',ordersFromSuppliers,function(err,ordersFromSuppliers){
+										if(err)
+											return console.log(err);
+										console.log("Done");
+									});
+								});
+							});
 						});
 					});
 

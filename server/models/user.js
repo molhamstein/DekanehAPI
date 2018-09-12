@@ -9,6 +9,12 @@ module.exports = function(User) {
 	User.validatesInclusionOf('status', {in: ['pending', 'activated','deactivated']});
 	User.validatesInclusionOf('clientType', {in: ['wholesale', 'retailCostumer']});
 
+	User.prototype.hasPrivilege = function(privilegeName){
+		// return _.includes(this.privilegeIds, privilegeName);
+		return true;
+	}
+
+
 	// Hidden Function
 	// var functionsDisable = ['__count__accessToken']
 	// _.each(functionsDisable,(f)=>{

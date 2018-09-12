@@ -84,5 +84,29 @@
   "orderProducts": {
     "dataSource": "mongoDb",
     "public": false
+  },
+  "topSlider": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "ordersFromSuppliers": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "suppliers": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "coupons": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "ratings": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "notifications": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

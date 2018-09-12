@@ -1,27 +1,17 @@
 {
-  "name": "privilege",
+  "name": "suppliers",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "code": {
+    "titleAr": {
       "type": "string",
-      "id": true,
       "required": true
     },
-    "nameAr": {
+    "titleEn": {
       "type": "string"
-    },
-    "nameEn": {
-      "type": "string",
-      "required": true
-    },
-    "creationDate": {
-      "type": "date",
-      "required": true,
-      "default": "$now"
     }
   },
   "validations": [],

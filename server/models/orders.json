@@ -26,7 +26,13 @@
       "type": [
         "orderProducts"
       ],
-      "required" : true
+      "required": true
+    },
+    "assignedDate": {
+      "type": "date"
+    },
+    "deliveredDate": {
+      "type": "date"
     }
   },
   "validations": [],
@@ -38,6 +44,10 @@
     "deliveryMember": {
       "type": "belongsTo",
       "model": "user"
+    },
+    "coupon": {
+      "type": "belongsTo",
+      "model": "coupons"
     }
   },
   "acls": [],

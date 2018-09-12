@@ -11,6 +11,11 @@
     },
     "nameAr": {
       "type": "string"
+    },
+    "creationDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
     }
   },
   "validations": [],

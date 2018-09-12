@@ -1,18 +1,22 @@
 {
-  "name": "orderProducts",
+  "name": "ordersFromSuppliers",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
+  "scope": {
+    "include": [
+      "supplier",
+      "staff"
+    ]
+  },
   "properties": {
-    "count": {
-      "type": "number",
-      "required": true,
-      "default": 1
-    },
-    "price": {
-      "type": "number"
+    "products": {
+      "type": [
+        "orderProducts"
+      ],
+      "required": true
     },
     "creationDate": {
       "type": "date",
@@ -22,9 +26,13 @@
   },
   "validations": [],
   "relations": {
-    "product": {
+    "staff": {
       "type": "belongsTo",
-      "model": "products"
+      "model": "user"
+    },
+    "supplier": {
+      "type": "belongsTo",
+      "model": "suppliers"
     }
   },
   "acls": [],
