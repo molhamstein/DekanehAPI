@@ -1,4 +1,7 @@
 {
 	"host": "localhost:3003",
-	"host": "http://104.217.253.15:3003"
+	"host": "http://104.217.253.15:3003",
+	"oneSignalUserAuthKey":"ZWQ5NGI2YWEtZGNhYS00ODExLWFhODgtOWU1NTUxYTE0Mjcy",
+	"oneSignalAppId" : "1508f32a-f3dd-4007-adc3-ec67297ed3ab",
+	"oneSignalApIKey" : "NzM5MTY0YjMtMGI5ZC00MTk1LWE4ZDUtN2QwZDI1NmUzMTFh"
 }

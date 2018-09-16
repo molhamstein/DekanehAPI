@@ -16,6 +16,9 @@
       "type": "date",
       "required": true,
       "default": "$now"
+    },
+    "logo" :{
+      "type" : "string"
     }
   },
   "validations": [],

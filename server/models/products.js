@@ -78,7 +78,6 @@ module.exports = function(Products) {
 			{ $group : {_id : '$categoryId', info: { $first: "$category" }, products : {$push : '$$ROOT'}}}, 
 			{ $project : {titleEn : '$info.titleEn', titleAr : '$info.titleAr',  products : {$slice: [ "$products", limitPerCategory] }}}       
 	    ],cb)
-
 	}
 	Products.remoteMethod('getCategoriesWithProducts', {
     	description: 'get products grouped by categories   == 10 product in each category',
@@ -87,6 +86,188 @@ module.exports = function(Products) {
 		],
 		returns: {arg: 'body', type: 'body',root: true},
 		http: {verb: 'get',path: '/groupedByCategories'},
+    });
+
+    Products.getManufacturersWithProducts = function(categoryId,subCategoryId,limitPerManufacturer= 10,cb){
+		var where = {status : "available" };
+		if(categoryId)
+			where.categoryId = Products.dataSource.ObjectID(categoryId);
+		if(subCategoryId)
+			where.subCategoryId = Products.dataSource.ObjectID(subCategoryId);
+		console.log(where);
+		Products.getDataSource().connector.collection('products')
+		.aggregate([
+			{ $match: where},
+			{
+				$lookup:{
+			       from: 'categories',
+			       localField: 'categoryId',
+			       foreignField: '_id',
+			       as: 'category'
+			    }
+			},
+			{
+				$lookup:{
+			       from: 'categories',
+			       localField: 'subCategoryId',
+			       foreignField: '_id',
+			       as: 'subCategory'
+			    }
+			},
+			{
+				$lookup:{
+			       from: 'manufacturers',
+			       localField: 'manufacturerId',
+			       foreignField: '_id',
+			       as: 'manufacturer'
+			    }
+			},
+			{ $project: { 
+					"nameAr": 1,
+				    "nameEn": 1,
+				    "image": 1,
+				    "pack": 1,
+				    "description": 1,
+				    "retailPrice": 1,
+				    "wholeSalePrice": 1,
+				    "wholeSaleMarketPrice": 1,
+				    "marketPrice": 1,
+				    "retailPriceDiscount": 1,
+				    "wholeSalePriceDiscount":1,
+				    "isFeatured": 1, 
+				    "status": 1,
+				    "isOffer": 1,
+				    "categoryId": 1,	
+				    "subCategoryId": 1,
+				    "offersIds": 1,
+				    "productsIds": 1,
+				    "tagsIds": 1,
+					"manufacturerId" : 1,
+					"category": { "$arrayElemAt": [ "$category", 0 ] },
+					"subCategory": { "$arrayElemAt": [ "$subCategory", 0 ] },
+					"manufacturer": { "$arrayElemAt": [ "$manufacturer", 0 ] }
+				}
+			},
+			{ $group : {_id : '$manufacturerId', info: { $first: "$manufacturer" }, products : {$push : '$$ROOT'}}}, 
+			{ $project : {nameEn : '$info.nameEn', nameAr : '$info.nameAr',  products : {$slice: [ "$products", limitPerManufacturer] }}}       
+	    ],cb)
+	}
+
+    Products.remoteMethod('getManufacturersWithProducts', {
+    	description: 'get products grouped by manufacturer   == 10 product in each manufacturer',
+		accepts: [
+			{arg: 'categoryId', type: 'string', 'http': {source: 'query'}},
+			{arg: 'subCategoryId', type: 'string', 'http': {source: 'query'}},
+			{arg: 'limit', type: 'number', 'http': {source: 'query'}}
+		],
+		returns: {arg: 'body', type: 'body',root: true},
+		http: {verb: 'get',path: '/groupedByManufacturers'},
+    });
+
+
+
+    Products.similarProduct = function(productId,limit=10,res,cb){
+
+    	Products.findById(productId,function(err,product){
+    		if(err)
+    			return cb(err);
+    		if(!product)
+    			return cb(ERROR(404, 'product not found'));
+
+			Products.getDataSource().connector.collection('products')
+			.aggregate([
+				{ $match: {_id : {$ne : product.id}, tagsIds : {$in : product.tagsIds}} },
+				{ $project: { 
+					tagsIds: 1, 
+					rank: {$size : { $setIntersection: [ "$tagsIds", product.tagsIds ] }},
+					"nameAr": 1,
+				    "nameEn": 1,
+				    "image": 1,
+				    "pack": 1,
+				    "description": 1,
+				    "retailPrice": 1,
+				    "wholeSalePrice": 1,
+				    "wholeSaleMarketPrice": 1,
+				    "marketPrice": 1,
+				    "retailPriceDiscount": 1,
+				    "wholeSalePriceDiscount":1,
+				    "isFeatured": 1, 
+				    "status": 1,
+				    "isOffer": 1,
+				    "categoryId": 1,	
+				    "subCategoryId": 1,
+				    "offersIds": 1,
+				    "productsIds": 1,
+				    "tagsIds": 1,
+					"manufacturerId" : 1
+				}},
+				{ $sort: {rank : -1} },
+				{ $limit : limit},
+				{
+					$lookup:{
+				       from: 'categories',
+				       localField: 'categoryId',
+				       foreignField: '_id',
+				       as: 'category'
+				    }
+				},
+				{
+					$lookup:{
+				       from: 'categories',
+				       localField: 'subCategoryId',
+				       foreignField: '_id',
+				       as: 'subCategory'
+				    }
+				},
+				{
+					$lookup:{
+				       from: 'manufacturers',
+				       localField: 'manufacturerId',
+				       foreignField: '_id',
+				       as: 'manufacturer'
+				    }
+				},
+				{ $project: { 
+					"nameAr": 1,
+				    "nameEn": 1,
+				    "image": 1,
+				    "pack": 1,
+				    "description": 1,
+				    "retailPrice": 1,
+				    "wholeSalePrice": 1,
+				    "wholeSaleMarketPrice": 1,
+				    "marketPrice": 1,
+				    "retailPriceDiscount": 1,
+				    "wholeSalePriceDiscount":1,
+				    "isFeatured": 1, 
+				    "status": 1,
+				    "isOffer": 1,
+				    "categoryId": 1,	
+				    "subCategoryId": 1,
+				    "offersIds": 1,
+				    "productsIds": 1,
+				    "tagsIds": 1,
+					"manufacturerId" : 1,
+					"category": { "$arrayElemAt": [ "$category", 0 ] },
+					"subCategory": { "$arrayElemAt": [ "$subCategory", 0 ] },
+					"manufacturer": { "$arrayElemAt": [ "$manufacturer", 0 ] }
+				}},
+	     	],function(err,products){
+		     	if(err)  
+		     		return cb(err);
+		     	return res.json(products)
+		     });
+    	});
+	}
+
+
+	Products.remoteMethod('similarProduct', {
+		accepts: [
+			{arg: 'productId', type: 'string', 'http': {source: 'query'}},
+			{arg: 'limit', type: 'number', 'http': {source: 'query'}},
+			{arg: 'res', http: {source: 'res'}}
+		],
+		http: {verb: 'get',path: '/similarProduct'},
     });
 
 

@@ -3,10 +3,10 @@ var loopback = require('loopback')
 module.exports = function(server) {
   // Install a `/` route that returns server status
   global.ERROR = function(statusCode,message,code){
-	var err = new Error(message);
-	err.statusCode = statusCode;
-	err.code = code || (message.replace(/ /g, '_').toUpperCase());
-	return err;
+  	var err = new Error(message);
+  	err.statusCode = statusCode;
+  	err.code = code || (message.replace(/ /g, '_').toUpperCase());
+  	return err;
   }
 
   

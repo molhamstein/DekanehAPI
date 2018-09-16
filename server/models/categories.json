@@ -7,7 +7,6 @@
   },
   "scope": {
     "include": [
-      "subCategories"
     ]
   },
   "properties": {
@@ -22,6 +21,9 @@
       "type": "date",
       "required": true,
       "default": "$now"
+    },
+    "icon" : {
+      "type" : "string"
     }
   },
   "validations": [],
