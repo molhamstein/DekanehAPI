@@ -4,18 +4,18 @@ module.exports = function(name) {
 	return function(req, res, next) {
 		var userModel = req.app.models.user;
 		parseToken(req,res,()=>{
-	     	if (!req.accessToken){
-		     	var err = new Error('Authorization Required');
-		        err.statusCode = 401;
-		        err.code = 'AUTHORIZATION_REQUIRED';
-		        return next(err);
-	     	}
+	     	if (!req.accessToken)
+			    	return next(ERROR(403,'Authentication required'));
+	     	
 	     	userModel.findById(req.accessToken.userId, function(err, user) {
 			    if (err) return next(err);
 			    if (!user) return next(new Error('No user with this access token was found.'));
+			    
 			    req.user = user
+			    if(!user.hasPrivilege(name))
+			    	return next(ERROR(401,'authorization required'));
 	     		
-	     		return res.json(user)
+	     		return next();
 			});
 
 	     	

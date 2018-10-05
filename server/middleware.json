@@ -34,7 +34,7 @@
   "auth": {
     "./middleware/hasPrivilage": {
       "paths": [
-        "/api/users/"
+        "/apsi/users/"
       ],
       "params": [
         "getUsers"

@@ -269,7 +269,95 @@ module.exports = function(Products) {
 		],
 		http: {verb: 'get',path: '/similarProduct'},
     });
+	// app.dataSources.mongoDb
+	// .connector.connect(function(err, db) {
+ //      db.collection('products').createIndex({ titleAr: "text", titleEn: "text" }, function(err) {
+ //      });
+ //    })
+	Products.search = function(string,isOffer,limit=10,res,cb){
+		console.log(string)
+		Products.getDataSource().connector.collection('products')
+		.aggregate([
+			{
+				$lookup:{
+			       from: 'manufacturers',
+			       localField: 'manufacturerId',
+			       foreignField: '_id',
+			       as: 'manufacturer'
+			    }
+			},
+			{
+				$match :{
+					$or : [
+						{nameAr : { $regex: ".*(?i)" + string + ".*" }},
+						{nameEn : { $regex: ".*(?i)" + string + ".*" }},
+						{'manufacturer.nameEn' : { $regex: ".*(?i)" + string + ".*" }},
+						{'manufacturer.nameAr' : { $regex: ".*(?i)" + string + ".*" }},
+						{tagsIds : { $regex: ".*(?i)" + string + ".*" }},
 
+					]
+				}
+			},
+			{ $limit : limit},
+				{
+					$lookup:{
+				       from: 'categories',
+				       localField: 'categoryId',
+				       foreignField: '_id',
+				       as: 'category'
+				    }
+				},
+				{
+					$lookup:{
+				       from: 'categories',
+				       localField: 'subCategoryId',
+				       foreignField: '_id',
+				       as: 'subCategory'
+				    }
+				},
+				{ $project: { 
+					"nameAr": 1,
+				    "nameEn": 1,
+				    "image": 1,
+				    "pack": 1,
+				    "description": 1,
+				    "retailPrice": 1,
+				    "wholeSalePrice": 1,
+				    "wholeSaleMarketPrice": 1,
+				    "marketPrice": 1,
+				    "retailPriceDiscount": 1,
+				    "wholeSalePriceDiscount":1,
+				    "isFeatured": 1, 
+				    "status": 1,
+				    "isOffer": 1,
+				    "categoryId": 1,	
+				    "subCategoryId": 1,
+				    "offersIds": 1,
+				    "productsIds": 1,
+				    "tagsIds": 1,
+					"manufacturerId" : 1,
+					"category": { "$arrayElemAt": [ "$category", 0 ] },
+					"subCategory": { "$arrayElemAt": [ "$subCategory", 0 ] },
+					"manufacturer": { "$arrayElemAt": [ "$manufacturer", 0 ] }
+				}
+			},
+		],function(err,products){
+	     	if(err)  
+	     		return cb(err);
+	     	return res.json(products)
+	     });
+		
+	}
+
+	Products.remoteMethod('search', {
+		accepts: [
+			{arg: 'string', type: 'string', 'http': {source: 'query'}},
+			{arg: 'isOffer', type: 'boolean', 'http': {source: 'query'}},
+			{arg: 'limit', type: 'number', 'http': {source: 'query'}},
+			{arg: 'res', http: {source: 'res'}}
+		],
+		http: {verb: 'get',path: '/search'},
+    });
 
 
 

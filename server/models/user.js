@@ -10,6 +10,7 @@ module.exports = function(User) {
 	User.validatesInclusionOf('clientType', {in: ['wholesale', 'retailCostumer']});
 
 	User.prototype.hasPrivilege = function(privilegeName){
+		console.log(privilegeName)
 		// return _.includes(this.privilegeIds, privilegeName);
 		return true;
 	}
