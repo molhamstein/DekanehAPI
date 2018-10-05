@@ -275,9 +275,12 @@ module.exports = function(Products) {
  //      });
  //    })
 	Products.search = function(string,isOffer,limit=10,res,cb){
-		console.log(string)
-		Products.getDataSource().connector.collection('products')
-		.aggregate([
+		console.log(isOffer)
+		var stages = []
+		if(isOffer != undefined)
+			stages.push({$match : {isOffer : isOffer.toLowerCase() == 'true' ? true : false}});
+
+		stages.push(
 			{
 				$lookup:{
 			       from: 'manufacturers',
@@ -340,19 +343,22 @@ module.exports = function(Products) {
 					"subCategory": { "$arrayElemAt": [ "$subCategory", 0 ] },
 					"manufacturer": { "$arrayElemAt": [ "$manufacturer", 0 ] }
 				}
-			},
-		],function(err,products){
+			}
+		);
+
+		Products.getDataSource().connector.collection('products')
+		.aggregate(stages,function(err,products){
 	     	if(err)  
 	     		return cb(err);
 	     	return res.json(products)
 	     });
-		
+
 	}
 
 	Products.remoteMethod('search', {
 		accepts: [
 			{arg: 'string', type: 'string', 'http': {source: 'query'}},
-			{arg: 'isOffer', type: 'boolean', 'http': {source: 'query'}},
+			{arg: 'isOffer', type: 'string', 'http': {source: 'query'}},
 			{arg: 'limit', type: 'number', 'http': {source: 'query'}},
 			{arg: 'res', http: {source: 'res'}}
 		],
