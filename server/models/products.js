@@ -275,7 +275,6 @@ module.exports = function(Products) {
  //      });
  //    })
 	Products.search = function(string,isOffer,limit=10,res,cb){
-		console.log(isOffer)
 		var stages = []
 		if(isOffer != undefined)
 			stages.push({$match : {isOffer : isOffer.toLowerCase() == 'true' ? true : false}});

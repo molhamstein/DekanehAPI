@@ -58,7 +58,7 @@ module.exports = function(Orders) {
 					}
 					ctx.req.body.totalPrice += Number(product.count) * Number(product.price);
 					product.isOffer = pInfo.isOffer;
-					if(pInfo.isOffer) product.products = pInfo.products();
+					if(pInfo.isOffer) product.products = JSON.parse(JSON.stringify(pInfo.products()));
 				});
 
 				if(!ctx.req.body.couponCode)
