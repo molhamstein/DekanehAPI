@@ -32,17 +32,12 @@
   },
   "session": {},
   "auth": {
-    "./middleware/hasPrivilage": {
-      "paths": [
-        "/apsi/users/"
-      ],
-      "params": [
-        "getUsers"
-      ],
-      "verbs": [
-        "GET"
-      ]
-    }
+    "./middleware/hasPrivilage": [
+      {"paths": "/api/users$","params":"getUsers","verbs": ["GET"]},
+      {"paths": "/api/users/:id$","params":"showUser","verbs": ["GET"]},
+      {"paths": "/api/users/:id$","params":"editUser","verbs": ["PUT"]},
+      {"paths": "/api/users/count$","params":"getCountUsers","verbs": ["GET"]}
+    ]
   },
   "parse": {},
   "routes": {

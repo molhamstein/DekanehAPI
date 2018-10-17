@@ -149,8 +149,15 @@ module.exports = function(User) {
 	      function tokenHandler(err, token) {
 	        if (err) 
 	        	return fn(err);
-	        console.log(token)
-	        fn(err, token);
+	        var response ={
+	        	ttl : token.ttl,
+	        	userId : token.userId,
+	        	created : token.created,
+	        	id : token.id,
+	        	user : user
+	        };
+
+	        fn(err, response);
 	      }
 
 	      if (err) {

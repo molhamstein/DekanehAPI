@@ -1,2 +1,2 @@
-	var loopback = require('loopback')
+var loopback = require('loopback')
 module.exports = loopback.context
