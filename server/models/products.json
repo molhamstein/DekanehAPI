@@ -21,9 +21,6 @@
       "type": "string",
       "required": true
     },
-    "image": {
-      "type": "string"
-    },
     "pack": {
       "type": "string"
     },
@@ -39,6 +36,15 @@
       "required": true
     },
     "wholeSaleMarketPrice": {
+      "type": "number"
+    },
+    "marketOfficialPrice": {
+      "type": "number"
+    },
+    "marketActualPrice": {
+      "type": "number"
+    },
+    "dockanBuyingPrice": {
       "type": "number"
     },
     "marketPrice": {
@@ -62,10 +68,23 @@
       "required": true,
       "default": "available"
     },
+    "availableTo": {
+      "type": "string",
+      "required": true,
+      "default": "both"
+    },
     "isOffer": {
       "type": "boolean",
       "required": true,
       "default": false
+    },
+    "offerSource": {
+      "type": "string",
+      "required": true,
+      "default": "dockan"
+    },
+    "offerMaxQuantity": {
+      "type": "string"
     },
     "creationDate": {
       "type": "date",
@@ -110,6 +129,11 @@
       "options": {
         "validate": true
       }
+    },
+    "MEDIA": {
+      "type": "embedsOne",
+      "model": "media",
+      "property": "media"
     }
   },
   "acls": [],

@@ -4,6 +4,8 @@ var _ = require('lodash');
 var path = require('path');
 module.exports = function(Products) {
 	// Products.validatesInclusionOf('status', {in: ['available', 'unAvailable']});
+	Products.validatesInclusionOf('offerSource', {in: ['dockan', 'company','supplier']});
+	Products.validatesInclusionOf('availableTo', {in: ['both', 'wholesale','retailCostumer']});
 	Products.validatesPresenceOf('categoryId');	
 
 	Products.afterRemote('create', function(ctx,result, next) {
@@ -61,6 +63,10 @@ module.exports = function(Products) {
 				    "marketPrice": 1,
 				    "retailPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
+				    "marketOfficialPrice":1,
+				    "marketOfficialPrice":1,
+				    "dockanBuyingPrice":1,
+				    "availableTo":1,
 				    "isFeatured": 1, 
 				    "status": 1,
 				    "isOffer": 1,
@@ -134,6 +140,10 @@ module.exports = function(Products) {
 				    "marketPrice": 1,
 				    "retailPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
+				    "marketOfficialPrice":1,
+				    "marketOfficialPrice":1,
+				    "dockanBuyingPrice":1,
+				    "availableTo":1,
 				    "isFeatured": 1, 
 				    "status": 1,
 				    "isOffer": 1,
@@ -191,6 +201,10 @@ module.exports = function(Products) {
 				    "marketPrice": 1,
 				    "retailPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
+				    "marketOfficialPrice":1,
+				    "marketOfficialPrice":1,
+				    "dockanBuyingPrice":1,
+				    "availableTo":1,
 				    "isFeatured": 1, 
 				    "status": 1,
 				    "isOffer": 1,
@@ -239,6 +253,10 @@ module.exports = function(Products) {
 				    "marketPrice": 1,
 				    "retailPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
+				    "marketOfficialPrice":1,
+				    "marketOfficialPrice":1,
+				    "dockanBuyingPrice":1,
+				    "availableTo":1,
 				    "isFeatured": 1, 
 				    "status": 1,
 				    "isOffer": 1,
@@ -329,6 +347,10 @@ module.exports = function(Products) {
 				    "marketPrice": 1,
 				    "retailPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
+				    "marketOfficialPrice":1,
+				    "marketOfficialPrice":1,
+				    "dockanBuyingPrice":1,
+				    "availableTo":1,
 				    "isFeatured": 1, 
 				    "status": 1,
 				    "isOffer": 1,
@@ -452,8 +474,13 @@ var model = [
 	    type: "string"
     },
     {
-	    displayName: "image",
-	    access: "image",
+	    displayName: "attachment url",
+	    access: "media[url]",
+	    type: "string"
+    },
+    {
+	    displayName: "attachment thumbnail",
+	    access: "media[thumbnail]",
 	    type: "string"
     },
     {
@@ -487,6 +514,21 @@ var model = [
 	    type: "number"
     },
     {
+	    displayName: "market official price",
+	    access: "marketOfficialPrice",
+	    type: "number"
+    },
+    {
+	    displayName: "market actual price",
+	    access: "marketActualPrice",
+	    type: "number"
+    },
+    {
+	    displayName: "dockan buying price",
+	    access: "dockanBuyingPrice",
+	    type: "number"
+    },
+    {
 	    displayName: "retail Price discount / after offer",
 	    access: "retailPriceDiscount",
 	    type: "number"
@@ -507,9 +549,29 @@ var model = [
 	    type: "string"
     },
     {
+	    displayName: "available to",
+	    access: "availableTo",
+	    type: "string"
+    },
+    {
 	    displayName: "is Offer",
 	    access: "isOffer",
 	    type: "boolean"
+    },
+    {
+	    displayName: "offer source",
+	    access: "offerSource",
+	    type: "string"
+    },
+    {
+	    displayName: "offer max quantity",
+	    access: "offerMaxQuantity",
+	    type: "string"
+    },
+    {
+	    displayName: "creation date",
+	    access: "creationDate",
+	    type: "Date"
     },
     {
 	    displayName: "manufacturer ID",

@@ -42,14 +42,22 @@ module.exports = function(Orders) {
 					productsInfo[p.id.toString()] = p; 
 				});
 
-				_.each(products,product => {
+				_.each(products,(product,index) => {
 					var pInfo  = productsInfo[product.productId];
 					if(!pInfo)
-						return;
+						return delete products[index]
+					if(pInfo.availableTo != user.clientType && pInfo.availableTo != 'both')
+						return delete products[index]
+
 					product.nameEn = pInfo.nameEn; 
 					product.nameAr = pInfo.nameAr; 
 					product.pack = pInfo.pack; 
 					product.description = pInfo.description; 
+					product.marketOfficialPrice = pInfo.marketOfficialPrice; 
+					product.marketPrice = pInfo.marketPrice; 
+					product.marketActualPrice = pInfo.marketActualPrice; 
+					product.dockanBuyingPrice = pInfo.dockanBuyingPrice; 
+					product.offerSource = pInfo.offerSource; 
 					if(user.clientType == 'wholesale'){
 						product.price = (pInfo.wholeSalePriceDiscount && pInfo.wholeSalePriceDiscount) == 0? pInfo.wholeSalePrice: pInfo.wholeSalePriceDiscount ; 
 					}
@@ -58,8 +66,13 @@ module.exports = function(Orders) {
 					}
 					ctx.req.body.totalPrice += Number(product.count) * Number(product.price);
 					product.isOffer = pInfo.isOffer;
-					if(pInfo.isOffer) product.products = JSON.parse(JSON.stringify(pInfo.products()));
+					if(pInfo.isOffer){
+						product.products = JSON.parse(JSON.stringify(pInfo.products()));
+					}
 				});
+
+				if(ctx.req.body.totalPrice < 20000)
+					return next(ERROR(602,'total price is low'));
 
 				if(!ctx.req.body.couponCode)
 					return next();

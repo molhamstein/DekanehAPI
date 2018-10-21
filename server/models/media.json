@@ -1,23 +1,20 @@
 {
-  "name": "manufacturers",
+  "name": "media",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "nameEn": {
+    "url": {
       "type": "string"
     },
-    "nameAr": {
-      "type": "string"
-    },
-    "creationDate": {
-      "type": "date",
+    "type": {
+      "type": "string",
       "required": true,
-      "default": "$now"
+      "default": "image"
     },
-    "logo": {
+    "thumbnail": {
       "type": "string"
     }
   },
