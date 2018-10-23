@@ -4,7 +4,12 @@ var parseToken = require('loopback').token()
 module.exports = function(name,exclude) {
 
 	return function(req, res, next) {
-		var isExclude = false
+		req.checkPrivilege = true;
+
+		if(name == 'ALLOWTOALLUSERS')
+			return next();
+
+		var isExclude = false;
 		if(exclude)
 			_.each(exclude,(value,param)=>{if(req.params[param] == value) isExclude = true});
 		if(isExclude)

@@ -6,6 +6,9 @@
     "validateUpsert": true
   },
   "properties": {
+    "code" : {
+      "type" : "string"
+    },
     "orderDate": {
       "type": "date",
       "required": true,

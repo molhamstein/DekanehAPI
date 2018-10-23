@@ -6,6 +6,10 @@
     "validateUpsert": true
   },
   "properties": {
+    "code" : {
+      "type" : "string",
+      "default" : "000"
+    },
     "nameEn": {
       "type": "string"
     },

@@ -108,6 +108,18 @@ module.exports = function(Orders) {
 		});
 	});
 
+	Orders.afterRemote('create', function(ctx,result, next) {
+		console.log(result);
+		result.code = result.id.toString().slice(18);
+		return result.save(next);
+
+		// Business.findOne({where: {nameUnique : ctx.args.id}},function(err,busniess){
+		// 	if(err  || !busniess)
+		// 		return next(err);
+	 //  		return ctx.res.json(busniess)
+		// })
+	});
+
 
 	Orders.assignOrderToDelivery = function(orderId,userId, cb) {
 		Orders.app.models.user.findById(userId,function(err,user){

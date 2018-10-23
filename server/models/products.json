@@ -84,6 +84,12 @@
       "default": "dockan"
     },
     "offerMaxQuantity": {
+      "type": "number"
+    },
+    "code": {
+      "type": "string"
+    },
+    "sku": {
       "type": "string"
     },
     "creationDate": {

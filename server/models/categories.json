@@ -9,6 +9,10 @@
     "include": []
   },
   "properties": {
+    "code" : {
+      "type" : "string",
+      "default" : "000"
+    },
     "titleAr": {
       "type": "string"
     },
