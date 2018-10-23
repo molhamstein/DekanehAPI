@@ -1,7 +1,16 @@
+var _ = require('lodash');
 var parseToken = require('loopback').token()
 
-module.exports = function(name) {
+module.exports = function(name,exclude) {
+
 	return function(req, res, next) {
+		var isExclude = false
+		if(exclude)
+			_.each(exclude,(value,param)=>{if(req.params[param] == value) isExclude = true});
+		if(isExclude)
+			return next();
+
+		
 		console.log(name);
 		var userModel = req.app.models.user;
 		parseToken(req,res,()=>{
