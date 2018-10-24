@@ -434,7 +434,7 @@ module.exports = function(Products) {
 		accepts: [
 			{arg: 'res', http: {source: 'res'}}
 		],
-		http: {verb: 'post',path: '/exportProducts'},
+		http: {verb: 'get',path: '/exportProducts'},
     });
 
 
