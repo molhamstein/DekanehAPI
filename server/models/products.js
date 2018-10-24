@@ -93,7 +93,6 @@ module.exports = function(Products) {
 				    "retailPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
 				    "marketOfficialPrice":1,
-				    "marketOfficialPrice":1,
 				    "dockanBuyingPrice":1,
 				    "availableTo":1,
 				    "isFeatured": 1, 
@@ -174,7 +173,6 @@ module.exports = function(Products) {
 				    "retailPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
 				    "marketOfficialPrice":1,
-				    "marketOfficialPrice":1,
 				    "dockanBuyingPrice":1,
 				    "availableTo":1,
 				    "isFeatured": 1, 
@@ -239,7 +237,6 @@ module.exports = function(Products) {
 				    "retailPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
 				    "marketOfficialPrice":1,
-				    "marketOfficialPrice":1,
 				    "dockanBuyingPrice":1,
 				    "availableTo":1,
 				    "isFeatured": 1, 
@@ -294,7 +291,6 @@ module.exports = function(Products) {
 				    "marketPrice": 1,
 				    "retailPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
-				    "marketOfficialPrice":1,
 				    "marketOfficialPrice":1,
 				    "dockanBuyingPrice":1,
 				    "availableTo":1,
@@ -392,7 +388,6 @@ module.exports = function(Products) {
 				    "marketPrice": 1,
 				    "retailPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
-				    "marketOfficialPrice":1,
 				    "marketOfficialPrice":1,
 				    "dockanBuyingPrice":1,
 				    "availableTo":1,
@@ -573,11 +568,6 @@ var model = [
     {
 	    displayName: "market official price",
 	    access: "marketOfficialPrice",
-	    type: "number"
-    },
-    {
-	    displayName: "market actual price",
-	    access: "marketActualPrice",
 	    type: "number"
     },
     {

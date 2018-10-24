@@ -41,9 +41,6 @@
     "marketOfficialPrice": {
       "type": "number"
     },
-    "marketActualPrice": {
-      "type": "number"
-    },
     "dockanBuyingPrice": {
       "type": "number"
     },
