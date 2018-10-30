@@ -112,5 +112,9 @@
   "media": {
     "dataSource": "mongoDb",
     "public": false
+  },
+  "offerProducts": {
+    "dataSource": "mongoDb",
+    "public": false
   }
 }

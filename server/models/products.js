@@ -10,6 +10,8 @@ module.exports = function(Products) {
 	Products.validatesPresenceOf('categoryId');	
 
 	Products.beforeRemote('create', function(ctx, modelInstance, next) {
+		var index = 1;
+		_.each(ctx.req.body.offerProducts,(p)=>{p.id = index++;});
 		async.parallel([
 		   _fn('categories',ctx.req.body.categoryId),
 		   _fn('categories',ctx.req.body.subCategoryId),
@@ -471,8 +473,8 @@ module.exports = function(Products) {
 				if(row.categoryId) try {row.categoryId = Products.dataSource.ObjectID(row.categoryId)}catch(e){delete row.categoryId};
 				if(row.subCategoryId) try {row.subCategoryId = Products.dataSource.ObjectID(row.subCategoryId)}catch(e){delete row.subCategoryId};
 				if(row.tagsIds) try {row.tagsIds =JSON.parse(row.tagsIds)}catch(e){delete row.tagsIds};
-				if(row.productsIds) try {row.productsIds =JSON.parse(row.productsIds)}catch(e){delete row.tagsIds};
-				if(row.offersIds) try {row.offersIds =JSON.parse(row.offersIds)}catch(e){delete row.tagsIds};
+				if(row.offerProducts) try {row.offerProducts =JSON.parse(row.offerProducts)}catch(e){delete row.offerProducts};
+				if(row.offersIds) try {row.offersIds =JSON.parse(row.offersIds)}catch(e){delete row.offersIds};
 	      		batch.find({_id:row._id}).upsert().updateOne(row);
 			});
 		    batch.execute(function(err, result) {
@@ -636,8 +638,8 @@ var model = [
 	    type: "General"
     },
     {
-	    displayName: "products",
-	    access: "productsIds",
+	    displayName: "offer products",
+	    access: "offerProducts",
 	    type: "string"
     },
     {

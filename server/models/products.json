@@ -123,12 +123,12 @@
       }
     },
     "products": {
-      "type": "referencesMany",
-      "model": "products",
-      "foreignKey": "productsIds",
+      "type": "embedsMany",
+      "model": "offerProducts",
       "options": {
         "validate": true
-      }
+      },
+      "scope":{"include":"product"}
     },
     "MEDIA": {
       "type": "embedsOne",

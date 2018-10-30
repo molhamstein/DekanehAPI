@@ -54,8 +54,6 @@ module.exports = function(Orders) {
 					product.pack = pInfo.pack; 
 					product.description = pInfo.description; 
 					product.marketOfficialPrice = pInfo.marketOfficialPrice; 
-					product.marketPrice = pInfo.marketPrice; 
-					product.marketActualPrice = pInfo.marketActualPrice; 
 					product.dockanBuyingPrice = pInfo.dockanBuyingPrice; 
 					product.offerSource = pInfo.offerSource; 
 					if(user.clientType == 'wholesale'){
@@ -67,7 +65,7 @@ module.exports = function(Orders) {
 					ctx.req.body.totalPrice += Number(product.count) * Number(product.price);
 					product.isOffer = pInfo.isOffer;
 					if(pInfo.isOffer){
-						product.products = JSON.parse(JSON.stringify(pInfo.products()));
+						product.products = JSON.parse(JSON.stringify(pInfo.offerProducts()));
 					}
 				});
 
@@ -112,12 +110,6 @@ module.exports = function(Orders) {
 		console.log(result);
 		result.code = result.id.toString().slice(18);
 		return result.save(next);
-
-		// Business.findOne({where: {nameUnique : ctx.args.id}},function(err,busniess){
-		// 	if(err  || !busniess)
-		// 		return next(err);
-	 //  		return ctx.res.json(busniess)
-		// })
 	});
 
 
