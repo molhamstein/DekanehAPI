@@ -44,9 +44,6 @@
     "dockanBuyingPrice": {
       "type": "number"
     },
-    "marketPrice": {
-      "type": "number"
-    },
     "retailPriceDiscount": {
       "type": "number",
       "default": 0

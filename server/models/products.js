@@ -561,11 +561,6 @@ var model = [
     	type : "number"
     },
     {
-	    displayName: "market price",
-	    access: "marketPrice",
-	    type: "number"
-    },
-    {
 	    displayName: "market official price",
 	    access: "marketOfficialPrice",
 	    type: "number"
