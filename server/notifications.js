@@ -1,13 +1,13 @@
 var myConfig = require('../server/myConfig.json');
-// var OneSignal = require('onesignal-node');
+var OneSignal = require('onesignal-node');
 var _ = require('lodash')
 
 
 
-// var myClient = new OneSignal.Client({
-//     userAuthKey: myConfig.oneSignalUserAuthKey,
-//     app: { appAuthKey: myConfig.oneSignalApIKey, appId: myConfig.oneSignalAppId }
-// });
+var myClient = new OneSignal.Client({
+    userAuthKey: myConfig.oneSignalUserAuthKey,
+    app: { appAuthKey: myConfig.oneSignalApIKey, appId: myConfig.oneSignalAppId }
+});
 
 
 
@@ -42,7 +42,7 @@ var _sendNotificationToMultiUsers = function(usersIds,actorId,action,object){
 
 
 var _sendNotification = function(userId,actorId,action,object){
-	// _sendOneSignalNotification(userId,message,_type);
+	_sendOneSignalNotification(userId,"please rate");
 
 	app.models.notifications.create({
 		ownerId : userId,
@@ -56,18 +56,18 @@ var _sendNotification = function(userId,actorId,action,object){
 	});
 }
 
-// var _sendOneSignalNotification = function(userId,message,_type){
-// 	var firstNotification = new OneSignal.Notification({    
-//     	contents: {    
-// 	        message: message
-// 	    },
-// 	});    
-// 	firstNotification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=", "value": userId}]; 
-// 	myClient.sendNotification(firstNotification, function (err, httpResponse,data) {    
-// 	if (err) {    
-// 	    console.log('Something went wrong...');    
-// 	} else {    
-// 	    console.log(data, httpResponse.statusCode);    
-// 	}    
-// });   
-// }
+var _sendOneSignalNotification = function(userId,message){
+	var firstNotification = new OneSignal.Notification({    
+    	contents: {    
+	        message: message
+	    },
+	});    
+	firstNotification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=", "value": userId}]; 
+	myClient.sendNotification(firstNotification, function (err, httpResponse,data) {    
+	if (err) {    
+	    console.log('Something went wrong...');    
+	} else {    
+	    console.log(data, httpResponse.statusCode);    
+	}    
+});   
+}

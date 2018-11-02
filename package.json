@@ -24,6 +24,7 @@
     "loopback-datatype-objectid": "^1.0.5",
     "mongo-xlsx": "^1.0.12",
     "node-thumbnail": "^0.14.0",
+    "onesignal-node": "^2.0.1",
     "serve-favicon": "^2.0.1",
     "strong-error-handler": "^2.0.0"
   },

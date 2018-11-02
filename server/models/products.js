@@ -6,7 +6,7 @@ var path = require('path');
 module.exports = function(Products) {
 	// Products.validatesInclusionOf('status', {in: ['available', 'unAvailable']});
 	Products.validatesInclusionOf('offerSource', {in: ['dockan', 'company','supplier']});
-	Products.validatesInclusionOf('availableTo', {in: ['both', 'wholesale','retailCostumer']});
+	Products.validatesInclusionOf('availableTo', {in: ['both', 'wholesale','horeca']});
 	Products.validatesPresenceOf('categoryId');	
 
 	Products.beforeRemote('create', function(ctx, modelInstance, next) {
@@ -88,11 +88,11 @@ module.exports = function(Products) {
 				    "sku": 1,
 				    "pack": 1,
 				    "description": 1,
-				    "retailPrice": 1,
+				    "horecaPrice": 1,
 				    "wholeSalePrice": 1,
 				    "wholeSaleMarketPrice": 1,
 				    "marketPrice": 1,
-				    "retailPriceDiscount": 1,
+				    "horecaPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
 				    "marketOfficialPrice":1,
 				    "dockanBuyingPrice":1,
@@ -168,11 +168,11 @@ module.exports = function(Products) {
 				    "sku": 1,
 				    "pack": 1,
 				    "description": 1,
-				    "retailPrice": 1,
+				    "horecaPrice": 1,
 				    "wholeSalePrice": 1,
 				    "wholeSaleMarketPrice": 1,
 				    "marketPrice": 1,
-				    "retailPriceDiscount": 1,
+				    "horecaPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
 				    "marketOfficialPrice":1,
 				    "dockanBuyingPrice":1,
@@ -232,11 +232,11 @@ module.exports = function(Products) {
 				    "sku": 1,
 				    "pack": 1,
 				    "description": 1,
-				    "retailPrice": 1,
+				    "horecaPrice": 1,
 				    "wholeSalePrice": 1,
 				    "wholeSaleMarketPrice": 1,
 				    "marketPrice": 1,
-				    "retailPriceDiscount": 1,
+				    "horecaPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
 				    "marketOfficialPrice":1,
 				    "dockanBuyingPrice":1,
@@ -287,11 +287,11 @@ module.exports = function(Products) {
 				    "sku": 1,
 				    "pack": 1,
 				    "description": 1,
-				    "retailPrice": 1,
+				    "horecaPrice": 1,
 				    "wholeSalePrice": 1,
 				    "wholeSaleMarketPrice": 1,
 				    "marketPrice": 1,
-				    "retailPriceDiscount": 1,
+				    "horecaPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
 				    "marketOfficialPrice":1,
 				    "dockanBuyingPrice":1,
@@ -384,11 +384,11 @@ module.exports = function(Products) {
 				    "sku": 1,
 				    "pack": 1,
 				    "description": 1,
-				    "retailPrice": 1,
+				    "horecaPrice": 1,
 				    "wholeSalePrice": 1,
 				    "wholeSaleMarketPrice": 1,
 				    "marketPrice": 1,
-				    "retailPriceDiscount": 1,
+				    "horecaPriceDiscount": 1,
 				    "wholeSalePriceDiscount":1,
 				    "marketOfficialPrice":1,
 				    "dockanBuyingPrice":1,
@@ -548,8 +548,8 @@ var model = [
 	    type: "string"
     },
     {
-	    displayName: "retail price / before offer",
-	    access: "retailPrice",
+	    displayName: "horeca price / before offer",
+	    access: "horecaPrice",
 	    type: "number"
     },
     {
@@ -573,8 +573,8 @@ var model = [
 	    type: "number"
     },
     {
-	    displayName: "retail Price discount / after offer",
-	    access: "retailPriceDiscount",
+	    displayName: "horeca Price discount / after offer",
+	    access: "horecaPriceDiscount",
 	    type: "number"
     },
     {

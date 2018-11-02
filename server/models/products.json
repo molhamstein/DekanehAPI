@@ -27,7 +27,7 @@
     "description": {
       "type": "string"
     },
-    "retailPrice": {
+    "horecaPrice": {
       "type": "number",
       "required": true
     },
@@ -44,7 +44,7 @@
     "dockanBuyingPrice": {
       "type": "number"
     },
-    "retailPriceDiscount": {
+    "horecaPriceDiscount": {
       "type": "number",
       "default": 0
     },

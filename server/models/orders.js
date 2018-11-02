@@ -60,7 +60,7 @@ module.exports = function(Orders) {
 						product.price = (pInfo.wholeSalePriceDiscount && pInfo.wholeSalePriceDiscount) == 0? pInfo.wholeSalePrice: pInfo.wholeSalePriceDiscount ; 
 					}
 					else{
-						product.price = (pInfo.retailPriceDiscount && pInfo.retailPriceDiscount) == 0? pInfo.retailPrice: pInfo.retailPriceDiscount ; 
+						product.price = (pInfo.horecaPriceDiscount && pInfo.horecaPriceDiscount) == 0? pInfo.horecaPrice: pInfo.horecaPriceDiscount ; 
 					}
 					ctx.req.body.totalPrice += Number(product.count) * Number(product.price);
 					product.isOffer = pInfo.isOffer;

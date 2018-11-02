@@ -7,7 +7,7 @@ module.exports = function(User) {
 	User.validatesUniquenessOf('phoneNumber',{message: 'phoneNumber already exists'});
 	// user.validatesLengthOf('phoneNumber', {min: 9,max: 10 message: {min: 'phoneNumber is not syrian Number'}});
 	User.validatesInclusionOf('status', {in: ['pending', 'activated','deactivated']});
-	User.validatesInclusionOf('clientType', {in: ['wholesale', 'retailCostumer']});
+	User.validatesInclusionOf('clientType', {in: ['wholesale', 'horeca']});
 
 	User.prototype.hasPrivilege = function(privilegeName){
 		// console.log(privilegeName)
