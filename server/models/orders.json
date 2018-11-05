@@ -5,6 +5,12 @@
   "options": {
     "validateUpsert": true
   },
+  "scope": {
+    "include": [
+      "client",
+      "deliveryMember"
+    ]
+  },
   "properties": {
     "code": {
       "type": "string"
