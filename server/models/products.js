@@ -12,29 +12,29 @@ module.exports = function(Products) {
 	Products.beforeRemote('create', function(ctx, modelInstance, next) {
 		var index = 1;
 		_.each(ctx.req.body.offerProducts,(p)=>{p.id = index++;});
-		async.parallel([
-		   _fn('categories',ctx.req.body.categoryId),
-		   _fn('categories',ctx.req.body.subCategoryId),
-		   _fn('manufacturers',ctx.req.body.manufacturerId),
-		],
-		function(err, results) {
-			if(err)
-				return next(err);
-			ctx.req.body.code = results.join('');
+		// async.parallel([
+		//    _fn('categories',ctx.req.body.categoryId),
+		//    _fn('categories',ctx.req.body.subCategoryId),
+		//    _fn('manufacturers',ctx.req.body.manufacturerId),
+		// ],
+		// function(err, results) {
+		// 	if(err)
+		// 		return next(err);
+		// 	ctx.req.body.code = results.join('');
 			return next();
-		});
+		// });
 	});
-	var _fn = function(modelName,value){
-		return function(cb){
-			if(!Products.dataSource.ObjectID.isValid(value))
-				return cb(null,'000');
-	    	Products.app.models[modelName].findById(value,function(err,result){
-	    		if(err)
-	    			return cb(err);
-	    		return cb(null,(result)?result.code:'000');
-	    	});
-		}
-	}
+	// var _fn = function(modelName,value){
+	// 	return function(cb){
+	// 		if(!Products.dataSource.ObjectID.isValid(value))
+	// 			return cb(null,'000');
+	//     	Products.app.models[modelName].findById(value,function(err,result){
+	//     		if(err)
+	//     			return cb(err);
+	//     		return cb(null,(result)?result.code:'000');
+	//     	});
+	// 	}
+	// }
 
 
 	Products.afterRemote('create', function(ctx,result, next) {

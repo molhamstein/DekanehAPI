@@ -56,6 +56,7 @@ module.exports = function(Orders) {
 					product.marketOfficialPrice = pInfo.marketOfficialPrice; 
 					product.dockanBuyingPrice = pInfo.dockanBuyingPrice; 
 					product.offerSource = pInfo.offerSource; 
+					product.media = pInfo.media; 
 					if(user.clientType == 'wholesale'){
 						product.price = (pInfo.wholeSalePriceDiscount && pInfo.wholeSalePriceDiscount) == 0? pInfo.wholeSalePrice: pInfo.wholeSalePriceDiscount ; 
 					}
