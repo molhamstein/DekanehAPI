@@ -42,7 +42,7 @@ var _sendNotificationToMultiUsers = function(usersIds,actorId,action,object){
 
 
 var _sendNotification = function(userId,actorId,action,object){
-	_sendOneSignalNotification(userId,"please rate");
+	_sendOneSignalNotification(userId,"please rate",object);
 
 	app.models.notifications.create({
 		ownerId : userId,
@@ -56,13 +56,15 @@ var _sendNotification = function(userId,actorId,action,object){
 	});
 }
 
-var _sendOneSignalNotification = function(userId,message){
+var _sendOneSignalNotification = function(userId,message,object){
 	var firstNotification = new OneSignal.Notification({    
     	contents: {    
 	        message: message
 	    },
 	});    
 	firstNotification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=", "value": userId}]; 
+	firstNotification.postBody["data"] = {"orderId": object.orderId, "openActivity": "rating"};  
+
 	myClient.sendNotification(firstNotification, function (err, httpResponse,data) {    
 	if (err) {    
 	    console.log('Something went wrong...');    
