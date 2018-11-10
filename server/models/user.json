@@ -25,7 +25,7 @@
     "clientType": {
       "type": "string",
       "required": true,
-      "default": "retailCostumer"
+      "default": "horeca"
     },
     "ownerName": {
       "type": "string"
