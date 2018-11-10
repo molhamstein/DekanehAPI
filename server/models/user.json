@@ -9,6 +9,11 @@
     "credentials",
     "challenges"
   ],
+   "scope": {
+    "include": [
+      "roles"
+    ]
+  },
   "properties": {
     "phoneNumber": {
       "type": "string",
