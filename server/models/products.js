@@ -5,7 +5,7 @@ var async = require('async');
 var path = require('path');
 module.exports = function(Products) {
 	// Products.validatesInclusionOf('status', {in: ['available', 'unAvailable']});
-	Products.validatesInclusionOf('offerSource', {in: ['dockan', 'company','supplier']});
+	// Products.validatesInclusionOf('offerSource', {in: ['dockan', 'company','supplier']});
 	Products.validatesInclusionOf('availableTo', {in: ['both', 'wholesale','horeca']});
 	Products.validatesPresenceOf('categoryId');	
 
