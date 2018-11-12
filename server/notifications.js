@@ -63,7 +63,7 @@ var _sendOneSignalNotification = function(userId,message,object){
 	        message: message
 	    },
 	});    
-	firstNotification.postBody["filters"] = [{"field": "tag", "key": "userId", "relation": "=", "value": userId}]; 
+	firstNotification.postBody["filters"] = [{"field": "tag", "key": "user_id", "relation": "=", "value": userId}]; 
 	firstNotification.postBody["data"] = {"orderId": object.orderId, "openActivity": "rating"};  
 
 	myClient.sendNotification(firstNotification, function (err, httpResponse,data) {    
