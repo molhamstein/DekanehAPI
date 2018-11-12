@@ -13,6 +13,7 @@ module.exports = function(Orders) {
 			return next(ERROR(400,'products can\'t be empty',"PRODUCTS_REQUIRED"))
 		var products = ctx.req.body.products;
 
+
 		var productsIds = []
 		_.each(products,product =>{
 			try{
@@ -34,6 +35,7 @@ module.exports = function(Orders) {
 				if(err)
 					return next(err);
 
+				ctx.req.body.status = 'pending';
 				ctx.req.body.clientType = user.clientType;
 				ctx.req.body.totalPrice = 0;
 
