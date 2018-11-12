@@ -42,6 +42,7 @@ var _sendNotificationToMultiUsers = function(usersIds,actorId,action,object){
 
 
 var _sendNotification = function(userId,actorId,action,object){
+	console.log("qwe123",userId);
 	_sendOneSignalNotification(userId,"please rate",object);
 
 	app.models.notifications.create({
