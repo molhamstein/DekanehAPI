@@ -163,10 +163,11 @@ module.exports = function(Orders) {
 				return cb(err);
 			if(!order)
 				return cb(ERROR(404,'order not found'));
+
 			// if(order.status != 'inDelivery')
 			// 	return cb(ERROR(400, 'order not in delivery'));
 
-			// // TODO : or admin can edit order status to delivered
+			// TODO : or admin can edit order status to delivered
 			// if(order.deliveryMemberId != req.user.id.toString())
 			// 	return cb(ERROR (500,'not privilege to this order'));
 			
