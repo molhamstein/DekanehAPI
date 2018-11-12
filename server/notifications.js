@@ -60,7 +60,7 @@ var _sendNotification = function(userId,actorId,action,object){
 var _sendOneSignalNotification = function(userId,message,object){
 	var firstNotification = new OneSignal.Notification({    
     	contents: {    
-	        message: message
+	        en: message
 	    },
 	});    
 	firstNotification.postBody["filters"] = [{"field": "tag", "key": "user_id", "relation": "=", "value": userId}]; 
