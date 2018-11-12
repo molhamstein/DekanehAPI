@@ -164,8 +164,8 @@ module.exports = function(Orders) {
 			if(!order)
 				return cb(ERROR(404,'order not found'));
 
-			// if(order.status != 'inDelivery')
-			// 	return cb(ERROR(400, 'order not in delivery'));
+			if(order.status != 'inDelivery')
+				return cb(ERROR(400, 'order not in delivery'));
 
 			// TODO : or admin can edit order status to delivered
 			// if(order.deliveryMemberId != req.user.id.toString())
