@@ -23,13 +23,17 @@ module.exports = function(Attachment) {
 				console.log(dim.width, dim.height);
 				sharp('./files/images/'+file.name)
 				  .resize({width : dim.width/2,height : dim.height/2 })
+			  	  .background("white")
+				  .flatten()
+				  .jpeg()
 				  .toBuffer()
 				  .then(data => {
 				  	fs.writeFile("./files/thumb/"+file.name.split(".")[0]+"_thumb.jpeg", data, "binary", function(err) {
 				  		if(err)
 				  			return cb(err);
 						ctx.result.push({
-							url : myConfig.host + '/' + file.container + '/' + file.name					
+							url : myConfig.host + '/' + file.container + '/' + file.name,
+							thumbnail : myConfig.host + '/thumbnail/' + file.name.split(".")[0] + '.jpeg'		
 						});
 						return cb();
 					});
@@ -61,15 +65,23 @@ module.exports = function(Attachment) {
 		  files.forEach(file => {
 			var dim = sizeOf('./files/images/'+file);
 			console.log(dim.width, dim.height);
-
-			sharp('./files/images/'+file)
-			  .resize({width : dim.width/2,height : dim.height/2 })
-			  .toBuffer()
-			  .then(data => {
-			  	fs.writeFile("./files/thumb/"+file.split(".")[0]+"_thumb.jpeg", data, "binary", function(err) {
-				  console.log(err); // writes out file without error, but it's not a valid image
-				});
-			  });
+			Attachment.app.models.products.findOne({where : {'media.url' : file}},function(err,product){
+				if(!err && product){
+					product.media.thumbnail = myConfig.host + '/thumbnail/' + file.split(".")[0] + '.jpeg';
+					product.save((err)=>{console.log("ASDSDASDASDASD",err)});
+				}
+				sharp('./files/images/'+file)
+				  .resize({width : dim.width/2,height : dim.height/2 })
+				  .background("white")
+				  .flatten()
+				  .jpeg()
+				  .toBuffer()
+				  .then(data => {
+				  	fs.writeFile("./files/thumb/"+file.split(".")[0]+".jpeg", data, "binary", function(err) {
+					  console.log(err); // writes out file without error, but it's not a valid image
+					});
+				  });
+			});
 		  });
 		});
 	}
