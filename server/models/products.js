@@ -113,7 +113,7 @@ module.exports = function(Products) {
 					"manufacturer": { "$arrayElemAt": [ "$manufacturer", 0 ] }
 				}
 			},
-			{ $group : {_id : '$categoryId', info: { $first: "$category" }, products : {$push : '$$ROOT'}}}, 
+			{ $group : {id : '$categoryId', info: { $first: "$category" }, products : {$push : '$$ROOT'}}}, 
 			{ $project : {titleEn : '$info.titleEn', titleAr : '$info.titleAr',  products : {$slice: [ "$products", limitPerCategory] }}}       
 	    ],cb)
 	}

@@ -65,7 +65,7 @@ module.exports = function(Attachment) {
 		  files.forEach(file => {
 			var dim = sizeOf('./files/images/'+file);
 			console.log(dim.width, dim.height);
-			Attachment.app.models.products.findOne({where : {'media.url' : file}},function(err,product){
+			Attachment.app.models.products.findOne({where : {'media.url' : myConfig.host + '/images/' +file}},function(err,product){
 				if(!err && product){
 					product.media.thumbnail = myConfig.host + '/thumbnail/' + file.split(".")[0] + '.jpeg';
 					product.save((err)=>{console.log("ASDSDASDASDASD",err)});
