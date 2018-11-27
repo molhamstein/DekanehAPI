@@ -115,7 +115,13 @@ module.exports = function(Products) {
 			},
 			{ $group : {_id : '$categoryId', info: { $first: "$category" }, products : {$push : '$$ROOT'}}}, 
 			{ $project : {titleEn : '$info.titleEn', titleAr : '$info.titleAr',  products : {$slice: [ "$products", limitPerCategory] }}}       
-	    ],cb)
+	    ],function(err,data){
+	    	_.each(data,function(d){
+	    		d.id = d._id 
+	    		_.each(d.products,function(p){p.id = p._id });
+	    	});
+	    	return cb(err,data);
+	    });
 	}
 	Products.remoteMethod('getCategoriesWithProducts', {
     	description: 'get products grouped by categories   == 10 product in each category',
@@ -195,7 +201,13 @@ module.exports = function(Products) {
 			},
 			{ $group : {_id : '$manufacturerId', info: { $first: "$manufacturer" }, products : {$push : '$$ROOT'}}}, 
 			{ $project : {nameEn : '$info.nameEn', nameAr : '$info.nameAr',  products : {$slice: [ "$products", limitPerManufacturer] }}}       
-	    ],cb)
+	    ],function(err,data){
+	    	_.each(data,function(d){
+	    		d.id = d._id 
+	    		_.each(d.products,function(p){p.id = p._id });
+	    	});
+	    	return cb(err,data);
+	    });
 	}
 
     Products.remoteMethod('getManufacturersWithProducts', {
