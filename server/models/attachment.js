@@ -33,7 +33,7 @@ module.exports = function(Attachment) {
 				  			return cb(err);
 						ctx.result.push({
 							url : myConfig.host + '/' + file.container + '/' + file.name,
-							thumbnail : myConfig.host + '/thumbnail/' + file.name.split(".")[0] + '.jpeg'		
+							thumbnail : myConfig.host + '/thumb/' + file.name.split(".")[0] + '.jpeg'		
 						});
 						return cb();
 					});
@@ -67,7 +67,7 @@ module.exports = function(Attachment) {
 			console.log(dim.width, dim.height);
 			Attachment.app.models.products.findOne({where : {'media.url' : myConfig.host + '/images/' +file}},function(err,product){
 				if(!err && product){
-					product.media.thumbnail = myConfig.host + '/thumbnail/' + file.split(".")[0] + '.jpeg';
+					product.media.thumbnail = myConfig.host + '/thumb/' + file.split(".")[0] + '.jpeg';
 					product.save((err)=>{console.log("ASDSDASDASDASD",err)});
 				}
 				sharp('./files/images/'+file)
