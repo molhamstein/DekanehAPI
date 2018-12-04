@@ -389,6 +389,7 @@ module.exports = function(Products) {
 				    }
 				},
 				{ $project: { 
+					id : '$_id',
 					"nameAr": 1,
 				    "nameEn": 1,
 				    "media": 1,
