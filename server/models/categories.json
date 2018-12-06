@@ -1,0 +1,42 @@
+{
+  "name": "categories",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {
+    "include": []
+  },
+  "properties": {
+    "code": {
+      "type": "string",
+      "default": "000"
+    },
+    "titleAr": {
+      "type": "string"
+    },
+    "titleEn": {
+      "type": "string",
+      "required": true
+    },
+    "creationDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
+    },
+    "icon": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "subCategories": {
+      "type": "hasMany",
+      "model": "categories",
+      "foreignKey": "parentCategoryId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

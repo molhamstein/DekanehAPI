@@ -1,0 +1,101 @@
+{
+  "name": "user",
+  "base": "User",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "hidden": [
+    "credentials",
+    "challenges"
+  ],
+   "scope": {
+    "include": [
+      "roles"
+    ]
+  },
+  "properties": {
+    "phoneNumber": {
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "pending"
+    },
+    "email": {
+      "type": "string"
+    },
+    "clientType": {
+      "type": "string",
+      "required": true,
+      "default": "horeca"
+    },
+    "ownerName": {
+      "type": "string"
+    },
+    "shopName": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "locationPoint": {
+      "type": "geopoint"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "creationDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "area": {
+      "type": "belongsTo",
+      "model": "area"
+    },
+    "roles": {
+      "type": "referencesMany",
+      "model": "role"
+    },
+    "privileges": {
+      "type": "referencesMany",
+      "model": "privilege"
+    }
+  },
+  "acls": [
+    {
+      "accessType": "*",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "staffLogin"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "forgotPassword"
+    },
+    {
+      "accessType": "EXECUTE",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "getResetPassword"
+    }
+  ],
+  "methods": {}
+}

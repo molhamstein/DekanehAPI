@@ -1,0 +1,38 @@
+{
+  "name": "ratings",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {
+    "include": [
+      "user",
+      "order"
+    ]
+  },
+  "properties": {
+    "rate": {
+      "type": "string",
+      "required": true,
+      "default": "normal"
+    },
+    "creationDate": {
+      "type": "date",
+      "default": "$now"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "user": {
+      "type": "belongsTo",
+      "model": "user"
+    },
+    "order": {
+      "type": "belongsTo",
+      "model": "orders"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

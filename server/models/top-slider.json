@@ -1,0 +1,35 @@
+{
+  "name": "topSlider",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "image": {
+      "type": "string",
+      "required": true
+    },
+    "target": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "required": true,
+      "default": "external"
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "activated"
+    },
+    "creationDate": {
+      "type": "date",
+      "default": "$now"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

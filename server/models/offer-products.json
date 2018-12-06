@@ -1,0 +1,28 @@
+{
+  "name": "offerProducts",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {
+    "include": [
+      "product"
+    ]
+  },
+  "properties": {
+    "quantity" : {
+      "type" : "number",
+      "default" : 1
+    }
+  },
+  "validations": [],
+  "relations": {
+    "product": {
+      "type": "belongsTo",
+      "model": "products"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

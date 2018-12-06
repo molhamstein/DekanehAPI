@@ -1,0 +1,32 @@
+{
+  "name": "manufacturers",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "code": {
+      "type": "string",
+      "default": "000"
+    },
+    "nameEn": {
+      "type": "string"
+    },
+    "nameAr": {
+      "type": "string"
+    },
+    "creationDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
+    },
+    "logo": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

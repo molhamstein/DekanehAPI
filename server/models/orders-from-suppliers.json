@@ -1,0 +1,40 @@
+{
+  "name": "ordersFromSuppliers",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {
+    "include": [
+      "supplier",
+      "staff"
+    ]
+  },
+  "properties": {
+    "products": {
+      "type": [
+        "orderProducts"
+      ],
+      "required": true
+    },
+    "creationDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "staff": {
+      "type": "belongsTo",
+      "model": "user"
+    },
+    "supplier": {
+      "type": "belongsTo",
+      "model": "suppliers"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

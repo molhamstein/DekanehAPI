@@ -1,0 +1,140 @@
+{
+  "name": "products",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {
+    "include": [
+      "category",
+      "subCategory",
+      "manufacturer",
+      "products"
+    ]
+  },
+  "properties": {
+    "nameAr": {
+      "type": "string"
+    },
+    "nameEn": {
+      "type": "string",
+      "required": true
+    },
+    "pack": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "horecaPrice": {
+      "type": "number",
+      "required": true
+    },
+    "wholeSalePrice": {
+      "type": "number",
+      "required": true
+    },
+    "wholeSaleMarketPrice": {
+      "type": "number"
+    },
+    "marketOfficialPrice": {
+      "type": "number"
+    },
+    "dockanBuyingPrice": {
+      "type": "number"
+    },
+    "horecaPriceDiscount": {
+      "type": "number",
+      "default": 0
+    },
+    "wholeSalePriceDiscount": {
+      "type": "number",
+      "default": 0
+    },
+    "isFeatured": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "available"
+    },
+    "availableTo": {
+      "type": "string",
+      "required": true,
+      "default": "both"
+    },
+    "isOffer": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "offerSource": {
+      "type": "string",
+      "default": "dockan"
+    },
+    "offerMaxQuantity": {
+      "type": "number"
+    },
+    "code": {
+      "type": "string"
+    },
+    "sku": {
+      "type": "string"
+    },
+    "creationDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "category": {
+      "type": "belongsTo",
+      "model": "categories"
+    },
+    "subCategory": {
+      "type": "belongsTo",
+      "model": "categories"
+    },
+    "manufacturer": {
+      "type": "belongsTo",
+      "model": "manufacturers"
+    },
+    "offers": {
+      "type": "referencesMany",
+      "model": "products",
+      "foreignKey": "offersIds",
+      "options": {
+        "validate": true
+      }
+    },
+    "tags": {
+      "type": "referencesMany",
+      "model": "tags",
+      "foreignKey": "tagsIds",
+      "options": {
+        "validate": true
+      }
+    },
+    "products": {
+      "type": "embedsMany",
+      "model": "offerProducts",
+      "options": {
+        "validate": true
+      },
+      "scope":{"include":"product"}
+    },
+    "MEDIA": {
+      "type": "embedsOne",
+      "model": "media",
+      "property": "media"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

@@ -1,0 +1,55 @@
+{
+  "name": "coupons",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "value": {
+      "type": "number",
+      "required": true
+    },
+    "type": {
+      "type": "string",
+      "required": true,
+      "default": "fixed"
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "available"
+    },
+    "code": {
+      "type": "string",
+      "required": true
+    },
+    "numberOfTimes": {
+      "type": "number",
+      "required": true,
+      "default": 1
+    },
+    "numberOfUsed": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "expireDate": {
+      "type": "date",
+      "required": true
+    },
+    "creationDate": {
+      "type": "date",
+      "default": "$now"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "user": {
+      "type": "belongsTo",
+      "model": "user"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

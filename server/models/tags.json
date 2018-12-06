@@ -1,0 +1,27 @@
+{
+  "name": "tags",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "nameEn": {
+      "type": "string",
+      "id": true,
+      "required": true
+    },
+    "nameAr": {
+      "type": "string"
+    },
+    "creationDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

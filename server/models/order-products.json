@@ -1,0 +1,67 @@
+{
+  "name": "orderProducts",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "nameAr": {
+      "type": "string"
+    },
+    "nameEn": {
+      "type": "string",
+      "required": true
+    },
+    "pack": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "marketOfficialPrice": {
+      "type": "number"
+    },
+    "dockanBuyingPrice": {
+      "type": "number"
+    },
+    "offerSource": {
+      "type": "string",
+      "default": "dockan"
+    },
+    "price": {
+      "type": "number"
+    },
+    "count": {
+      "type": "number",
+      "required": true,
+      "default": 1
+    },
+    "creationDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
+    },
+    "media": {
+      "type": "object",
+      "required": true
+    },
+    "isOffer": {
+      "type": "boolean"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "product": {
+      "type": "belongsTo",
+      "model": "products"
+    },
+    "orders": {
+      "type": "belongsTo",
+      "model": "orders",
+      "foreignKey": "orderId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

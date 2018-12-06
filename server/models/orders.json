@@ -1,0 +1,63 @@
+{
+  "name": "orders",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {
+    "include": [
+      "client",
+      "deliveryMember"
+    ]
+  },
+  "properties": {
+    "code": {
+      "type": "string"
+    },
+    "orderDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "pending"
+    },
+    "totalPrice": {
+      "type": "number"
+    },
+    "clientType": {
+      "type": "string"
+    },
+    "assignedDate": {
+      "type": "date"
+    },
+    "deliveredDate": {
+      "type": "date"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "client": {
+      "type": "belongsTo",
+      "model": "user"
+    },
+    "deliveryMember": {
+      "type": "belongsTo",
+      "model": "user"
+    },
+    "coupon": {
+      "type": "belongsTo",
+      "model": "coupons"
+    },
+    "orderProducts": {
+      "type": "hasMany",
+      "model": "orderProducts",
+      "foreignKey": "orderId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
