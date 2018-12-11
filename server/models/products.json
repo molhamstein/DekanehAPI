@@ -72,6 +72,10 @@
       "required": true,
       "default": false
     },
+    "isFavorite": {
+      "type": "boolean",
+      "default": false
+    },
     "offerSource": {
       "type": "string",
       "default": "dockan"
@@ -127,7 +131,9 @@
       "options": {
         "validate": true
       },
-      "scope":{"include":"product"}
+      "scope": {
+        "include": "product"
+      }
     },
     "MEDIA": {
       "type": "embedsOne",

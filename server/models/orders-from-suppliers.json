@@ -12,11 +12,26 @@
     ]
   },
   "properties": {
-    "products": {
+    "total": {
+      "type": "number",
+      "required": true
+    },
+    "orders": {
       "type": [
-        "orderProducts"
+        "string"
       ],
       "required": true
+    },
+    "products": {
+      "type": [
+        "object"
+      ],
+      "required": true
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "pending"
     },
     "creationDate": {
       "type": "date",

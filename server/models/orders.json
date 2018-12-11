@@ -8,7 +8,8 @@
   "scope": {
     "include": [
       "client",
-      "deliveryMember"
+      "deliveryMember",
+      "orderProducts"
     ]
   },
   "properties": {
@@ -31,12 +32,6 @@
     "clientType": {
       "type": "string"
     },
-    "products": {
-      "type": [
-        "orderProducts"
-      ],
-      "required": true
-    },
     "assignedDate": {
       "type": "date"
     },
@@ -57,8 +52,33 @@
     "coupon": {
       "type": "belongsTo",
       "model": "coupons"
+    },
+    "orderProducts": {
+      "type": "hasMany",
+      "model": "orderProducts",
+      "foreignKey": "orderId"
     }
   },
   "acls": [],
-  "methods": {}
+  "methods": {
+    "supplierOrders": {
+      "isStatic": true,
+      "accepts": [],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/supplierOrders",
+          "verb": "get"
+        }
+      ]
+    }
+  }
 }

@@ -6,18 +6,63 @@
     "validateUpsert": true
   },
   "properties": {
+    "nameAr": {
+      "type": "string"
+    },
+    "nameEn": {
+      "type": "string",
+      "required": true
+    },
+    "pack": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "marketOfficialPrice": {
+      "type": "number"
+    },
+    "dockanBuyingPrice": {
+      "type": "number"
+    },
+    "wholeSaleMarketPrice": {
+      "type": "number"
+    },
+    "horecaPriceDiscount": {
+      "type": "number"
+    },
+    "wholeSalePriceDiscount": {
+      "type": "number"
+    },
+    "horecaPrice": {
+      "type": "number"
+    },
+    "wholeSalePrice": {
+      "type": "number"
+    },
+    "offerSource": {
+      "type": "string",
+      "default": "dockan"
+    },
+    "price": {
+      "type": "number"
+    },
     "count": {
       "type": "number",
       "required": true,
       "default": 1
     },
-    "price": {
-      "type": "number"
-    },
     "creationDate": {
       "type": "date",
       "required": true,
       "default": "$now"
+    },
+    "media": {
+      "type": "object",
+      "required": true
+    },
+    "isOffer": {
+      "type": "boolean"
     }
   },
   "validations": [],
@@ -25,6 +70,11 @@
     "product": {
       "type": "belongsTo",
       "model": "products"
+    },
+    "orders": {
+      "type": "belongsTo",
+      "model": "orders",
+      "foreignKey": "orderId"
     }
   },
   "acls": [],

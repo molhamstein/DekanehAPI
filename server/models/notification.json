@@ -1,0 +1,71 @@
+{
+  "name": "notification",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {
+    "include": [
+      "client",
+      "rating",
+      "order"
+    ]
+  },
+  "properties": {
+    "type": {
+      "type": "string",
+      "required": true
+    },
+    "isSeen": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "createdAt": {
+      "type": "date",
+      "required": true,
+      "defaultFn": "now"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "client": {
+      "type": "belongsTo",
+      "model": "user",
+      "foreignKey": "clientId"
+    },
+    "order": {
+      "type": "belongsTo",
+      "model": "orders",
+      "foreignKey": "orderId"
+    },
+    "rating": {
+      "type": "belongsTo",
+      "model": "ratings",
+      "foreignKey": "ratingId"
+    }
+  },
+  "acls": [],
+  "methods": {
+    "makeAllRead": {
+      "isStatic": true,
+      "accepts": [],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "string",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/makeAllRead",
+          "verb": "put"
+        }
+      ]
+    }
+  }
+}

@@ -9,7 +9,7 @@
     "credentials",
     "challenges"
   ],
-   "scope": {
+  "scope": {
     "include": [
       "roles"
     ]
@@ -18,6 +18,9 @@
     "phoneNumber": {
       "type": "string",
       "required": true
+    },
+    "fireBaseToken": {
+      "type": "string"
     },
     "status": {
       "type": "string",
@@ -66,10 +69,18 @@
     "privileges": {
       "type": "referencesMany",
       "model": "privilege"
+    },
+    "favorite": {
+      "type": "hasMany",
+      "model": "products",
+      "foreignKey": "ownerId",
+      "through": "favorite",
+      "options": {
+        "disableInclude": true
+      }
     }
   },
-  "acls": [
-    {
+  "acls": [{
       "accessType": "*",
       "principalType": "ROLE",
       "principalId": "$everyone",
@@ -97,5 +108,55 @@
       "property": "getResetPassword"
     }
   ],
-  "methods": {}
+  "methods": {
+    "setFirebaseToken": {
+      "isStatic": true,
+      "accepts": [{
+          "arg": "token",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "arg": "req",
+          "type": "object",
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [{
+        "arg": "result",
+        "type": "string",
+        "root": true,
+        "description": ""
+      }],
+      "description": "",
+      "http": [{
+        "path": "/setFirebaseToken",
+        "verb": "put"
+      }]
+    },
+    "isActivated": {
+      "isStatic": true,
+      "accepts": [{
+        "arg": "req",
+        "type": "object",
+        "http": {
+          "source": "req"
+        }
+      }],
+      "returns": [{
+        "arg": "result",
+        "type": "boolean",
+        "root": true,
+        "description": ""
+      }],
+      "description": "",
+      "http": [{
+        "path": "/isActivated",
+        "verb": "get"
+      }]
+    }
+  }
 }

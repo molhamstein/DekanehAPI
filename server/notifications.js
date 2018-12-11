@@ -1,13 +1,16 @@
 var myConfig = require('../server/myConfig.json');
-var OneSignal = require('onesignal-node');
-var _ = require('lodash')
+var FCM = require('fcm-node');
+var serverKey = myConfig.serverKey; //put your server key here
+var fcm = new FCM(serverKey);
+// var OneSignal = require('onesignal-node');
+// var _ = require('lodash')
 
 
 
-var myClient = new OneSignal.Client({
-    userAuthKey: myConfig.oneSignalUserAuthKey,
-    app: { appAuthKey: myConfig.oneSignalApIKey, appId: myConfig.oneSignalAppId }
-});
+// var myClient = new OneSignal.Client({
+//     userAuthKey: myConfig.oneSignalUserAuthKey,
+//     app: { appAuthKey: myConfig.oneSignalApIKey, appId: myConfig.oneSignalAppId }
+// });
 
 
 
@@ -20,7 +23,7 @@ var myClient = new OneSignal.Client({
 // 	VolumesModel.getDataSource().connector.collection('user').aggregate([
 // 		{ $match: {postCategoriesIds : {$in : allCategories}} },
 // 		{ $project: { postCategoriesIds: 1, commonToBoth: { $setIntersection: [ "$postCategoriesIds", allCategories ] }} }
-                     
+
 //      ],function(err,users){
 //      	if(err)  // TODO Debug
 //      		return console.log(err);
@@ -31,46 +34,86 @@ var myClient = new OneSignal.Client({
 //      })
 // }
 
-module.exports.afterOrderDelivered = function(order){
-	_sendNotification(order.clientId,order.deliveryMemberId,'orderDelivered',{orderId : order.id});
+module.exports.afterOrderDelivered = function (order) {
+  _sendNotification(order.clientId, order.deliveryMemberId, 'orderDelivered', {
+    orderId: order.id
+  });
 }
 
 
-var _sendNotificationToMultiUsers = function(usersIds,actorId,action,object){
-	_.each(usersIds,(user)=>{_sendNotification(user._id || user,actorId,action,object)});
+var _sendNotificationToMultiUsers = function (usersIds, actorId, action, object) {
+  _.each(usersIds, (user) => {
+    _sendNotification(user._id || user, actorId, action, object)
+  });
 }
 
 
-var _sendNotification = function(userId,actorId,action,object){
-	console.log("qwe123",userId);
-	_sendOneSignalNotification(userId,"please rate",object);
+var _sendNotification = function (userId, actorId, action, object) {
+  console.log("qwe123", userId);
+  app.models.user.findById(userId, function (err, user) {
 
-	app.models.notifications.create({
-		ownerId : userId,
-		actorId : actorId,
-		action : action,
-		object : object
-	},function(err,notification){
-		if(err)
-			return console.log(err);
-		console.log("notification sent",userId, object);
-	});
+    _sendOneSignalNotification(user.fireBaseToken, "please rate", object);
+
+    app.models.notifications.create({
+      ownerId: userId,
+      actorId: actorId,
+      action: action,
+      object: object
+    }, function (err, notification) {
+      if (err)
+        return console.log(err);
+      console.log("notification sent", userId, object);
+    });
+  })
+
 }
 
-var _sendOneSignalNotification = function(userId,message,object){
-	var firstNotification = new OneSignal.Notification({    
-    	contents: {    
-	        en: message
-	    },
-	});    
-	firstNotification.postBody["filters"] = [{"field": "tag", "key": "user_id", "relation": "=", "value": userId}]; 
-	firstNotification.postBody["data"] = {"orderId": object.orderId, "openActivity": "rating"};  
+var _sendOneSignalNotification = function (token, message, object) {
+  //   var firstNotification = new OneSignal.Notification({
+  //     contents: {
+  //       en: message
+  //     },
+  //   });
+  //   firstNotification.postBody["filters"] = [{
+  //     "field": "tag",
+  //     "key": "user_id",
+  //     "relation": "=",
+  //     "value": userId
+  //   }];
+  //   firstNotification.postBody["data"] = {
+  //     "orderId": object.orderId,
+  //     "openActivity": "rating"
+  //   };
 
-	myClient.sendNotification(firstNotification, function (err, httpResponse,data) {    
-	if (err) {    
-	    console.log('Something went wrong...');    
-	} else {    
-	    console.log(data, httpResponse.statusCode);    
-	}    
-});   
+  //   myClient.sendNotification(firstNotification, function (err, httpResponse, data) {
+  //     if (err) {
+  //       console.log('Something went wrong...');
+  //     } else {
+  //       console.log(data, httpResponse.statusCode);
+  //     }
+  //   });
+  var message = { //this may vary according to the message type (single recipient, multicast, topic, et cetera)
+    to: 'token',
+    collapse_key: myConfig.senderId,
+
+    notification: {
+      title: 'Title of your push notification',
+      body: 'message'
+    },
+
+    data: { //you can send only notification or only data(or include both)
+      "orderId": object.orderId,
+      "openActivity": "rating"
+    }
+  };
+
+
+  fcm.send(message, function (err, response) {
+    if (err) {
+      console.log("Something has gone wrong!");
+    } else {
+      console.log("Successfully sent with response: ", response);
+    }
+  });
+
 }

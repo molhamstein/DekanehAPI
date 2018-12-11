@@ -11,9 +11,9 @@
     ]
   },
   "properties": {
-    "quantity" : {
-      "type" : "number",
-      "default" : 1
+    "quantity": {
+      "type": "number",
+      "default": 1
     }
   },
   "validations": [],
