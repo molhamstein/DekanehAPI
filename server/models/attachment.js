@@ -72,7 +72,7 @@ module.exports = function (Attachment) {
           dst: './files/thumb/' + parts[0] + "_thumb" + extension,
           width: dim.width / 2,
           height: dim.height / 2,
-        }, function (err, data) {
+        })
           var thumbnailLink = myConfig.host + '/thumb/' + parts[0] + "_thumb" + extension
           ctx.result.push({
             'url': myConfig.host + '/' + file.container + '/' + file.name,
@@ -80,8 +80,7 @@ module.exports = function (Attachment) {
             'thumbnail': thumbnailLink
           });
           return cb();
-        });
-
+        
         // import {
         //   thumbnail
         // } from "easyimage";
