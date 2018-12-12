@@ -75,9 +75,18 @@ module.exports = function (Attachment) {
           background: "white"
         })
         var thumbnailLink = myConfig.host + '/thumb/' + parts[0] + "_thumb." + extension
+        easyimage.thumbnail({
+          src: './files/images/' + file.name,
+          dst: './files/main_thumb/' + parts[0] + "main_thumb." + extension,
+          width: dim.width ,
+          height: dim.height,
+          background: "white"
+        })
+        var jpgUrl = myConfig.host + '/main_thumb/' + file.name.substring(0, file.name.lastIndexOf('.')) + "main_thumb." + extension
+
         ctx.result.push({
           'url': myConfig.host + '/' + file.container + '/' + file.name,
-          // 'secondeUrl': myConfig.host + '/main_thumb/' + file.name.substring(0, file.name.lastIndexOf('.')) + "_thumb." + extension,
+          'jpgUrl':jpgUrl,
           'thumbnail': thumbnailLink
         });
         return cb();
