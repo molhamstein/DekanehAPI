@@ -72,8 +72,15 @@ module.exports = function (Attachment) {
           dst: './files/thumb/' + parts[0] + "_thumb" + extension,
           width: dim.width / 2,
           height: dim.height / 2,
+        }, function (err, data) {
+          var thumbnailLink = myConfig.host + '/thumb/' + parts[0] + "_thumb" + extension
+          ctx.result.push({
+            'url': myConfig.host + '/' + file.container + '/' + file.name,
+            // 'secondeUrl': myConfig.host + '/main_thumb/' + file.name.substring(0, file.name.lastIndexOf('.')) + "_thumb." + extension,
+            'thumbnail': thumbnailLink
+          });
+          return cb();
         });
-        return cb();
 
         // import {
         //   thumbnail
@@ -85,7 +92,6 @@ module.exports = function (Attachment) {
         //     width: dim.width / 2,
         //     height: dim.height / 2,
         //   });
-        //   var thumbnailLink = myConfig.host + '/thumb/' + parts[0] + "_thumb" + extension
         //   ctx.result.push({
         //     'url': myConfig.host + '/' + file.container + '/' + file.name,
         //     // 'secondeUrl': myConfig.host + '/main_thumb/' + file.name.substring(0, file.name.lastIndexOf('.')) + "_thumb." + extension,
