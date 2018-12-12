@@ -72,15 +72,16 @@ module.exports = function (Attachment) {
           dst: './files/thumb/' + parts[0] + "_thumb." + extension,
           width: dim.width / 2,
           height: dim.height / 2,
+          background: "white"
         })
-          var thumbnailLink = myConfig.host + '/thumb/' + parts[0] + "_thumb." + extension
-          ctx.result.push({
-            'url': myConfig.host + '/' + file.container + '/' + file.name,
-            // 'secondeUrl': myConfig.host + '/main_thumb/' + file.name.substring(0, file.name.lastIndexOf('.')) + "_thumb." + extension,
-            'thumbnail': thumbnailLink
-          });
-          return cb();
-        
+        var thumbnailLink = myConfig.host + '/thumb/' + parts[0] + "_thumb." + extension
+        ctx.result.push({
+          'url': myConfig.host + '/' + file.container + '/' + file.name,
+          // 'secondeUrl': myConfig.host + '/main_thumb/' + file.name.substring(0, file.name.lastIndexOf('.')) + "_thumb." + extension,
+          'thumbnail': thumbnailLink
+        });
+        return cb();
+
         // import {
         //   thumbnail
         // } from "easyimage";
