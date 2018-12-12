@@ -16,6 +16,35 @@ module.exports = function (Favorite) {
     })
   })
 
+
+
+
+  /**
+   *
+   * @param {string} productId
+   * @param {Function(Error, object)} callback
+   */
+
+  Favorite.deleteFavorite = function (productId, req, callback) {
+    var result;
+    // TODO
+    var userId = req.accessToken.userId;
+    console.log("productId")
+    console.log(productId)
+    console.log("userId")
+    console.log(userId)
+    Favorite.destroyAll({
+      "productId": productId,
+      "ownerId": userId
+    }, function (err, data) {
+      if (err)
+        return callback(err, null);
+      if (data.count == 0)
+        return callback(ERROR(601, 'no favorite'))
+      return callback(null, "")
+
+    })
+  };
   /**
    *
    * @param {Function(Error, array)} callback
@@ -32,7 +61,7 @@ module.exports = function (Favorite) {
       if (err)
         resolve(err);
       const favoritesIds = products.map(function (product) {
-        return product.productsId;
+        return product.productId;
       });
       Favorite.app.models.user.findById(req.accessToken.userId, function (err, user) {
         console.log(user.clientType);
@@ -62,4 +91,6 @@ module.exports = function (Favorite) {
       })
     })
   };
+
+
 };

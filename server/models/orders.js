@@ -6,15 +6,21 @@ module.exports = function (Orders) {
   Orders.validatesInclusionOf('status', { in: ['pending', 'inDelivery', 'delivered', 'canceled']
   });
 
+
+  Orders.testNot = function (callback) {
+    notifications.me();
+    callback(null);
+  };
+
   Orders.beforeRemote('prototype.updateAttributes', function (ctx, modelInstance, next) {
     console.log('upsert called');
+    console.log(ctx.req.body);
     if (!ctx.req.accessToken || !ctx.req.accessToken.userId)
       return next(ERROR(403, 'User not login'))
 
-    if (!ctx.req.body.products || !Array.isArray(ctx.req.body.products) || ctx.req.body.products.length == 0)
+    if (!ctx.req.body.orderProducts || !Array.isArray(ctx.req.body.orderProducts) || ctx.req.body.orderProducts.length == 0)
       return next(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
-    var products = ctx.req.body.products;
-
+    var products = ctx.req.body.orderProducts;
 
     var productsIds = []
     _.each(products, product => {
@@ -51,7 +57,7 @@ module.exports = function (Orders) {
         _.each(productsFromDb, p => {
           productsInfo[p.id.toString()] = p;
         });
-
+        var tempProduct = [];
         _.each(products, (product, index) => {
           var pInfo = productsInfo[product.productId];
           if (!pInfo)
@@ -82,10 +88,12 @@ module.exports = function (Orders) {
           if (pInfo.isOffer && pInfo.products) {
             product.products = JSON.parse(JSON.stringify(pInfo.products()));
           }
+          tempProduct.push(product)
         });
-
+        console.log(ctx.req.body.totalPrice)
         if (ctx.req.body.totalPrice < 20000)
           return next(ERROR(602, 'total price is low'));
+        ctx.req.body.tempProduct = tempProduct
 
         if (!ctx.req.body.couponCode)
           return next();
@@ -126,38 +134,35 @@ module.exports = function (Orders) {
         });
       });
     });
-  });
+  })
 
   Orders.afterRemote('prototype.updateAttributes', function (ctx, result, next) {
-    console.log(result);
     Orders.app.models.orderProducts.destroyAll({
         "orderId": result.id
       },
       function (err, isDelete) {
         if (err)
           return next(err)
-
-        _.each(result.products, oneProduct => {
+        console.log(err)
+        _.each(result.tempProduct, oneProduct => {
           oneProduct.orderId = result.id;
         })
-        Orders.app.models.orderProducts.create(result.products, function (err, data) {
+        Orders.app.models.orderProducts.create(result.tempProduct, function (err, data) {
           if (err)
             return next(err)
-          result['products'] = null;
-          //   result.orderProducts=data;
+          result.tempProduct = null;
           result.code = result.id.toString().slice(18);
           return result.save(next);
         })
       })
-  });
-
+  })
   Orders.beforeRemote('create', function (ctx, modelInstance, next) {
     if (!ctx.req.accessToken || !ctx.req.accessToken.userId)
       return next(ERROR(403, 'User not login'))
 
-    if (!ctx.req.body.products || !Array.isArray(ctx.req.body.products) || ctx.req.body.products.length == 0)
+    if (!ctx.req.body.orderProducts || !Array.isArray(ctx.req.body.orderProducts) || ctx.req.body.orderProducts.length == 0)
       return next(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
-    var products = ctx.req.body.products;
+    var products = ctx.req.body.orderProducts;
 
 
     var productsIds = []
@@ -168,6 +173,9 @@ module.exports = function (Orders) {
         return next(ERROR(400, 'productId not ID'))
       }
     });
+    console.log("productsIds")
+    console.log(productsIds)
+
     Orders.app.models.user.findById(ctx.req.accessToken.userId, (err, user) => {
       if (err)
         return next(err);
@@ -185,7 +193,7 @@ module.exports = function (Orders) {
       }, function (err, productsFromDb) {
         if (err)
           return next(err);
-        console.log("productsFromDb ///////////////")
+        console.log("productsFromDb")
         console.log(productsFromDb)
 
         ctx.req.body.status = 'pending';
@@ -203,7 +211,6 @@ module.exports = function (Orders) {
             return delete products[index]
           if (pInfo.availableTo != user.clientType && pInfo.availableTo != 'both')
             return delete products[index]
-
           product.nameEn = pInfo.nameEn;
           product.nameAr = pInfo.nameAr;
           product.pack = pInfo.pack;
@@ -231,7 +238,7 @@ module.exports = function (Orders) {
             product.products = JSON.parse(JSON.stringify(pInfo.products()));
           }
         });
-
+        console.log(ctx.req.body.totalPrice)
         if (ctx.req.body.totalPrice < 20000)
           return next(ERROR(602, 'total price is low'));
 
@@ -277,25 +284,26 @@ module.exports = function (Orders) {
   });
 
   Orders.afterRemote('create', function (ctx, result, next) {
-    console.log(result);
-    _.each(result.products, oneProduct => {
-      oneProduct.orderId = result.id;
-    })
-    Orders.app.models.orderProducts.create(result.products, function (err, data) {
-      if (err)
-        return next(err)
-      result['products'] = null;
-      //   result.orderProducts=data;
-      Orders.app.models.notification.create({
-        "type": "order",
-        "orderId": result.id
-      }, function (err, data) {
+    result.orderProducts(function (err, data) {
+      _.each(data, oneProduct => {
+        oneProduct.orderId = result.id;
+      })
+      Orders.app.models.orderProducts.create(data, function (err, data) {
         if (err)
           return next(err)
-        result.code = result.id.toString().slice(18);
-        return result.save(next);
-      })
+        result['products'] = null;
+        //   result.orderProducts=data;
+        Orders.app.models.notification.create({
+          "type": "order",
+          "orderId": result.id
+        }, function (err, data) {
+          if (err)
+            return next(err)
+          result.code = result.id.toString().slice(18);
+          return result.save(next);
+        })
 
+      })
     })
   });
 

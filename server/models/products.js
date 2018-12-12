@@ -842,7 +842,7 @@ module.exports = function (Products) {
           if (err)
             resolve(err);
           const favoritesIds = products.map(function (product) {
-            return product.productsId;
+            return product.productId;
           });
 
           if (Array.isArray(result)) {

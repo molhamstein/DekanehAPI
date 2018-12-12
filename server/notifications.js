@@ -2,6 +2,8 @@ var myConfig = require('../server/myConfig.json');
 var FCM = require('fcm-node');
 var serverKey = myConfig.serverKey; //put your server key here
 var fcm = new FCM(serverKey);
+var app = require('../server/server');
+
 // var OneSignal = require('onesignal-node');
 // var _ = require('lodash')
 
@@ -40,6 +42,12 @@ module.exports.afterOrderDelivered = function (order) {
   });
 }
 
+module.exports.me = function () {
+  _sendNotification("5be81952d58076492d990061", "", 'orderDelivered', {
+    orderId: "5c0fc659ea8ae83168b93673"
+  });
+}
+
 
 var _sendNotificationToMultiUsers = function (usersIds, actorId, action, object) {
   _.each(usersIds, (user) => {
@@ -68,6 +76,7 @@ var _sendNotification = function (userId, actorId, action, object) {
 
 }
 
+
 var _sendOneSignalNotification = function (token, message, object) {
   //   var firstNotification = new OneSignal.Notification({
   //     contents: {
@@ -93,12 +102,14 @@ var _sendOneSignalNotification = function (token, message, object) {
   //     }
   //   });
   var message = { //this may vary according to the message type (single recipient, multicast, topic, et cetera)
-    to: 'token',
+    to: token,
     collapse_key: myConfig.senderId,
 
     notification: {
       title: 'Title of your push notification',
-      body: 'message'
+      body: 'message',
+      click_action: "rating"
+
     },
 
     data: { //you can send only notification or only data(or include both)
@@ -111,6 +122,7 @@ var _sendOneSignalNotification = function (token, message, object) {
   fcm.send(message, function (err, response) {
     if (err) {
       console.log("Something has gone wrong!");
+      console.log(err);
     } else {
       console.log("Successfully sent with response: ", response);
     }

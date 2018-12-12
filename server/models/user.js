@@ -47,7 +47,10 @@ module.exports = function (User) {
 
   User.setFirebaseToken = function (token, req, callback) {
     var result;
-    // console.log(req.accessToken.userId);
+    console.log("req.accessToken.userId");
+    console.log(req.accessToken.userId);
+    console.log("token")
+    console.log(token)
     User.findById(req.accessToken.userId, function (err, user) {
       user.fireBaseToken = token;
       user.save()

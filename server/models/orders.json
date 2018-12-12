@@ -79,6 +79,18 @@
           "verb": "get"
         }
       ]
+    },
+    "testNot": {
+      "isStatic": true,
+      "accepts": [],
+      "returns": [],
+      "description": "",
+      "http": [
+        {
+          "path": "/testNot",
+          "verb": "get"
+        }
+      ]
     }
   }
 }

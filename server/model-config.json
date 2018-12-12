@@ -105,6 +105,10 @@
     "dataSource": "mongoDb",
     "public": true
   },
+  "notifications": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
   "media": {
     "dataSource": "mongoDb",
     "public": false

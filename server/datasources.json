@@ -22,6 +22,8 @@
     "nameConflict": "makeUnique",
     "maxFileSize": "5000000000",
     "allowedContentTypes": [
+      "image/jpg",
+      "image/jpeg",
       "image/png",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "application/vnd.ms-excel"
