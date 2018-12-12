@@ -26,47 +26,6 @@ module.exports = function (Attachment) {
         console.log(dim.width, dim.height);
         var parts = file.name.split('.')
         var extension = "jpg";
-        // console.log("SSSSSSSSSSSSSSSSSSSSSS");
-        // im.convert(['./files/images/' + file.name, '-resize', '25x120', './files/thumb/' + parts[0] + "_thumb" + extension],
-        //   function (err, metadata) {
-        //     if (err) return cb(err)
-        //     console.log('stdout:', metadata);
-        //   })
-        // im.resize({
-        //     "srcPath": './files/images/' + file.name,
-        //     "dstPath": './files/thumb/' + parts[0] + "_thumb" + extension,
-        //     "width": dim.width / 2
-        //   },
-        //   function (err, stdout) {
-        //     if (err) {
-        // 			console.log(err);
-        //       return cb(err);
-        //     }
-        //     ctx.result.push({
-        //       url: myConfig.host + '/' + file.container + '/' + file.name,
-        //       thumbnail: myConfig.host + '/thumb/' + parts[0] + "_thumb" + extension
-        //     });
-        //     return cb();
-        //   });
-        // sharp('./files/images/'+file.name)
-        //   .resize({width : dim.width/2,height : dim.height/2 })
-        // 	  .background("white")
-        //   .flatten()
-        //   .jpeg()
-        //   .toBuffer()
-        //   .then(data => {
-        //   	fs.writeFile("./files/thumb/"+file.name.split(".")[0]+"_thumb.jpeg", data, "binary", function(err) {
-        //   		if(err)
-        //   			return cb(err);
-        // 		ctx.result.push({
-        // 			url : myConfig.host + '/' + file.container + '/' + file.name,
-        // 			thumbnail : myConfig.host + '/thumb/' + file.name.split(".")[0] + '.jpeg'		
-        // 		});
-        // 		return cb();
-        // 	});
-        //   });
-
-
         easyimage.thumbnail({
           src: './files/images/' + file.name,
           dst: './files/thumb/' + parts[0] + "_thumb." + extension,

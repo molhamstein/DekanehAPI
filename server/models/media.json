@@ -16,6 +16,9 @@
     },
     "thumbnail": {
       "type": "string"
+    },
+    "jpgUrl": {
+      "type": "string"
     }
   },
   "validations": [],
