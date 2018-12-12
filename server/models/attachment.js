@@ -69,11 +69,11 @@ module.exports = function (Attachment) {
 
         easyimage.thumbnail({
           src: './files/images/' + file.name,
-          dst: './files/thumb/' + parts[0] + "_thumb" + extension,
+          dst: './files/thumb/' + parts[0] + "_thumb." + extension,
           width: dim.width / 2,
           height: dim.height / 2,
         })
-          var thumbnailLink = myConfig.host + '/thumb/' + parts[0] + "_thumb" + extension
+          var thumbnailLink = myConfig.host + '/thumb/' + parts[0] + "_thumb." + extension
           ctx.result.push({
             'url': myConfig.host + '/' + file.container + '/' + file.name,
             // 'secondeUrl': myConfig.host + '/main_thumb/' + file.name.substring(0, file.name.lastIndexOf('.')) + "_thumb." + extension,
