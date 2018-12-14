@@ -411,6 +411,8 @@ module.exports = function (Products) {
                     $setIntersection: ["$tagsIds", product.tagsIds]
                   }
                 },
+                _id: 0,
+                id: "$_id",
                 "nameAr": 1,
                 "nameEn": 1,
                 "media": 1,
@@ -474,6 +476,7 @@ module.exports = function (Products) {
             },
             {
               $project: {
+                id: 1,
                 "nameAr": 1,
                 "nameEn": 1,
                 "media": 1,

@@ -1,5 +1,5 @@
 'use strict';
 
-module.exports = function(Notifications) {
-	Notifications.validatesInclusionOf('action', {in: ['orderDelivered']});
+module.exports = function(Usernotifications) {
+	Usernotifications.validatesInclusionOf('action', {in: ['orderDelivered']});
 };

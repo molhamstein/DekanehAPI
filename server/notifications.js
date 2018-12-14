@@ -62,7 +62,7 @@ var _sendNotification = function (userId, actorId, action, object) {
 
     _sendOneSignalNotification(user.fireBaseToken, "please rate", object);
 
-    app.models.notifications.create({
+    app.models.Usernotifications.create({
       ownerId: userId,
       actorId: actorId,
       action: action,

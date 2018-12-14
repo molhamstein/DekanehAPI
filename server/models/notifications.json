@@ -1,5 +1,5 @@
 {
-  "name": "notifications",
+  "name": "usernotifications",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
