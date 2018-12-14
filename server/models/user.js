@@ -4,7 +4,6 @@ var g = require('strong-globalize')();
 var debug = require('debug')('loopback:user');
 
 
-var mailer = require("nodemailer");
 
 module.exports = function (User) {
   User.validatesUniquenessOf('phoneNumber', {
