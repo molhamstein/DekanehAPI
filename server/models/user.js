@@ -3,9 +3,29 @@ var _ = require('lodash');
 var g = require('strong-globalize')();
 var debug = require('debug')('loopback:user');
 
+// var api_key = '350a0669476394ed0d32ade7504d5ef9-b3780ee5-89ff6db1';
+// var domain = 'sandbox7cbb988bb71e4787b8f7c8ef04db3d04.mailgun.org';
+// var mailgun = require('mailgun-js')({
+//   apiKey: api_key,
+//   domain: domain
+// });
 
 
 module.exports = function (User) {
+
+
+  // var data = {
+  //   from: 'Excited User <anasalazmeh.95@gmail.com>',
+  //   to: 'world.of.anas.95@gmail.com',
+  //   // to: 'orfali.ayham@gmail.com',
+  //   subject: 'Hello',
+  //   text: 'Testing some Mailgun awesomeness!'
+  // };
+
+  // mailgun.messages().send(data, function (error, body) {
+  //   console.log(body);
+  // });
+
   User.validatesUniquenessOf('phoneNumber', {
     message: 'phoneNumber already exists'
   });
@@ -21,6 +41,65 @@ module.exports = function (User) {
     // return _.includes(this.privilegeIds, privilegeName);
     return true;
   }
+
+
+  /**
+   * add notification to admin to reset password
+   * @param {Function(Error, string)} callback
+   */
+
+  User.forgetpassword = function (phoneNumber, callback) {
+    var result;
+    User.findOne({
+      "where": {
+        "phoneNumber": phoneNumber
+      }
+    }, function (err, user) {
+      if (err)
+        return callback(err, user)
+      if (user == null)
+        return callback(ERROR(603, 'phonenumber is wrong'))
+      var userId = user.id
+      User.app.models.notification.create({
+        "type": "forgetPassword",
+        "clientId": userId
+      }, function (err, data) {
+        if (err)
+          return callback(err)
+        callback(null, "done");
+      })
+    })
+
+  };
+
+  /**
+   *
+   * @param {Function(Error, string)} callback
+   */
+
+  User.resetPassword = function (id, password, callback) {
+    var result;
+    User.findById(id, function (err, oneUser) {
+      if (err)
+        return callback(err, null);
+      if (oneUser == null)
+        return callback(ERROR(604, 'user not found'))
+
+      oneUser.updateAttribute('password', User.hashPassword(password), function (err, user) {
+        if (err)
+          return callback(err, null);
+        return callback(null, "Done");
+
+      });
+
+
+    })
+    // TODO
+    // User.updateAttribute('password', User.hashPassword(req.body.password), function (err, user) {
+
+    // });
+  };
+
 
 
   // Hidden Function

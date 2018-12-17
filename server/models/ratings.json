@@ -20,6 +20,11 @@
     "creationDate": {
       "type": "date",
       "default": "$now"
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "unprocessed"
     }
   },
   "validations": [],

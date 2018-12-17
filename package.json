@@ -29,6 +29,7 @@
     "loopback-connector-mongodb": "^1.18.1",
     "loopback-datasource-juggler": "^2.39.0",
     "loopback-datatype-objectid": "^1.0.5",
+    "mailgun-js": "^0.22.0",
     "mongo-xlsx": "^1.0.12",
     "node-imagemagick": "^0.1.8",
     "node-thumbnail": "^0.14.0",

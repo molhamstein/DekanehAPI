@@ -30,28 +30,35 @@
   "methods": {
     "listofFavorite": {
       "isStatic": true,
-      "accepts": [{
-        "arg": "req",
-        "type": "object",
-        "http": {
-          "source": "req"
+      "accepts": [
+        {
+          "arg": "req",
+          "type": "object",
+          "http": {
+            "source": "req"
+          }
         }
-      }],
-      "returns": [{
-        "arg": "result",
-        "type": "array",
-        "root": true,
-        "description": ""
-      }],
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
       "description": "",
-      "http": [{
-        "path": "/getFavorite",
-        "verb": "get"
-      }]
+      "http": [
+        {
+          "path": "/getFavorite",
+          "verb": "get"
+        }
+      ]
     },
     "deleteFavorite": {
       "isStatic": true,
-      "accepts": [{
+      "accepts": [
+        {
           "arg": "productId",
           "type": "string",
           "required": true,
@@ -65,17 +72,21 @@
           }
         }
       ],
-      "returns": [{
-        "arg": "result",
-        "type": "object",
-        "root": true,
-        "description": ""
-      }],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
       "description": "",
-      "http": [{
-        "path": "/deleteFavorite",
-        "verb": "delete"
-      }]
+      "http": [
+        {
+          "path": "/deleteFavorite",
+          "verb": "delete"
+        }
+      ]
     }
   }
 }
