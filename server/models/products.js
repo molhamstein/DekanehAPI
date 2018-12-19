@@ -185,6 +185,8 @@ module.exports = function (Products) {
           }
         },
       ], function (err, data) {
+console.log("dataaaaaaaaaaaaaaaa");
+console.log(data);
         _.each(data, function (d) {
           d.products = getRandom(d.products, limitPerCategory)
           //   d.id = d._id
@@ -847,10 +849,11 @@ module.exports = function (Products) {
           const favoritesIds = products.map(function (product) {
             return product.productId;
           });
-
+console.log("favoritesIds");
+console.log(favoritesIds);
           if (Array.isArray(result)) {
             result = result.map(res => {
-              // console.log(res.id);
+               //console.log("");
               // console.log(bookmarksIds[0]);
               res.isFavorite = favoritesIds.findIndex(o => o.toString() === res.id.toString()) !== -1;
               return res;
