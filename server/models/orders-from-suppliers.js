@@ -2,7 +2,8 @@
 var _ = require('lodash')
 module.exports = function (Ordersfromsuppliers) {
 
-  Ordersfromsuppliers.validatesInclusionOf('status', { in: ['pending', 'cashed']})
+  Ordersfromsuppliers.validatesInclusionOf('status', { in: ['pending', 'cashed']
+  })
 
   // past fllow to add Ordersfromsuppliers by ahmad
 
@@ -51,8 +52,7 @@ module.exports = function (Ordersfromsuppliers) {
 
       Ordersfromsuppliers.app.models.Orders.find({
         where: {
-          status: "pending",
-          id: "5c0e76ef5b2ab32ed049d9ed"
+          status: "pending"
         }
       }, function (err, data) {
         var products = {};

@@ -432,9 +432,7 @@ module.exports = function (Orders) {
     newDate.setHours(0);
     Orders.find({
       where: {
-        status: "pending",
-        id: "5c0e76ef5b2ab32ed049d9ed"
-
+        status: "pending"
       }
     }, function (err, data) {
       // return callback(err, data);
