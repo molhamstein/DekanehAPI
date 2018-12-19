@@ -438,6 +438,11 @@ module.exports = function (Orders) {
       // return callback(err, data);
       var products = {};
       var total = 0;
+      if (data.length == 0)
+        return callback(null, {
+          total: total,
+          data: []
+        });
       data.forEach(function (elementOrder, indexOrd) {
         elementOrder.orderProducts(function (err, orderdata) {
           if (orderdata.length != 0) {
