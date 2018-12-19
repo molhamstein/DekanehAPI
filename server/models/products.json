@@ -142,5 +142,53 @@
     }
   },
   "acls": [],
-  "methods": {}
+  "methods": {
+    "productsFeatured": {
+      "isStatic": true,
+      "accepts": [{
+        "arg": "req",
+        "http": {
+          "source": "req"
+        }
+      }],
+      "returns": [{
+        "arg": "result",
+        "type": "array",
+        "root": true,
+        "description": ""
+      }],
+      "description": "",
+      "http": [{
+        "path": "/productsFeatured",
+        "verb": "get"
+      }]
+    },
+    "productsManufacturer": {
+      "isStatic": true,
+      "accepts": [{
+          "arg": "manufacturerId",
+          "type": "string",
+          "required": true,
+          "description": ""
+        },
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [{
+        "arg": "result",
+        "type": "array",
+        "root": true,
+        "description": ""
+      }],
+      "description": "",
+      "http": [{
+        "path": "/productsManufacturer",
+        "verb": "get"
+      }]
+    }
+  }
 }

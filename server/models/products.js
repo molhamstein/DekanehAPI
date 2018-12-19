@@ -78,134 +78,154 @@ module.exports = function (Products) {
     }
     return result;
   }
-  Products.getCategoriesWithProducts = function (limitPerCategory = 10, cb) {
-    Products.getDataSource().connector.collection('products')
-      .aggregate([{
-          $match: {
-            isOffer: false,
-            status: "available"
-          }
-        },
-        {
-          $sort: {
-            categoryId: +1,
-          }
-        },
-        {
-          $lookup: {
-            from: 'categories',
-            localField: 'categoryId',
-            foreignField: '_id',
-            as: 'category'
-          }
-        },
-        {
-          $lookup: {
-            from: 'categories',
-            localField: 'subCategoryId',
-            foreignField: '_id',
-            as: 'subCategory'
-          }
-        },
-        {
-          $lookup: {
-            from: 'manufacturers',
-            localField: 'manufacturerId',
-            foreignField: '_id',
-            as: 'manufacturer'
-          }
-        },
-        {
-          $project: {
-            "nameAr": 1,
-            "nameEn": 1,
-            "media": 1,
-            "code": 1,
-            "sku": 1,
-            "pack": 1,
-            "description": 1,
-            "horecaPrice": 1,
-            "wholeSalePrice": 1,
-            "wholeSaleMarketPrice": 1,
-            "marketPrice": 1,
-            "horecaPriceDiscount": 1,
-            "wholeSalePriceDiscount": 1,
-            "marketOfficialPrice": 1,
-            "dockanBuyingPrice": 1,
-            "availableTo": 1,
-            "isFeatured": 1,
-            "status": 1,
-            "isOffer": 1,
-            "offerSource": 1,
-            "offerMaxQuantity": 1,
-            "categoryId": 1,
-            "subCategoryId": 1,
-            "offersIds": 1,
-            "id": 1,
-            "productsIds": 1,
-            "tagsIds": 1,
-            "manufacturerId": 1,
-            "category": {
-              "$arrayElemAt": ["$category", 0]
-            },
-            "subCategory": {
-              "$arrayElemAt": ["$subCategory", 0]
-            },
-            "manufacturer": {
-              "$arrayElemAt": ["$manufacturer", 0]
+  Products.getCategoriesWithProducts = function (limitPerCategory = 10, req, cb) {
+    console.log(req.accessToken.userId);
+    Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
+      if (err)
+        return cb(err);
+      console.log(oneUser.clientType);
+      var clientType = oneUser.clientType;
+
+      Products.getDataSource().connector.collection('products')
+        .aggregate([{
+            $match: {
+              isOffer: false,
+              status: "available",
+              $or: [{
+                availableTo: "both"
+              }, {
+                availableTo: clientType
+              }]
             }
-          }
-        },
-        {
-          $group: {
-            _id: '$categoryId',
-            info: {
-              $first: "$category"
-            },
-            products: {
-              $push: '$$ROOT',
+          },
+          {
+            $sort: {
+              categoryId: +1,
             }
-          }
-        },
-        {
-          $project: {
-            titleEn: '$info.titleEn',
-            titleAr: '$info.titleAr',
-            id: '$info._id',
-            products: "$products",
-            priority: "$info.priority"
-            // products: {
-            //   $slice: ["$products", 0, limitPerCategory]
-            // }
-          }
-        },
-        {
-          $sort: {
-            priority: -1,
-          }
-        },
-      ], function (err, data) {
-console.log("dataaaaaaaaaaaaaaaa");
-console.log(data);
-        _.each(data, function (d) {
-          d.products = getRandom(d.products, limitPerCategory)
-          //   d.id = d._id
-          _.each(d.products, function (p) {
-            p.id = p._id
+          },
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'categoryId',
+              foreignField: '_id',
+              as: 'category'
+            }
+          },
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'subCategoryId',
+              foreignField: '_id',
+              as: 'subCategory'
+            }
+          },
+          {
+            $lookup: {
+              from: 'manufacturers',
+              localField: 'manufacturerId',
+              foreignField: '_id',
+              as: 'manufacturer'
+            }
+          },
+          {
+            $project: {
+              "nameAr": 1,
+              "nameEn": 1,
+              "media": 1,
+              "code": 1,
+              "sku": 1,
+              "pack": 1,
+              "description": 1,
+              "horecaPrice": 1,
+              "wholeSalePrice": 1,
+              "wholeSaleMarketPrice": 1,
+              "marketPrice": 1,
+              "horecaPriceDiscount": 1,
+              "wholeSalePriceDiscount": 1,
+              "marketOfficialPrice": 1,
+              "dockanBuyingPrice": 1,
+              "availableTo": 1,
+              "isFeatured": 1,
+              "status": 1,
+              "isOffer": 1,
+              "offerSource": 1,
+              "offerMaxQuantity": 1,
+              "categoryId": 1,
+              "subCategoryId": 1,
+              "offersIds": 1,
+              "id": 1,
+              "productsIds": 1,
+              "tagsIds": 1,
+              "manufacturerId": 1,
+              "category": {
+                "$arrayElemAt": ["$category", 0]
+              },
+              "subCategory": {
+                "$arrayElemAt": ["$subCategory", 0]
+              },
+              "manufacturer": {
+                "$arrayElemAt": ["$manufacturer", 0]
+              }
+            }
+          },
+          {
+            $group: {
+              _id: '$categoryId',
+              info: {
+                $first: "$category"
+              },
+              products: {
+                $push: '$$ROOT',
+              }
+            }
+          },
+          {
+            $project: {
+              titleEn: '$info.titleEn',
+              titleAr: '$info.titleAr',
+              id: '$info._id',
+              products: "$products",
+              priority: "$info.priority"
+              // products: {
+              //   $slice: ["$products", 0, limitPerCategory]
+              // }
+            }
+          },
+          {
+            $sort: {
+              priority: -1,
+            }
+          },
+        ], function (err, data) {
+          console.log("dataaaaaaaaaaaaaaaa");
+          console.log(data);
+          _.each(data, function (d) {
+            d.products = getRandom(d.products, limitPerCategory)
+            //   d.id = d._id
+            _.each(d.products, function (p) {
+              p.id = p._id
+            });
           });
+          return cb(err, data);
         });
-        return cb(err, data);
-      });
+    })
   }
   Products.remoteMethod('getCategoriesWithProducts', {
     description: 'get products grouped by categories   == 10 product in each category',
     accepts: [{
-      arg: 'limit',
-      type: 'number',
-      'http': {
-        source: 'query'
+        arg: 'limit',
+        type: 'number',
+        'http': {
+          source: 'query'
+        }
+      },
+      {
+        arg: 'req',
+        http: {
+          source: 'req'
+        }
       }
-    }],
+    ],
     returns: {
       arg: 'body',
       type: 'body',
@@ -217,125 +237,139 @@ console.log(data);
     },
   });
 
-  Products.getManufacturersWithProducts = function (categoryId, subCategoryId, limitPerManufacturer = 10, cb) {
-    var where = {
-      status: "available"
-    };
-    if (categoryId)
-      where.categoryId = Products.dataSource.ObjectID(categoryId);
-    if (subCategoryId)
-      where.subCategoryId = Products.dataSource.ObjectID(subCategoryId);
-    console.log(where);
-    Products.getDataSource().connector.collection('products')
-      .aggregate([{
-          $match: where
-        },
-        {
-          $lookup: {
-            from: 'categories',
-            localField: 'categoryId',
-            foreignField: '_id',
-            as: 'category'
-          }
-        },
-        {
-          $lookup: {
-            from: 'categories',
-            localField: 'subCategoryId',
-            foreignField: '_id',
-            as: 'subCategory'
-          }
-        },
-        {
-          $lookup: {
-            from: 'manufacturers',
-            localField: 'manufacturerId',
-            foreignField: '_id',
-            as: 'manufacturer'
-          }
-        },
-        {
-          $project: {
-            "nameAr": 1,
-            "nameEn": 1,
-            "media": 1,
-            "code": 1,
-            "sku": 1,
-            "pack": 1,
-            "description": 1,
-            "horecaPrice": 1,
-            "wholeSalePrice": 1,
-            "wholeSaleMarketPrice": 1,
-            "marketPrice": 1,
-            "horecaPriceDiscount": 1,
-            "wholeSalePriceDiscount": 1,
-            "marketOfficialPrice": 1,
-            "dockanBuyingPrice": 1,
-            "availableTo": 1,
-            "isFeatured": 1,
-            "status": 1,
-            "isOffer": 1,
-            "offerSource": 1,
-            "offerMaxQuantity": 1,
-            "categoryId": 1,
-            "subCategoryId": 1,
-            "offersIds": 1,
-            "productsIds": 1,
-            "tagsIds": 1,
-            "manufacturerId": 1,
-            "category": {
-              "$arrayElemAt": ["$category", 0]
-            },
-            "subCategory": {
-              "$arrayElemAt": ["$subCategory", 0]
-            },
-            "manufacturer": {
-              "$arrayElemAt": ["$manufacturer", 0]
-            }
-          }
-        },
-        {
-          $group: {
-            _id: '$manufacturerId',
-            info: {
-              $first: "$manufacturer"
-            },
-            products: {
-              $push: '$$ROOT'
-            }
-          }
-        },
-        {
-          $project: {
-            nameEn: '$info.nameEn',
-            nameAr: '$info.nameAr',
-            id: '$info._id',
-            products: {
-              $slice: ["$products", limitPerManufacturer]
-            }
-          }
-        }
-      ], function (err, data) {
+  Products.getManufacturersWithProducts = function (categoryId, subCategoryId, limitPerManufacturer = 10, req, cb) {
+    console.log(req.accessToken.userId);
+    Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
+      if (err)
+        return cb(err);
+      console.log(oneUser.clientType);
+      var clientType = oneUser.clientType;
 
-        // _.each(data, function (d) {
-        // //   d.id = d._id
-        //   _.each(d.products, function (p) {
-        //     p.id = p._id
-        //   });
-        // });
-        var sortedArray = data.sort((n1, n2) => {
-          if (n1.products.length < n2.products.length) {
-            return 1;
+      var where = {
+        status: "available",
+        $or: [{
+          availableTo: "both"
+        }, {
+          availableTo: clientType
+        }]
+      };
+      if (categoryId)
+        where.categoryId = Products.dataSource.ObjectID(categoryId);
+      if (subCategoryId)
+        where.subCategoryId = Products.dataSource.ObjectID(subCategoryId);
+      console.log(where);
+      Products.getDataSource().connector.collection('products')
+        .aggregate([{
+            $match: where
+          },
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'categoryId',
+              foreignField: '_id',
+              as: 'category'
+            }
+          },
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'subCategoryId',
+              foreignField: '_id',
+              as: 'subCategory'
+            }
+          },
+          {
+            $lookup: {
+              from: 'manufacturers',
+              localField: 'manufacturerId',
+              foreignField: '_id',
+              as: 'manufacturer'
+            }
+          },
+          {
+            $project: {
+              "nameAr": 1,
+              "nameEn": 1,
+              "media": 1,
+              "code": 1,
+              "sku": 1,
+              "pack": 1,
+              "description": 1,
+              "horecaPrice": 1,
+              "wholeSalePrice": 1,
+              "wholeSaleMarketPrice": 1,
+              "marketPrice": 1,
+              "horecaPriceDiscount": 1,
+              "wholeSalePriceDiscount": 1,
+              "marketOfficialPrice": 1,
+              "dockanBuyingPrice": 1,
+              "availableTo": 1,
+              "isFeatured": 1,
+              "status": 1,
+              "isOffer": 1,
+              "offerSource": 1,
+              "offerMaxQuantity": 1,
+              "categoryId": 1,
+              "subCategoryId": 1,
+              "offersIds": 1,
+              "productsIds": 1,
+              "tagsIds": 1,
+              "manufacturerId": 1,
+              "category": {
+                "$arrayElemAt": ["$category", 0]
+              },
+              "subCategory": {
+                "$arrayElemAt": ["$subCategory", 0]
+              },
+              "manufacturer": {
+                "$arrayElemAt": ["$manufacturer", 0]
+              }
+            }
+          },
+          {
+            $group: {
+              _id: '$manufacturerId',
+              info: {
+                $first: "$manufacturer"
+              },
+              products: {
+                $push: '$$ROOT'
+              }
+            }
+          },
+          {
+            $project: {
+              nameEn: '$info.nameEn',
+              nameAr: '$info.nameAr',
+              id: '$info._id',
+              products: {
+                $slice: ["$products", limitPerManufacturer]
+              }
+            }
           }
+        ], function (err, data) {
 
-          if (n1.products.length > n2.products.length) {
-            return -1;
-          }
-          return 0;
+          // _.each(data, function (d) {
+          // //   d.id = d._id
+          //   _.each(d.products, function (p) {
+          //     p.id = p._id
+          //   });
+          // });
+          var sortedArray = data.sort((n1, n2) => {
+            if (n1.products.length < n2.products.length) {
+              return 1;
+            }
+
+            if (n1.products.length > n2.products.length) {
+              return -1;
+            }
+            return 0;
+          });
+          return cb(err, sortedArray);
         });
-        return cb(err, sortedArray);
-      });
+    })
   }
+
 
 
   Products.remoteMethod('getManufacturersWithProducts', {
@@ -359,6 +393,11 @@ console.log(data);
         type: 'number',
         'http': {
           source: 'query'
+        }
+      }, {
+        arg: 'req',
+        http: {
+          source: 'req'
         }
       }
     ],
@@ -714,6 +753,184 @@ console.log(data);
   });
 
 
+  Products.searchClient = function (string, isOffer, limit = 10, res, req, cb) {
+    console.log(req.accessToken.userId);
+    Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
+      if (err)
+        return cb(err);
+      console.log(oneUser.clientType);
+      var clientType = oneUser.clientType;
+
+      var stages = []
+      if (isOffer != undefined)
+        stages.push({
+          $match: {
+            isOffer: isOffer.toLowerCase() == 'true' ? true : false,
+            status: "available",
+            $or: [{
+              availableTo: "both"
+            }, {
+              availableTo: clientType
+            }]
+          }
+        });
+      else {
+        stages.push({
+          $match: {
+            status: "available",
+            $or: [{
+              availableTo: "both"
+            }, {
+              availableTo: clientType
+            }]
+          }
+        });
+      }
+
+      stages.push({
+        $lookup: {
+          from: 'manufacturers',
+          localField: 'manufacturerId',
+          foreignField: '_id',
+          as: 'manufacturer'
+        }
+      }, {
+        $match: {
+          $or: [{
+              nameAr: {
+                $regex: ".*(?i)" + string + ".*"
+              }
+            },
+            {
+              nameEn: {
+                $regex: ".*(?i)" + string + ".*"
+              }
+            },
+            {
+              'manufacturer.nameEn': {
+                $regex: ".*(?i)" + string + ".*"
+              }
+            },
+            {
+              'manufacturer.nameAr': {
+                $regex: ".*(?i)" + string + ".*"
+              }
+            },
+            {
+              tagsIds: {
+                $regex: ".*(?i)" + string + ".*"
+              }
+            },
+
+          ]
+        }
+      }, {
+        $limit: limit
+      }, {
+        $lookup: {
+          from: 'categories',
+          localField: 'categoryId',
+          foreignField: '_id',
+          as: 'category'
+        }
+      }, {
+        $lookup: {
+          from: 'categories',
+          localField: 'subCategoryId',
+          foreignField: '_id',
+          as: 'subCategory'
+        }
+      }, {
+        $project: {
+          id: '$_id',
+          "nameAr": 1,
+          "nameEn": 1,
+          "media": 1,
+          "code": 1,
+          "sku": 1,
+          "pack": 1,
+          "description": 1,
+          "horecaPrice": 1,
+          "wholeSalePrice": 1,
+          "wholeSaleMarketPrice": 1,
+          "marketPrice": 1,
+          "horecaPriceDiscount": 1,
+          "wholeSalePriceDiscount": 1,
+          "marketOfficialPrice": 1,
+          "dockanBuyingPrice": 1,
+          "availableTo": 1,
+          "isFeatured": 1,
+          "status": 1,
+          "isOffer": 1,
+          "offerSource": 1,
+          "offerMaxQuantity": 1,
+          "categoryId": 1,
+          "subCategoryId": 1,
+          "offersIds": 1,
+          "productsIds": 1,
+          "tagsIds": 1,
+          "manufacturerId": 1,
+          "category": {
+            "$arrayElemAt": ["$category", 0]
+          },
+          "subCategory": {
+            "$arrayElemAt": ["$subCategory", 0]
+          },
+          "manufacturer": {
+            "$arrayElemAt": ["$manufacturer", 0]
+          }
+        }
+      });
+
+      Products.getDataSource().connector.collection('products')
+        .aggregate(stages, function (err, products) {
+          if (err)
+            return cb(err);
+          return res.json(products)
+        });
+    })
+  }
+
+  Products.remoteMethod('searchClient', {
+    accepts: [{
+        arg: 'string',
+        type: 'string',
+        'http': {
+          source: 'query'
+        }
+      },
+      {
+        arg: 'isOffer',
+        type: 'string',
+        'http': {
+          source: 'query'
+        }
+      },
+      {
+        arg: 'limit',
+        type: 'number',
+        'http': {
+          source: 'query'
+        }
+      },
+      {
+        arg: 'res',
+        http: {
+          source: 'res'
+        }
+      },
+      {
+        arg: 'req',
+        http: {
+          source: 'req'
+        }
+      }
+    ],
+    http: {
+      verb: 'get',
+      path: '/searchClient'
+    },
+  });
 
 
 
@@ -832,84 +1049,161 @@ console.log(data);
   });
 
 
-  function setIsFavorite(result, ctx) {
-    return new Promise(function (resolve, reject) {
-      // const currentCtx = LoopBackContext.getCurrentContext();
-      // const locals = currentCtx ? currentCtx.get('http').res.locals : 0;
+  function setIsFavorite(result, ctx, cb) {
+    // return new Promise(function (resolve, reject) {
+    // const currentCtx = LoopBackContext.getCurrentContext();
+    // const locals = currentCtx ? currentCtx.get('http').res.locals : 0;
 
-      const accessToken = ctx.req.accessToken;
-      if (ctx.req.accessToken && ctx.req.accessToken.userId) {
-        Products.app.models.favorite.find({
-          where: {
-            ownerId: accessToken.userId
-          }
-        }, function (err, products) {
-          if (err)
-            resolve(err);
-          const favoritesIds = products.map(function (product) {
-            return product.productId;
+    const accessToken = ctx.req.accessToken;
+    if (ctx.req.accessToken && ctx.req.accessToken.userId) {
+      Products.app.models.favorite.find({
+        where: {
+          ownerId: accessToken.userId
+        }
+      }, function (err, products) {
+        if (err)
+          cb(err);
+        const favoritesIds = products.map(function (product) {
+          return product.productId;
+        });
+        console.log("favoritesIds");
+        console.log(favoritesIds);
+        if (Array.isArray(result)) {
+          result = result.map(res => {
+            //console.log("");
+            // console.log(bookmarksIds[0]);
+            res.isFavorite = favoritesIds.findIndex(o => o.toString() === res.id.toString()) !== -1;
+            return res;
           });
-console.log("favoritesIds");
-console.log(favoritesIds);
-          if (Array.isArray(result)) {
-            result = result.map(res => {
-               //console.log("");
-              // console.log(bookmarksIds[0]);
-              res.isFavorite = favoritesIds.findIndex(o => o.toString() === res.id.toString()) !== -1;
-              return res;
-            });
-            // console.log(result);
-            resolve(result);
-          } else {
-            console.log("favoritesIds");
-            console.log(favoritesIds);
-            console.log("result")
-            console.log(result)
-            result.isFavorite = favoritesIds.findIndex(o => o.toString() === result.id.toString()) !== -1;
-            resolve(result);
-          }
-        })
-      } else {
-        resolve(result);
-      }
-    });
+          // console.log(result);
+          cb(null, result);
+        } else {
+          console.log("favoritesIds");
+          console.log(favoritesIds);
+          console.log("result")
+          console.log(result)
+          result.isFavorite = favoritesIds.findIndex(o => o.toString() === result.id.toString()) !== -1;
+          cb(null, result);
+        }
+      })
+    } else {
+      cb(null, result);
+    }
+    // });
   }
 
-  //   Products.beforeRemote('find', function (context, next) {
-  // 	  console.log("Hiiiiiiiiii")
-  //     Products.find({}, function (err, data) {
-  //       if (err)
-  //         return next(err);
-  //       data.forEach(function (element) {
-  //         async.parallel([
-  //             _fn('categories', element.categoryId),
-  //             _fn('categories', element.subCategoryId),
-  //             _fn('manufacturers', element.manufacturerId),
-  //           ],
-  //           function (err, results) {
-  //             if (err)
-  //               return next(err);
-  //             element.code = results.join('');
-  //             element.save();
-  //           });
-  //       }, this);
-  //     })
-  //   });
 
 
   Products.afterRemote('find', function (context, user, next) {
-    setIsFavorite(context.result, context).then(result => {
-      context.result = result;
-      next();
-    }).catch(err => next(err));
+    setIsFavorite(context.result, context, function (err, data) {
+      if (err)
+        return next(err);
+      context.result = data;
+      next()
+    })
+    // setIsFavorite(context.result, context).then(result => {
+    //   context.result = result;
+    //   next();
+    // }).catch(err => next(err));
+    // next();
   });
   Products.afterRemote('findById', function (context, user, next) {
-    setIsFavorite(context.result, context).then(result => {
-      context.result = result;
-      next();
-    }).catch(err => next(err));
+    setIsFavorite(context.result, context, function (err, data) {
+      if (err)
+        return next(err);
+      context.result = data;
+      next()
+    })
+
   });
 
+  /**
+   *
+   * @param {Function(Error, array)} callback
+   */
+
+  Products.productsFeatured = function (req, callback) {
+    var result;
+    console.log(req.accessToken.userId);
+    Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
+      if (err)
+        return cb(err);
+      console.log(oneUser.clientType);
+      var clientType = oneUser.clientType;
+
+      Products.find({
+        "where": {
+          "and": [{
+              "isOffer": "false"
+            },
+            {
+              "isFeatured": "true"
+            },
+            {
+              "status": "available",
+            },
+            {
+              "or": [{
+                "availableTo": "both"
+              }, {
+                "availableTo": clientType
+              }]
+            }
+          ]
+        }
+      }, function (err, data) {
+        if (err)
+          return callback(err, null);
+        callback(null, data);
+      })
+
+
+    })
+  };
+
+
+
+  /**
+   *
+   * @param {string} manufacturerId
+   * @param {Function(Error, array)} callback
+   */
+
+  Products.productsManufacturer = function (manufacturerId, req, callback) {
+    var result;
+    console.log(req.accessToken.userId);
+    Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
+      if (err)
+        return cb(err);
+      console.log(oneUser.clientType);
+      var clientType = oneUser.clientType;
+
+      Products.find({
+        "where": {
+          "and": [{
+              "manufacturerId": manufacturerId
+            },
+            {
+              "status": "available",
+
+            },
+            {
+              "or": [{
+                "availableTo": "both"
+              }, {
+                "availableTo": clientType
+              }]
+            }
+          ]
+        }
+      }, function (err, data) {
+        if (err)
+          return callback(err, null);
+        callback(null, data);
+      })
+
+    })
+  };
 };
 
 

@@ -81,7 +81,8 @@
       }
     }
   },
-  "acls": [{
+  "acls": [
+    {
       "accessType": "*",
       "principalType": "ROLE",
       "principalId": "$everyone",
@@ -112,7 +113,8 @@
   "methods": {
     "setFirebaseToken": {
       "isStatic": true,
-      "accepts": [{
+      "accepts": [
+        {
           "arg": "token",
           "type": "string",
           "required": true,
@@ -126,62 +128,79 @@
           }
         }
       ],
-      "returns": [{
-        "arg": "result",
-        "type": "string",
-        "root": true,
-        "description": ""
-      }],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "string",
+          "root": true,
+          "description": ""
+        }
+      ],
       "description": "",
-      "http": [{
-        "path": "/setFirebaseToken",
-        "verb": "put"
-      }]
+      "http": [
+        {
+          "path": "/setFirebaseToken",
+          "verb": "put"
+        }
+      ]
     },
     "isActivated": {
       "isStatic": true,
-      "accepts": [{
-        "arg": "req",
-        "type": "object",
-        "http": {
-          "source": "req"
+      "accepts": [
+        {
+          "arg": "req",
+          "type": "object",
+          "http": {
+            "source": "req"
+          }
         }
-      }],
-      "returns": [{
-        "arg": "result",
-        "type": "boolean",
-        "root": true,
-        "description": ""
-      }],
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "boolean",
+          "root": true,
+          "description": ""
+        }
+      ],
       "description": "",
-      "http": [{
-        "path": "/isActivated",
-        "verb": "get"
-      }]
+      "http": [
+        {
+          "path": "/isActivated",
+          "verb": "get"
+        }
+      ]
     },
     "forgetpassword": {
       "isStatic": true,
-      "accepts": [{
-        "arg": "phoneNumber",
-        "type": "string",
-        "required": true,
-        "description": ""
-      }],
-      "returns": [{
-        "arg": "result",
-        "type": "string",
-        "root": true,
-        "description": ""
-      }],
+      "accepts": [
+        {
+          "arg": "phoneNumber",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "string",
+          "root": true,
+          "description": ""
+        }
+      ],
       "description": "add notification to admin to reset password",
-      "http": [{
-        "path": "/forgetpassword",
-        "verb": "post"
-      }]
+      "http": [
+        {
+          "path": "/forgetpassword",
+          "verb": "post"
+        }
+      ]
     },
     "resetPassword": {
       "isStatic": true,
-      "accepts": [{
+      "accepts": [
+        {
           "arg": "id",
           "type": "string",
           "required": true,
@@ -194,17 +213,21 @@
           "description": ""
         }
       ],
-      "returns": [{
-        "arg": "result",
-        "type": "string",
-        "root": true,
-        "description": ""
-      }],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "string",
+          "root": true,
+          "description": ""
+        }
+      ],
       "description": "add notification to admin to reset password",
-      "http": [{
-        "path": "/resetPassword",
-        "verb": "post"
-      }]
+      "http": [
+        {
+          "path": "/resetPassword",
+          "verb": "post"
+        }
+      ]
     }
   }
 }
