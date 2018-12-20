@@ -38,6 +38,7 @@ module.exports = function (Coupons) {
       if (coupon.status == 'used' || coupon.userId != null) {
         return callback(ERROR(606, 'coupon is used', 'COUPON_NOT_AVAILABLE'));
       }
+      coupon.userId=req.accessToken.userId
       coupon.save();
       callback(null, coupon)
     })
