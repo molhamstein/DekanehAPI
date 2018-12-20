@@ -31,7 +31,7 @@ module.exports = function (Orders) {
       }
     });
 
-    Orders.app.models.user.findById(ctx.req.accessToken.userId, (err, user) => {
+    Orders.app.models.user.findById(ctx.req.body.clientId, (err, user) => {
       if (err)
         return next(err);
       if (!user)
