@@ -175,8 +175,13 @@ module.exports = function (Orders) {
     });
     console.log("productsIds")
     console.log(productsIds)
+    var tempUserId;
+    if (ctx.req.body.clientId != null)
+      tempUserId = ctx.req.body.clientId;
+    else
+      tempUserId = ctx.req.accessToken.userId;
 
-    Orders.app.models.user.findById(ctx.req.accessToken.userId, (err, user) => {
+    Orders.app.models.user.findById(tempUserId, (err, user) => {
       if (err)
         return next(err);
       if (!user)
@@ -242,10 +247,10 @@ module.exports = function (Orders) {
         if (ctx.req.body.totalPrice < 20000)
           return next(ERROR(602, 'total price is low'));
         ctx.req.body.priceBeforeCoupon = ctx.req.body.totalPrice;
-          console.log("coupon**************************");
+        console.log("coupon**************************");
         if (!ctx.req.body.couponCode)
           return next();
-          console.log("coupon///////////////////////////");
+        console.log("coupon///////////////////////////");
 
         Orders.app.models.coupons.findOne({
           where: {
