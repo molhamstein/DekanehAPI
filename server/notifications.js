@@ -106,8 +106,8 @@ var _sendOneSignalNotification = function (token, message, object) {
     collapse_key: myConfig.senderId,
 
     notification: {
-      title: 'Title of your push notification',
-      body: 'message',
+      title: 'تم توصيل طلبك بنجاح',
+      body: 'أعطنا رأيك بخدمان دُكّان',
       click_action: "rating"
 
     },
