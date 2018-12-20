@@ -51,5 +51,33 @@
     }
   },
   "acls": [],
-  "methods": {}
+  "methods": {
+    "useCoupon": {
+      "isStatic": true,
+      "accepts": [{
+          "arg": "code",
+          "type": "number",
+          "required": true,
+          "description": ""
+        },
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [{
+        "arg": "result",
+        "type": "object",
+        "root": true,
+        "description": ""
+      }],
+      "description": "",
+      "http": [{
+        "path": "/useCoupon",
+        "verb": "put"
+      }]
+    }
+  }
 }

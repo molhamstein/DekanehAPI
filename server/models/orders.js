@@ -241,9 +241,11 @@ module.exports = function (Orders) {
         console.log(ctx.req.body.totalPrice)
         if (ctx.req.body.totalPrice < 20000)
           return next(ERROR(602, 'total price is low'));
-
+        ctx.req.body.priceBeforeCoupon = ctx.req.body.totalPrice;
+          console.log("coupon**************************");
         if (!ctx.req.body.couponCode)
           return next();
+          console.log("coupon///////////////////////////");
 
         Orders.app.models.coupons.findOne({
           where: {
@@ -257,9 +259,9 @@ module.exports = function (Orders) {
           if (err)
             return next(err);
           if (!coupon)
-            return next(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
+            return next(ERROR(607, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
           if (coupon.numberOfUsed >= coupon.numberOfTimes || coupon.status == 'used')
-            return next(ERROR(400, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
+            return next(ERROR(608, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
 
           ctx.req.body.couponId = coupon.id;
           ctx.req.body.priceBeforeCoupon = ctx.req.body.totalPrice;
@@ -269,8 +271,10 @@ module.exports = function (Orders) {
             ctx.req.body.totalPrice -= ((ctx.req.body.totalPrice * coupon.value) / 100)
           }
 
+          console.log("coupon///////////////////////////");
+          console.log(coupon);
           // edit coupon
-          coupon.numberOfUsed++;
+          coupon.numberOfUsed += 1;
           if (coupon.numberOfUsed == coupon.numberOfTimes)
             coupon.status = 'used';
           coupon.save(function (err) {

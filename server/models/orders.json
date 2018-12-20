@@ -29,6 +29,9 @@
     "totalPrice": {
       "type": "number"
     },
+    "priceBeforeCoupon": {
+      "type": "number"
+    },
     "clientType": {
       "type": "string"
     },
