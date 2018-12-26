@@ -54,7 +54,8 @@
   "methods": {
     "useCoupon": {
       "isStatic": true,
-      "accepts": [{
+      "accepts": [
+        {
           "arg": "code",
           "type": "number",
           "required": true,
@@ -67,17 +68,21 @@
           }
         }
       ],
-      "returns": [{
-        "arg": "result",
-        "type": "object",
-        "root": true,
-        "description": ""
-      }],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
       "description": "",
-      "http": [{
-        "path": "/useCoupon",
-        "verb": "put"
-      }]
+      "http": [
+        {
+          "path": "/useCoupon",
+          "verb": "put"
+        }
+      ]
     }
   }
 }

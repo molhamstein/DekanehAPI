@@ -200,6 +200,32 @@
           "verb": "get"
         }
       ]
+    },
+    "solveMedia": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "id",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ],
+      "returns": [
+        {
+          "arg": "data",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/solveMedia",
+          "verb": "get"
+        }
+      ]
     }
   }
 }

@@ -35,6 +35,9 @@
     "clientType": {
       "type": "string"
     },
+    "note": {
+      "type": "string"
+    },
     "assignedDate": {
       "type": "date"
     },

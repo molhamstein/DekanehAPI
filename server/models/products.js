@@ -1204,6 +1204,39 @@ module.exports = function (Products) {
 
     })
   };
+
+  /**
+   *
+   * @param {string} id
+   * @param {Function(Error, object)} callback
+   */
+
+  Products.solveMedia = function (id, callback) {
+    var data;
+    Products.find({}, function (err, data) {
+      console.log("data.length");
+      console.log(data.length);
+      for (var index = 0; index < data.length; index++) {
+
+        // console.log(data[index].media.thumbnail)
+        var temp = data[index].media.thumbnail;
+        if (temp.indexOf("/images/") != -1) {
+
+          temp = temp.replace("/images/", "/thumb/");
+          if (temp.indexOf(".png") != -1) {
+            temp = temp.replace(".png", "_thumb.jpg");
+
+          } else if (temp.indexOf(".jpg") != -1) {
+            temp = temp.replace(".jpg", "_thumb.jpg");
+          }
+          // console.log(temp)
+          data[index].media.thumbnail = temp;
+          data[index].save();
+          // callback(null, data);
+        }
+      }
+    })
+  };
 };
 
 

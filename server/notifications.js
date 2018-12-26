@@ -107,7 +107,7 @@ var _sendOneSignalNotification = function (token, message, object) {
 
     notification: {
       title: 'تم توصيل طلبك بنجاح',
-      body: 'أعطنا رأيك بخدمان دُكّان',
+      body: 'أعطنا رأيك بخدمات دُكّان',
       click_action: "rating"
 
     },
