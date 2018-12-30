@@ -1254,7 +1254,7 @@ module.exports = function (Products) {
           }
           data[index].media.thumbnail = temp;
           data[index].save();
-          callback(null, data);
+          // callback(null, data);
         }
       }
     })
