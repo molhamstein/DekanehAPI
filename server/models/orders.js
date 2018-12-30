@@ -437,69 +437,83 @@ module.exports = function (Orders) {
 
   Orders.supplierOrders = function (callback) {
     var result;
-    var newDate = new Date();
-    newDate.setHours(0);
-    Orders.find({
-      where: {
-        status: "pending"
-      }
-    }, function (err, data) {
-      // return callback(err, data);
-      var products = {};
-      var total = 0;
-      if (data.length == 0)
-        return callback(null, {
-          total: total,
-          data: []
-        });
-      data.forEach(function (elementOrder, indexOrd) {
-        elementOrder.orderProducts(function (err, orderdata) {
-          if (orderdata.length != 0) {
-            orderdata.forEach(function (element, indexProd) {
+    Orders.app.models.ordersFromSuppliers.findOne({
+      "order": "creationDate DESC"
+    }, function (err, oneOrderFromSupplier) {
+      if (err)
+        return callback(err, null)
+      var newDate = new Date();
+      newDate.setHours(0);
+      Orders.find({
+        where: {
+          and: [{
+              status: "pending"
+            },
+            {
+              orderDate: {
+                "gt": oneOrderFromSupplier.creationDate
+              }
+            }
+          ]
+        }
+      }, function (err, data) {
+        // return callback(err, data);
+        var products = {};
+        var total = 0;
+        if (data.length == 0)
+          return callback(null, {
+            total: total,
+            data: []
+          });
+        data.forEach(function (elementOrder, indexOrd) {
+          elementOrder.orderProducts(function (err, orderdata) {
+            if (orderdata.length != 0) {
+              orderdata.forEach(function (element, indexProd) {
 
-              if (products[element.productId] == null) {
-                products[element.productId] = {
-                  count: 0,
-                  price: 0,
-                  product: {
-                    media: element.media,
-                    nameEn: element.nameEn,
-                    nameAr: element.nameAr,
-                    pack: element.pack,
-                    description: element.description,
-                    marketOfficialPrice: element.marketOfficialPrice,
-                    dockanBuyingPrice: element.dockanBuyingPrice,
-                    wholeSaleMarketPrice: element.wholeSaleMarketPrice,
-                    horecaPriceDiscount: element.horecaPriceDiscount,
-                    wholeSalePriceDiscount: element.wholeSalePriceDiscount,
-                    horecaPrice: element.horecaPrice,
-                    wholeSalePrice: element.wholeSalePrice,
-                    id: element.id
-                  }
-                };
-              }
-              total += parseFloat(element.dockanBuyingPrice) * parseFloat(element.count);
-              products[element.productId].count += parseFloat(element.count);
-              products[element.productId].price += parseFloat(element.dockanBuyingPrice) * parseFloat(element.count);
-              if (indexOrd == data.length - 1 && indexProd == orderdata.length - 1) {
-                _toArray(products, function (arrayData) {
-                  return callback(null, {
-                    total: total,
-                    data: arrayData
-                  });
-                })
-              }
-            }, this);
-          } else if (indexOrd == data.length - 1) {
-            _toArray(products, function (arrayData) {
-              return callback(null, {
-                total: total,
-                data: arrayData
-              });
-            })
-          }
-        })
-      }, this);
+                if (products[element.productId] == null) {
+                  products[element.productId] = {
+                    count: 0,
+                    price: 0,
+                    product: {
+                      media: element.media,
+                      nameEn: element.nameEn,
+                      nameAr: element.nameAr,
+                      pack: element.pack,
+                      description: element.description,
+                      marketOfficialPrice: element.marketOfficialPrice,
+                      dockanBuyingPrice: element.dockanBuyingPrice,
+                      wholeSaleMarketPrice: element.wholeSaleMarketPrice,
+                      horecaPriceDiscount: element.horecaPriceDiscount,
+                      wholeSalePriceDiscount: element.wholeSalePriceDiscount,
+                      horecaPrice: element.horecaPrice,
+                      wholeSalePrice: element.wholeSalePrice,
+                      id: element.id
+                    }
+                  };
+                }
+                total += parseFloat(element.dockanBuyingPrice) * parseFloat(element.count);
+                products[element.productId].count += parseFloat(element.count);
+                products[element.productId].price += parseFloat(element.dockanBuyingPrice) * parseFloat(element.count);
+                if (indexOrd == data.length - 1 && indexProd == orderdata.length - 1) {
+                  _toArray(products, function (arrayData) {
+                    return callback(null, {
+                      total: total,
+                      data: arrayData
+                    });
+                  })
+                }
+              }, this);
+            } else if (indexOrd == data.length - 1) {
+              _toArray(products, function (arrayData) {
+                return callback(null, {
+                  total: total,
+                  data: arrayData
+                });
+              })
+            }
+          })
+        }, this);
+      })
     })
   };
 

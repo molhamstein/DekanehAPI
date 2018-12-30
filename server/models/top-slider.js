@@ -2,6 +2,6 @@
 
 module.exports = function(Topslider) {
 	Topslider.validatesInclusionOf('status', {in: [ 'activated','deactivated']});
-	Topslider.validatesInclusionOf('type', {in: [ 'product','external']});
+	Topslider.validatesInclusionOf('type', {in: [ 'product','external','manufacturer']});
 
 };
