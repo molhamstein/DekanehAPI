@@ -55,18 +55,18 @@ module.exports = function (Ordersfromsuppliers) {
       }, function (err, oneOrderFromSupplier) {
         if (err)
           return next(err, null)
-
+        var andObject = [{
+          status: "pending"
+        }];
+        if (oneOrderFromSupplier != null)
+          andObject.push({
+            orderDate: {
+              "gt": oneOrderFromSupplier.creationDate
+            }
+          })
         Ordersfromsuppliers.app.models.Orders.find({
           where: {
-            and: [{
-                status: "pending"
-              },
-              {
-                orderDate: {
-                  "gt": oneOrderFromSupplier.creationDate
-                }
-              }
-            ]
+            and: andObject
           }
         }, function (err, data) {
           var products = {};

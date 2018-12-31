@@ -443,18 +443,19 @@ module.exports = function (Orders) {
       if (err)
         return callback(err, null)
       var newDate = new Date();
+      var andObject = [{
+        status: "pending"
+      }];
+      if (oneOrderFromSupplier != null)
+        andObject.push({
+          orderDate: {
+            "gt": oneOrderFromSupplier.creationDate
+          }
+        })
       newDate.setHours(0);
       Orders.find({
         where: {
-          and: [{
-              status: "pending"
-            },
-            {
-              orderDate: {
-                "gt": oneOrderFromSupplier.creationDate
-              }
-            }
-          ]
+          and: andObject
         }
       }, function (err, data) {
         // return callback(err, data);
