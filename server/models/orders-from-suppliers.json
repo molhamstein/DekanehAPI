@@ -51,5 +51,32 @@
     }
   },
   "acls": [],
-  "methods": {}
+  "methods": {
+    "getByDriver": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "driverId",
+          "type": "string",
+          "required": true,
+          "description": ""
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/getByDriver",
+          "verb": "get"
+        }
+      ]
+    }
+  }
 }

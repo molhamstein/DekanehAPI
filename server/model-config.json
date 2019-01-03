@@ -124,5 +124,9 @@
   "notification": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "notes": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

@@ -2,7 +2,7 @@
 var _ = require('lodash')
 module.exports = function (Ordersfromsuppliers) {
 
-  Ordersfromsuppliers.validatesInclusionOf('status', { in: ['pending', 'cashed']
+  Ordersfromsuppliers.validatesInclusionOf('status', { in: ['pending', 'cashed', "loaded"]
   })
 
   // past fllow to add Ordersfromsuppliers by ahmad
@@ -140,4 +140,29 @@ module.exports = function (Ordersfromsuppliers) {
     cb(result);
   }
 
+
+
+  /**
+   *
+   * @param {string} driverId
+   * @param {Function(Error, array)} callback
+   */
+
+  Ordersfromsuppliers.getByDriver = function (driverId, callback) {
+    var result = [];
+    // TODO
+    Ordersfromsuppliers.find({}, function (err, data) {
+      if (err)
+        callback(err, null);
+      if (data.length == 0)
+        callback(null, result);
+      data.forEach((element, index) => {
+        console.log(element.staffId)
+        if (element.staffId == driverId)
+          result.push(element)
+        if (index == data.length - 1)
+          callback(null, result);
+      });
+    })
+  };
 };
