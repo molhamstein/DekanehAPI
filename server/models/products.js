@@ -932,6 +932,74 @@ module.exports = function (Products) {
     },
   });
 
+  /**
+   *
+   * @param {boolean} isFeatured
+   * @param {Function(Error, array)} callback
+   */
+
+  Products.getOffers = function (isFeatured, req, callback) {
+    var result;
+    console.log(isFeatured);
+    Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
+      if (err)
+        return callback(err);
+      var clientType = oneUser.clientType;
+      var where = {}
+      if (isFeatured == undefined)
+        where = {
+          "and": [{
+              "status": "available"
+            },
+            {
+              "isOffer": true,
+            },
+            {
+              "or": [{
+                  "availableTo": "both"
+                },
+                {
+                  "availableTo": clientType
+                }
+              ]
+            }
+          ]
+        };
+      else {
+        if (isFeatured == "true")
+          isFeatured = true
+        else if (isFeatured == "false")
+          isFeatured = false
+        where = {
+          "and": [{
+              "status": "available"
+            },
+            {
+              "isOffer": true,
+            },
+            {
+              "isFeatured": isFeatured
+            }, {
+              "or": [{
+                  "availableTo": "both"
+                },
+                {
+                  "availableTo": clientType
+                }
+              ]
+            }
+          ]
+        };
+      }
+      Products.find({
+        "where": where
+      }, function (err, products) {
+        if (err)
+          return callback(err, null)
+        callback(err, products)
+      })
+    })
+  };
 
 
   Products.exportProducts = function (res, cb) {

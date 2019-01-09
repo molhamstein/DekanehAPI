@@ -145,34 +145,27 @@
   "methods": {
     "productsFeatured": {
       "isStatic": true,
-      "accepts": [
-        {
-          "arg": "req",
-          "http": {
-            "source": "req"
-          }
+      "accepts": [{
+        "arg": "req",
+        "http": {
+          "source": "req"
         }
-      ],
-      "returns": [
-        {
-          "arg": "result",
-          "type": "array",
-          "root": true,
-          "description": ""
-        }
-      ],
+      }],
+      "returns": [{
+        "arg": "result",
+        "type": "array",
+        "root": true,
+        "description": ""
+      }],
       "description": "",
-      "http": [
-        {
-          "path": "/productsFeatured",
-          "verb": "get"
-        }
-      ]
+      "http": [{
+        "path": "/productsFeatured",
+        "verb": "get"
+      }]
     },
     "productsManufacturer": {
       "isStatic": true,
-      "accepts": [
-        {
+      "accepts": [{
           "arg": "manufacturerId",
           "type": "string",
           "required": true,
@@ -185,47 +178,64 @@
           }
         }
       ],
-      "returns": [
-        {
-          "arg": "result",
-          "type": "array",
-          "root": true,
-          "description": ""
-        }
-      ],
+      "returns": [{
+        "arg": "result",
+        "type": "array",
+        "root": true,
+        "description": ""
+      }],
       "description": "",
-      "http": [
-        {
-          "path": "/productsManufacturer",
-          "verb": "get"
-        }
-      ]
+      "http": [{
+        "path": "/productsManufacturer",
+        "verb": "get"
+      }]
     },
     "solveMedia": {
       "isStatic": true,
-      "accepts": [
-        {
-          "arg": "id",
-          "type": "string",
-          "required": true,
-          "description": ""
-        }
-      ],
-      "returns": [
-        {
-          "arg": "data",
-          "type": "object",
-          "root": true,
-          "description": ""
-        }
-      ],
+      "accepts": [{
+        "arg": "id",
+        "type": "string",
+        "required": true,
+        "description": ""
+      }],
+      "returns": [{
+        "arg": "data",
+        "type": "object",
+        "root": true,
+        "description": ""
+      }],
       "description": "",
-      "http": [
+      "http": [{
+        "path": "/solveMedia",
+        "verb": "get"
+      }]
+    },
+    "getOffers": {
+      "isStatic": true,
+      "accepts": [{
+          "arg": "isFeatured",
+          "type": "string",
+          "required": false,
+          "description": ""
+        },
         {
-          "path": "/solveMedia",
-          "verb": "get"
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
         }
-      ]
+      ],
+      "returns": [{
+        "arg": "result",
+        "type": "array",
+        "root": true,
+        "description": ""
+      }],
+      "description": "",
+      "http": [{
+        "path": "/getOffers",
+        "verb": "get"
+      }]
     }
   }
 }

@@ -198,8 +198,8 @@ module.exports = function (Orders) {
       }, function (err, productsFromDb) {
         if (err)
           return next(err);
-        console.log("productsFromDb")
-        console.log(productsFromDb)
+        // console.log("productsFromDb")
+        // console.log(productsFromDb)
 
         ctx.req.body.status = 'pending';
         ctx.req.body.clientType = user.clientType;
@@ -209,13 +209,22 @@ module.exports = function (Orders) {
         _.each(productsFromDb, p => {
           productsInfo[p.id.toString()] = p;
         });
-
         _.each(products, (product, index) => {
           var pInfo = productsInfo[product.productId];
-          if (!pInfo)
+          console.log("**********************");
+          console.log(pInfo);
+
+          if (pInfo == null) {
             return delete products[index]
-          if (pInfo.availableTo != user.clientType && pInfo.availableTo != 'both')
+          }
+          console.log("-----------------------------")
+          console.log(user.clientType)
+
+          if (pInfo.availableTo != user.clientType && pInfo.availableTo != 'both') {
             return delete products[index]
+          }
+          console.log("///////////////////////////")
+
           product.nameEn = pInfo.nameEn;
           product.nameAr = pInfo.nameAr;
           product.pack = pInfo.pack;
@@ -237,6 +246,8 @@ module.exports = function (Orders) {
           } else {
             product.price = (pInfo.horecaPriceDiscount && pInfo.horecaPriceDiscount) == 0 ? pInfo.horecaPrice : pInfo.horecaPriceDiscount;
           }
+          console.log("-------------------------")
+          console.log(Number(product.count) * Number(product.price))
           ctx.req.body.totalPrice += Number(product.count) * Number(product.price);
           product.isOffer = pInfo.isOffer;
           if (pInfo.isOffer && pInfo.products) {
