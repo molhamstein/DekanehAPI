@@ -4,7 +4,7 @@ var _ = require('lodash');
 var async = require('async');
 var path = require('path');
 module.exports = function (Products) {
-  // Products.validatesInclusionOf('status', {in: ['available', 'unAvailable']});
+  Products.validatesInclusionOf('status', {in: ['available', 'unavailable','pending']});
   // Products.validatesInclusionOf('offerSource', {in: ['dockan', 'company','supplier']});
   Products.validatesInclusionOf('availableTo', { in: ['both', 'wholesale', 'horeca']
   });
@@ -247,6 +247,7 @@ module.exports = function (Products) {
 
       var where = {
         status: "available",
+        isOffer: false,
         $or: [{
           availableTo: "both"
         }, {

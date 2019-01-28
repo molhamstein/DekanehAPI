@@ -26,9 +26,9 @@ module.exports = function (User) {
   //   console.log(body);
   // });
 
-  User.validatesUniquenessOf('phoneNumber', {
-    message: 'phoneNumber already exists'
-  });
+  // User.validatesUniquenessOf('phoneNumber', {
+  //   message: 'phoneNumber already exists'
+  // });
   // user.validatesLengthOf('phoneNumber', {min: 9,max: 10 message: {min: 'phoneNumber is not syrian Number'}});
   User.validatesInclusionOf('status', { in: ['pending', 'activated', 'deactivated']
   });
@@ -107,7 +107,22 @@ module.exports = function (User) {
   // _.each(functionsDisable,(f)=>{
   // 	User.disableRemoteMethod(f, false);
   // })
+  User.beforeRemote('create', function (ctx, modelInstance, next) {
+    var phoneNumber = ctx.req.body.phoneNumber;
+    User.find({
+      "where": {
+        "phoneNumber": phoneNumber
+      }
+    }, function (err, user) {
+      if (err)
+        return next(err);
+      if (user[0] != null)
+        return next(ERROR(610, 'user already exists'));
+      else
+        next()
+    })
 
+  })
   User.afterRemote('create', function (ctx, result, next) {
     User.app.models.notification.create({
       "type": "client",
@@ -308,6 +323,7 @@ module.exports = function (User) {
     console.log("Done");
     return fn.promise;
   }
+
   User.remoteMethod('staffLogin', {
     description: 'staff user login',
     accepts: [{
