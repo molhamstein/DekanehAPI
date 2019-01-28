@@ -3,7 +3,7 @@
 module.exports = function (Coupons) {
   Coupons.validatesInclusionOf('type', { in: ['fixed', 'percent']
   });
-  Coupons.validatesInclusionOf('status', { in: ['available', 'used']
+  Coupons.validatesInclusionOf('status', { in: ['available', 'used','deactivated']
   });
 
   Coupons.beforeRemote('create', function (ctx, modelInstance, next) {

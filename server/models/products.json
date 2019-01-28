@@ -210,6 +210,36 @@
         "verb": "get"
       }]
     },
+    "getOffersByProdId": {
+      "isStatic": true,
+      "accepts": [{
+          "arg": "productId",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "path"
+          }
+        },
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [{
+        "arg": "result",
+        "type": "array",
+        "root": true,
+        "description": ""
+      }],
+      "description": "",
+      "http": [{
+        "path": "/getOffersByProdId/:productId",
+        "verb": "get"
+      }]
+    },
     "getOffers": {
       "isStatic": true,
       "accepts": [{

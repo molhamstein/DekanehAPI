@@ -43,6 +43,9 @@
     },
     "deliveredDate": {
       "type": "date"
+    },
+    "canceledDate": {
+      "type": "date"
     }
   },
   "validations": [],

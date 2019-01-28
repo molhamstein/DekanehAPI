@@ -4,7 +4,8 @@ var _ = require('lodash');
 var async = require('async');
 var path = require('path');
 module.exports = function (Products) {
-  Products.validatesInclusionOf('status', {in: ['available', 'unavailable','pending']});
+  Products.validatesInclusionOf('status', { in: ['available', 'unavailable', 'pending']
+  });
   // Products.validatesInclusionOf('offerSource', {in: ['dockan', 'company','supplier']});
   Products.validatesInclusionOf('availableTo', { in: ['both', 'wholesale', 'horeca']
   });
@@ -605,7 +606,7 @@ module.exports = function (Products) {
   //      db.collection('products').createIndex({ titleAr: "text", titleEn: "text" }, function(err) {
   //      });
   //    })
-  Products.search = function (string, isOffer, limit = 10, res, cb) {
+  Products.search = function (string, isOffer, limit = 10, skip = 0, res, cb) {
     var stages = []
     if (isOffer != undefined)
       stages.push({
@@ -651,6 +652,8 @@ module.exports = function (Products) {
 
         ]
       }
+    }, {
+      $skip: skip
     }, {
       $limit: limit
     }, {
@@ -741,6 +744,13 @@ module.exports = function (Products) {
         }
       },
       {
+        arg: 'skip',
+        type: 'number',
+        'http': {
+          source: 'query'
+        }
+      },
+      {
         arg: 'res',
         http: {
           source: 'res'
@@ -754,7 +764,7 @@ module.exports = function (Products) {
   });
 
 
-  Products.searchClient = function (string, isOffer, limit = 10, res, req, cb) {
+  Products.searchClient = function (string, isOffer, limit = 10, skip = 0, res, req, cb) {
     console.log(req.accessToken.userId);
     Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
       if (err)
@@ -825,6 +835,8 @@ module.exports = function (Products) {
 
           ]
         }
+      }, {
+        $skip: skip
       }, {
         $limit: limit
       }, {
@@ -915,6 +927,13 @@ module.exports = function (Products) {
         }
       },
       {
+        arg: 'skip',
+        type: 'number',
+        'http': {
+          source: 'query'
+        }
+      },
+      {
         arg: 'res',
         http: {
           source: 'res'
@@ -998,6 +1017,54 @@ module.exports = function (Products) {
         if (err)
           return callback(err, null)
         callback(err, products)
+      })
+    })
+  };
+
+  Products.getOffersByProdId = function (productId, req, callback) {
+    var result;
+    Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
+      if (err)
+        return callback(err);
+      var clientType = oneUser.clientType;
+      console.log("clientType")
+      console.log(clientType)
+      var where = {}
+      Products.findById(productId, function (err, product) {
+        if (err)
+          return callback(err, null)
+        where = {
+          "and": [{
+              "status": "available"
+            },
+            {
+              "isOffer": true,
+            },
+            {
+              "id": {
+                "inq": product.offersIds
+              }
+            },
+            {
+              "or": [{
+                  "availableTo": "both"
+                },
+                {
+                  "availableTo": clientType
+                }
+              ]
+            }
+          ]
+        };
+        Products.find({
+          "where": where
+        }, function (err, offers) {
+          if (err)
+            return callback(err, null)
+          callback(err, offers)
+
+        })
+
       })
     })
   };
@@ -1305,30 +1372,36 @@ module.exports = function (Products) {
     //     }
     //   }
     // })
-    Products.find({}, function (err, data) {
-      console.log("data.length");
-      console.log(data.length);
-      var count = 0;
-      for (var index = 0; index < data.length; index++) {
+    // Products.find({}, function (err, data) {
+    //   console.log("data.length");
+    //   console.log(data.length);
+    //   var count = 0;
+    //   for (var index = 0; index < data.length; index++) {
 
-        // console.log(data[index].media.thumbnail)
-        var temp = data[index].media.thumbnail;
-        if (temp == null) {
-          count++;
-          console.log(count);
-          temp = data[index].media.url;
-          temp = temp.replace("/images/", "/thumb/");
-          if (temp.indexOf(".png") != -1) {
-            temp = temp.replace(".png", "_thumb.jpg");
-          }
-          data[index].media.thumbnail = temp;
-          data[index].save();
-          // callback(null, data);
-        }
-      }
+    //     // console.log(data[index].media.thumbnail)
+    //     var temp = data[index].media.thumbnail;
+    //     if (temp == null) {
+    //       count++;
+    //       console.log(count);
+    //       temp = data[index].media.url;
+    //       temp = temp.replace("/images/", "/thumb/");
+    //       if (temp.indexOf(".png") != -1) {
+    //         temp = temp.replace(".png", "_thumb.jpg");
+    //       }
+    //       data[index].media.thumbnail = temp;
+    //       data[index].save();
+    //       // callback(null, data);
+    //     }
+    //   }
+    // })
+
+    Products.destroyAll({
+      "wholeSalePriceDiscount": 1
+    }, function (err, data) {
+      if (err)
+        return callback(err)
+      callback(err, data)
     })
-
-
 
   };
 };

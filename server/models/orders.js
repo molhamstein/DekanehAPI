@@ -343,7 +343,7 @@ module.exports = function (Orders) {
           return cb(err);
         if (!order)
           return cb(ERROR(404, 'order not found'));
-        if (order.status != 'pending')
+        if (order.status == 'inDelivery')
           return cb(ERROR(400, 'order already in delivery'));
 
         order.status = 'inDelivery';
@@ -358,6 +358,10 @@ module.exports = function (Orders) {
 
     });
   }
+
+
+
+
   Orders.remoteMethod('assignOrderToDelivery', {
     accepts: [{
       arg: 'orderId',
@@ -375,6 +379,41 @@ module.exports = function (Orders) {
     http: {
       verb: 'post',
       path: '/:orderId/assignDelivery'
+    },
+  });
+
+  Orders.assignOrderToCancel = function (orderId, cb) {
+
+      Orders.findById(orderId, function (err, order) {
+        if (err)
+          return cb(err);
+        if (!order)
+          return cb(ERROR(404, 'order not found'));
+        if (order.status == 'canceled')
+          return cb(ERROR(400, 'order already in canceled'));
+
+        order.status = 'canceled';
+        order.canceledDate = new Date();
+        order.save((err) => {
+          return cb(null, 'order is assigned');
+        })
+
+      });
+  }
+
+  Orders.remoteMethod('assignOrderToCancel', {
+    accepts: [{
+      arg: 'orderId',
+      type: 'string',
+      required: true
+    }],
+    returns: {
+      arg: 'message',
+      type: 'string'
+    },
+    http: {
+      verb: 'post',
+      path: '/:orderId/assignCancel'
     },
   });
 
