@@ -73,33 +73,66 @@
     "supplierOrders": {
       "isStatic": true,
       "accepts": [],
-      "returns": [
-        {
-          "arg": "result",
-          "type": "object",
-          "root": true,
-          "description": ""
-        }
-      ],
+      "returns": [{
+        "arg": "result",
+        "type": "object",
+        "root": true,
+        "description": ""
+      }],
       "description": "",
-      "http": [
-        {
-          "path": "/supplierOrders",
-          "verb": "get"
-        }
-      ]
+      "http": [{
+        "path": "/supplierOrders",
+        "verb": "get"
+      }]
     },
     "testNot": {
       "isStatic": true,
       "accepts": [],
       "returns": [],
       "description": "",
-      "http": [
+      "http": [{
+        "path": "/testNot",
+        "verb": "get"
+      }]
+    },
+    "editOrder": {
+      "isStatic": true,
+      "accepts": [{
+          "arg": "id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "path"
+          }
+        },
         {
-          "path": "/testNot",
-          "verb": "get"
+          "arg": "data",
+          "type": "object",
+          "required": true,
+          "description": ""
+        },
+        {
+          "arg": "context",
+          "type": "object",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "context"
+          }
         }
-      ]
+      ],
+      "returns": [{
+        "arg": "result",
+        "type": "object",
+        "root": true,
+        "description": ""
+      }],
+      "description": "",
+      "http": [{
+        "path": "/:id/editOrder",
+        "verb": "put"
+      }]
     }
   }
 }

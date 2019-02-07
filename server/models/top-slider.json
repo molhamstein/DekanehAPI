@@ -5,13 +5,17 @@
   "options": {
     "validateUpsert": true
   },
+  "scope": {
+    "include": [
+      "manufacturers",
+      "products"
+    ]
+  },
+
   "properties": {
     "image": {
       "type": "string",
       "required": true
-    },
-    "target": {
-      "type": "string"
     },
     "type": {
       "type": "string",
@@ -29,7 +33,18 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "products": {
+      "type": "belongsTo",
+      "model": "products",
+      "foreignKey": "target"
+    },
+    "manufacturers": {
+      "type": "belongsTo",
+      "model": "manufacturers",
+      "foreignKey": "target"
+    }
+  },
   "acls": [],
   "methods": {}
 }

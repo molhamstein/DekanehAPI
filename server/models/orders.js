@@ -3,7 +3,8 @@
 var _ = require('lodash');
 var notifications = require('../notifications');
 module.exports = function (Orders) {
-  Orders.validatesInclusionOf('status', { in: ['pending', 'inDelivery', 'delivered', 'canceled']
+  Orders.validatesInclusionOf('status', {
+    in: ['pending', 'inDelivery', 'delivered', 'canceled']
   });
 
 
@@ -156,6 +157,238 @@ module.exports = function (Orders) {
         })
       })
   })
+
+
+  Orders.editOrder = function (id, data, context, callback) {
+    console.log(id);
+    console.log('upsert called');
+    if (!context.req.accessToken || !context.req.accessToken.userId)
+      return callback(ERROR(403, 'User not login'))
+
+    if (!data.orderProducts || !Array.isArray(data.orderProducts) || data.orderProducts.length == 0)
+      return callback(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
+    var products = data.orderProducts;
+
+    var productsIds = []
+    _.each(products, product => {
+      try {
+        productsIds.push(Orders.dataSource.ObjectID(product.productId).toString());
+      } catch (e) {
+        return callback(ERROR(400, 'productId not ID'))
+      }
+    });
+
+    Orders.app.models.user.findById(data.clientId, (err, user) => {
+      if (err)
+        return callback(err);
+      if (!user)
+        return callback(ERROR(400, 'user not found'));
+
+      data.clientId = user.id;
+
+
+      Orders.app.models.orderProducts.find({
+        "where": {
+          "orderId": id
+        }
+      }, function (err, oldOrderProducts) {
+        if (err)
+          return callback(err);
+        var oldProductsIds = [];
+        oldOrderProducts.forEach(element => {
+          oldProductsIds.push(element.productId.toString());
+        });
+
+        var deletedProductsId = []
+        var newProductsId = []
+
+        oldProductsIds.forEach(element => {
+          if (productsIds.includes(element) == false)
+            deletedProductsId.push(element)
+        });
+        productsIds.forEach(element => {
+          if (oldProductsIds.includes(element) == false)
+            newProductsId.push(element)
+        });
+        var tempOldProducts = []
+        oldOrderProducts.forEach(element => {
+          if (deletedProductsId.includes(element.productId.toString()) == false)
+            tempOldProducts.push(element)
+        });
+
+        console.log("productsIds")
+        console.log(productsIds)
+
+        console.log("oldProductsIds");
+        console.log(oldProductsIds);
+
+        console.log("deletedProductsId");
+        console.log(deletedProductsId);
+
+        console.log("newProductsId");
+        console.log(newProductsId);
+
+        console.log("tempOldProducts.length")
+        console.log(tempOldProducts.length)
+
+
+
+        Orders.app.models.products.find({
+          where: {
+            id: {
+              'inq': newProductsId
+            }
+          }
+        }, function (err, newProducts) {
+          if (err)
+            return next(err);
+
+          data.clientType = user.clientType;
+
+          var productsInfo = {};
+          _.each(newProducts, p => {
+            productsInfo[p.id.toString()] = p;
+          });
+
+          _.each(tempOldProducts, p => {
+            productsInfo[p.productId.toString()] = p;
+          });
+          data.totalPrice = 0
+          console.log("productsInfo.length");
+          console.log(productsInfo.length);
+          var tempProduct = [];
+          _.each(products, (product, index) => {
+            var pInfo = productsInfo[product.productId];
+            // if (!pInfo)
+            //   return delete products[index]
+            // if (pInfo.availableTo != user.clientType && pInfo.availableTo != 'both')
+            //   return delete products[index]
+
+            product.nameEn = pInfo.nameEn;
+            product.nameAr = pInfo.nameAr;
+            product.pack = pInfo.pack;
+            product.description = pInfo.description;
+            product.marketOfficialPrice = pInfo.marketOfficialPrice;
+            product.dockanBuyingPrice = pInfo.dockanBuyingPrice;
+            product.wholeSaleMarketPrice = pInfo.wholeSaleMarketPrice;
+            product.horecaPriceDiscount = pInfo.horecaPriceDiscount;
+            product.wholeSalePriceDiscount = pInfo.wholeSalePriceDiscount;
+            product.horecaPrice = pInfo.horecaPrice;
+            product.wholeSalePrice = pInfo.wholeSalePrice;
+            product.offerSource = pInfo.offerSource;
+            product.media = pInfo.media;
+            if (user.clientType == 'wholesale') {
+              product.price = (pInfo.wholeSalePriceDiscount && pInfo.wholeSalePriceDiscount) == 0 ? pInfo.wholeSalePrice : pInfo.wholeSalePriceDiscount;
+            } else {
+              product.price = (pInfo.horecaPriceDiscount && pInfo.horecaPriceDiscount) == 0 ? pInfo.horecaPrice : pInfo.horecaPriceDiscount;
+            }
+            data.totalPrice += Number(product.count) * Number(product.price);
+
+            product.isOffer = pInfo.isOffer;
+            if (pInfo.isOffer && pInfo.products) {
+              product.products = JSON.parse(JSON.stringify(pInfo.products()));
+            }
+
+            tempProduct.push(product)
+          });
+          // console.log(tempProduct)
+          console.log(data.totalPrice)
+          if (data.totalPrice < 20000)
+            return callback(ERROR(602, 'total price is low'));
+
+          delete data['orderProducts'];
+          delete data['client'];
+          console.log(data);
+
+          Orders.findById(id, function (err, mainOrder) {
+            if (err)
+              callback(err, null)
+            if (!data.couponCode && !mainOrder.couponCode) {
+              changeOrderProduct(id, tempProduct, function (err) {
+                console.log("no Counpon");
+                if (err)
+                  return callback(err)
+                mainOrder.updateAttributes(data, function (err, data) {
+                  if (err)
+                    return callback(err)
+                  callback();
+                })
+              })
+            }
+            if (data.couponCode && !mainOrder.couponCode) {
+              console.log("new counpon");
+              Orders.app.models.coupons.findOne({
+                where: {
+                  code: data.couponCode,
+                  expireDate: {
+                    gte: new Date()
+                  },
+                  userId: user.id
+                }
+              }, function (err, coupon) {
+                if (err)
+                  return callback(err);
+                if (!coupon)
+                  return callback(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
+                if (coupon.numberOfUsed >= coupon.numberOfTimes || coupon.status == 'used')
+                  return callback(ERROR(400, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
+
+                data.couponId = coupon.id;
+                data.priceBeforeCoupon = data.totalPrice;
+                if (coupon.type == 'fixed') {
+                  data.totalPrice -= coupon.value;
+                } else {
+                  data.totalPrice -= ((ctx.req.body.totalPrice * coupon.value) / 100)
+                }
+
+                // edit coupon
+                coupon.numberOfUsed++;
+                if (coupon.numberOfUsed == coupon.numberOfTimes)
+                  coupon.status = 'used';
+                coupon.save(function (err) {
+                  if (err)
+                    return callback(err);
+                  changeOrderProduct(id, tempProduct, function (err) {
+                    if (err)
+                      return callback(err)
+                    mainOrder.updateAttributes(data, function (err, data) {
+                      if (err)
+                        return callback(err)
+                      callback();
+                    })
+                  })
+                });
+              });
+
+            }
+            return callback(ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE'));
+
+          })
+        })
+      })
+    })
+  }
+
+  function changeOrderProduct(id, tempProduct, callback) {
+    Orders.app.models.orderProducts.destroyAll({
+        "orderId": id
+      },
+      function (err, isDelete) {
+        if (err)
+          return callback(err)
+
+        _.each(tempProduct, oneProduct => {
+          oneProduct.orderId = id;
+        })
+        Orders.app.models.orderProducts.create(tempProduct, function (err, data) {
+          if (err)
+            return callback(err)
+          callback()
+        })
+      })
+
+  }
+
   Orders.beforeRemote('create', function (ctx, modelInstance, next) {
     if (!ctx.req.accessToken || !ctx.req.accessToken.userId)
       return next(ERROR(403, 'User not login'))
@@ -200,6 +433,20 @@ module.exports = function (Orders) {
           return next(err);
         // console.log("productsFromDb")
         // console.log(productsFromDb)
+
+        var unavalidProd = [];
+        productsFromDb.forEach(element => {
+          if (element.status != "available") {
+            unavalidProd.push(element);
+          }
+        });
+
+        if (unavalidProd.length != 0) {
+          return next({
+            "statusCode": 603,
+            "data": unavalidProd
+          });
+        }
 
         ctx.req.body.status = 'pending';
         ctx.req.body.clientType = user.clientType;
@@ -384,21 +631,21 @@ module.exports = function (Orders) {
 
   Orders.assignOrderToCancel = function (orderId, cb) {
 
-      Orders.findById(orderId, function (err, order) {
-        if (err)
-          return cb(err);
-        if (!order)
-          return cb(ERROR(404, 'order not found'));
-        if (order.status == 'canceled')
-          return cb(ERROR(400, 'order already in canceled'));
+    Orders.findById(orderId, function (err, order) {
+      if (err)
+        return cb(err);
+      if (!order)
+        return cb(ERROR(404, 'order not found'));
+      if (order.status == 'canceled')
+        return cb(ERROR(400, 'order already in canceled'));
 
-        order.status = 'canceled';
-        order.canceledDate = new Date();
-        order.save((err) => {
-          return cb(null, 'order is assigned');
-        })
+      order.status = 'canceled';
+      order.canceledDate = new Date();
+      order.save((err) => {
+        return cb(null, 'order is assigned');
+      })
 
-      });
+    });
   }
 
   Orders.remoteMethod('assignOrderToCancel', {
