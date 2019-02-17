@@ -56,12 +56,12 @@ module.exports = function (Orders) {
       }
 
       console.log(mainProduct);
-
+      var discount = data.priceBeforeCoupon - data.totalPrice
       ejs.renderFile(path.resolve(__dirname + "../../../server/views/bills.ejs"), {
         ownerName: JSON.parse(JSON.stringify(data.client())).ownerName,
         phoneNumber: JSON.parse(JSON.stringify(data.client())).phoneNumber,
         mainProduct: mainProduct,
-        discount: data.priceBeforeCoupon - data.totalPrice,
+        discount: discount,
         priceBeforeCoupon: data.priceBeforeCoupon,
         totalPrice: data.totalPrice,
         userType: userType,
@@ -71,7 +71,7 @@ module.exports = function (Orders) {
           if (err) return callback(err);
           // console.log(res);
           // console.log(html);
-          console.log("discount" + data.priceBeforeCoupon - data.totalPrice)
+          console.log("discount" + discount)
           console.log("priceBeforeCoupon" + data.priceBeforeCoupon)
           console.log("totalPrice" + data.totalPrice)
           console.log(myConfig.host + '/pdf/' + name);
