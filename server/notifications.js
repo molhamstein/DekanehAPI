@@ -42,11 +42,40 @@ module.exports.afterOrderDelivered = function (order) {
   });
 }
 
+
+module.exports.sendMultiNot = function (title, body, token) {
+  token.forEach(element => {
+    var message = { //this may vary according to the message type (single recipient, multicast, topic, et cetera)
+      to: element,
+      collapse_key: myConfig.senderId,
+
+      notification: {
+        title: title,
+        body: body,
+      }
+    };
+    console.log(message)
+    fcm.send(message, function (err, response) {
+      if (err) {
+        console.log("Something has gone wrong!");
+        console.log(err);
+      } else {
+        console.log("Successfully sent with response: ", response);
+      }
+    });
+  });
+
+}
+
+
+
 module.exports.me = function () {
   _sendNotification("5be81952d58076492d990061", "", 'orderDelivered', {
     orderId: "5c0fc659ea8ae83168b93673"
   });
 }
+
+
 
 
 var _sendNotificationToMultiUsers = function (usersIds, actorId, action, object) {

@@ -1,6 +1,20 @@
 'use strict';
 
 var _ = require('lodash');
+const ejs = require('ejs');
+const path = require('path');
+
+var fs = require('fs');
+var pdf = require('html-pdf');
+var html = fs.readFileSync('lecture_text.html', 'utf8');
+var myConfig = require('../myConfig');
+
+
+// var html = "<div>هااااااااي</div>";
+var options = {
+  format: 'A4'
+};
+
 var notifications = require('../notifications');
 module.exports = function (Orders) {
   Orders.validatesInclusionOf('status', {
@@ -8,6 +22,64 @@ module.exports = function (Orders) {
   });
 
 
+
+
+  Orders.printInvoice = function (id, callback) {
+    Orders.findById(id, function (err, data) {
+      if (err)
+        callback(err)
+      var name = new Date().getTime() + ".pdf"
+      // console.log("owner name");
+      // console.log(JSON.parse(JSON.stringify(data.client())).ownerName);
+      // console.log("owner phoneNumber");
+      // console.log(JSON.parse(JSON.stringify(data.client())).phoneNumber);
+      // console.log("order date");
+      // console.log(data.orderDate.getDate() + "/" + (data.orderDate.getMonth() + 1) + "/" + data.orderDate.getFullYear());
+      var userType = ""
+      if (data.clientType == "wholesale")
+        userType = "جملة";
+      else
+        userType = "مفرق";
+
+      var mainProduct = [];
+      var orderProducts = JSON.parse(JSON.stringify(data.orderProducts()));
+      // console.log("products")
+      for (let index = 0; index < orderProducts.length; index++) {
+        const element = orderProducts[index];
+        mainProduct.push({
+          "index": index + 1,
+          "price": element.price,
+          "nameAr": element.nameAr,
+          "count": element.count,
+          "marketOfficialPrice": element.marketOfficialPrice
+        })
+      }
+
+      console.log(mainProduct);
+
+      ejs.renderFile(path.resolve(__dirname + "../../../server/views/bills.ejs"), {
+        ownerName: JSON.parse(JSON.stringify(data.client())).ownerName,
+        phoneNumber: JSON.parse(JSON.stringify(data.client())).phoneNumber,
+        mainProduct: mainProduct,
+        discount: data.priceBeforeCoupon - data.totalPrice,
+        priceBeforeCoupon: data.priceBeforeCoupon,
+        totalPrice: data.totalPrice,
+        userType: userType,
+        date: data.orderDate.getDate() + "/" + (data.orderDate.getMonth() + 1) + "/" + data.orderDate.getFullYear(),
+      }, function (err, newhtml) {
+        pdf.create(newhtml, options).toFile('./files/pdf/' + name, function (err, res) {
+          if (err) return callback(err);
+          console.log(res);
+          console.log(html);
+          console.log(myConfig.host + '/pdf/' + name);
+          callback(null, {
+            "path": myConfig.host + '/pdf/' + name
+          })
+        });
+      })
+    })
+
+  }
   Orders.testNot = function (callback) {
     notifications.me();
     callback(null);

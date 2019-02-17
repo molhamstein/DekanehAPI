@@ -232,6 +232,53 @@
           "verb": "post"
         }
       ]
+    },
+    "sendCustomNotification": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "title",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "form"
+          }
+        },
+        {
+          "arg": "message",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "form"
+          }
+        },
+        {
+          "arg": "userIds",
+          "type": "array",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "form"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "code",
+          "type": "number",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/sendCustomNotification",
+          "verb": "post"
+        }
+      ]
     }
   }
 }

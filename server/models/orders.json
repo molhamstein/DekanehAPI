@@ -73,31 +73,38 @@
     "supplierOrders": {
       "isStatic": true,
       "accepts": [],
-      "returns": [{
-        "arg": "result",
-        "type": "object",
-        "root": true,
-        "description": ""
-      }],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
       "description": "",
-      "http": [{
-        "path": "/supplierOrders",
-        "verb": "get"
-      }]
+      "http": [
+        {
+          "path": "/supplierOrders",
+          "verb": "get"
+        }
+      ]
     },
     "testNot": {
       "isStatic": true,
       "accepts": [],
       "returns": [],
       "description": "",
-      "http": [{
-        "path": "/testNot",
-        "verb": "get"
-      }]
+      "http": [
+        {
+          "path": "/testNot",
+          "verb": "get"
+        }
+      ]
     },
     "editOrder": {
       "isStatic": true,
-      "accepts": [{
+      "accepts": [
+        {
           "arg": "id",
           "type": "string",
           "required": true,
@@ -122,17 +129,50 @@
           }
         }
       ],
-      "returns": [{
-        "arg": "result",
-        "type": "object",
-        "root": true,
-        "description": ""
-      }],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
       "description": "",
-      "http": [{
-        "path": "/:id/editOrder",
-        "verb": "put"
-      }]
+      "http": [
+        {
+          "path": "/:id/editOrder",
+          "verb": "put"
+        }
+      ]
+    },
+    "printInvoice": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "path"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/:id/printInvoice",
+          "verb": "get"
+        }
+      ]
     }
   }
 }

@@ -3,6 +3,9 @@ var _ = require('lodash');
 var g = require('strong-globalize')();
 var debug = require('debug')('loopback:user');
 
+
+var notifications = require('../notifications');
+
 // var api_key = '350a0669476394ed0d32ade7504d5ef9-b3780ee5-89ff6db1';
 // var domain = 'sandbox7cbb988bb71e4787b8f7c8ef04db3d04.mailgun.org';
 // var mailgun = require('mailgun-js')({
@@ -30,9 +33,11 @@ module.exports = function (User) {
   //   message: 'phoneNumber already exists'
   // });
   // user.validatesLengthOf('phoneNumber', {min: 9,max: 10 message: {min: 'phoneNumber is not syrian Number'}});
-  User.validatesInclusionOf('status', { in: ['pending', 'activated', 'deactivated']
+  User.validatesInclusionOf('status', {
+    in: ['pending', 'activated', 'deactivated']
   });
-  User.validatesInclusionOf('clientType', { in: ['wholesale', 'horeca']
+  User.validatesInclusionOf('clientType', {
+    in: ['wholesale', 'horeca']
   });
 
   User.prototype.hasPrivilege = function (privilegeName) {
@@ -254,6 +259,44 @@ module.exports = function (User) {
   });
 
 
+  /**
+   *
+   * @param {string} title
+   * @param {string} message
+   * @param {array} userIds
+   * @param {Function(Error, number)} callback
+   */
+
+  User.sendCustomNotification = function (title, message, userIds, callback) {
+    var code = 200;
+    var where = {};
+    if (userIds.length == 0)
+      where = {
+        "status": "activated"
+      }
+    else
+      where = {
+        "status": "activated",
+        "id": {
+          "inq": userIds
+        }
+      }
+    User.find({
+      "where": where
+    }, function (err, data) {
+      if (err)
+        return callback(err)
+      var arrayOfTokens = []
+      data.forEach(element => {
+        if (element.fireBaseToken != "" && element.fireBaseToken != null)
+          arrayOfTokens.push(element.fireBaseToken)
+      });
+      // console.log(arrayOfTokens);
+      console.log(arrayOfTokens.length);
+      notifications.sendMultiNot(title, message, arrayOfTokens)
+    })
+    return callback(null, code)
+  };
 
 
   User.staffLogin = function (email, password, fn) {
