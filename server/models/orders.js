@@ -69,8 +69,11 @@ module.exports = function (Orders) {
       }, function (err, newhtml) {
         pdf.create(newhtml, options).toFile('./files/pdf/' + name, function (err, res) {
           if (err) return callback(err);
-          console.log(res);
-          console.log(html);
+          // console.log(res);
+          // console.log(html);
+          console.log("discount" + data.priceBeforeCoupon - data.totalPrice)
+          console.log("priceBeforeCoupon" + data.priceBeforeCoupon)
+          console.log("totalPrice" + data.totalPrice)
           console.log(myConfig.host + '/pdf/' + name);
           callback(null, {
             "path": myConfig.host + '/pdf/' + name
