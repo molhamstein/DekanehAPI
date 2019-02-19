@@ -298,7 +298,7 @@ module.exports = function (User) {
       console.log("message");
       console.log(message);
 
-      // notifications.sendMultiNot(title, message, arrayOfTokens)
+      notifications.sendMultiNot(title, message, arrayOfTokens)
     })
     return callback(null, code)
   };
