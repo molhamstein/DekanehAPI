@@ -128,5 +128,9 @@
   "notes": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "userNot": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

@@ -270,7 +270,7 @@ module.exports = function (User) {
   User.sendCustomNotification = function (title, message, userIds, callback) {
     var code = 200;
     var where = {};
-    if (userIds.length == 0)
+    if (userIds == undefined || userIds.length == 0)
       where = {
         "status": "activated"
       }
@@ -291,9 +291,14 @@ module.exports = function (User) {
         if (element.fireBaseToken != "" && element.fireBaseToken != null)
           arrayOfTokens.push(element.fireBaseToken)
       });
-      // console.log(arrayOfTokens);
-      console.log(arrayOfTokens.length);
-      notifications.sendMultiNot(title, message, arrayOfTokens)
+      console.log("arrayOfTokens");
+      console.log(arrayOfTokens);
+      console.log("title");
+      console.log(title);
+      console.log("message");
+      console.log(message);
+
+      // notifications.sendMultiNot(title, message, arrayOfTokens)
     })
     return callback(null, code)
   };
