@@ -377,8 +377,12 @@ module.exports = function (Orders) {
 
           Orders.findById(id, function (err, mainOrder) {
             if (err)
-              callback(err, null)
-            if (!data.couponCode && !mainOrder.couponCode) {
+              return callback(err, null)
+            console.log("new couponCode")
+            console.log(data.couponCode)
+            console.log("old couponCode")
+            console.log(mainOrder.couponCode)
+            if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
               changeOrderProduct(id, tempProduct, function (err) {
                 console.log("no Counpon");
                 if (err)
@@ -386,11 +390,10 @@ module.exports = function (Orders) {
                 mainOrder.updateAttributes(data, function (err, data) {
                   if (err)
                     return callback(err)
-                  callback();
+                  return callback();
                 })
               })
-            }
-            if (data.couponCode && !mainOrder.couponCode) {
+            } else if (data.couponCode != undefined && mainOrder.couponCode == undefined) {
               console.log("new counpon");
               Orders.app.models.coupons.findOne({
                 where: {
@@ -429,15 +432,15 @@ module.exports = function (Orders) {
                     mainOrder.updateAttributes(data, function (err, data) {
                       if (err)
                         return callback(err)
-                      callback();
+                      return callback();
                     })
                   })
                 });
               });
 
+            } else {
+              return callback(ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE'));
             }
-            return callback(ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE'));
-
           })
         })
       })
@@ -665,8 +668,6 @@ module.exports = function (Orders) {
           return cb(err);
         if (!order)
           return cb(ERROR(404, 'order not found'));
-        if (order.status == 'inDelivery')
-          return cb(ERROR(400, 'order already in delivery'));
 
         order.status = 'inDelivery';
         order.deliveryMemberId = userId;
