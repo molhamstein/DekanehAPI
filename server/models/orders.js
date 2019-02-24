@@ -382,7 +382,7 @@ module.exports = function (Orders) {
 
             product.isOffer = pInfo.isOffer;
             if (pInfo.isOffer && pInfo.products) {
-              product.products = JSON.parse(JSON.stringify(pInfo.products()));
+              product.products = pInfo.products;
             }
 
             tempProduct.push(product)
