@@ -77,7 +77,7 @@ module.exports = function (Orders) {
       var discount = data.priceBeforeCoupon - data.totalPrice
       ejs.renderFile(path.resolve(__dirname + "../../../server/views/bills.ejs"), {
         code: data.code,
-        ownerName: JSON.parse(JSON.stringify(data.client())).ownerName + "-" + JSON.parse(JSON.stringify(data.client())).shopName,
+        ownerName: JSON.parse(JSON.stringify(data.client())).ownerName + " - " + JSON.parse(JSON.stringify(data.client())).shopName,
         phoneNumber: JSON.parse(JSON.stringify(data.client())).phoneNumber,
         firstMainProduct: firstMainProduct,
         secondeMainProduct: secondeMainProduct,
