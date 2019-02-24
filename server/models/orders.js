@@ -12,7 +12,13 @@ var myConfig = require('../myConfig');
 
 // var html = "<div>هااااااااي</div>";
 var options = {
-  format: 'A4'
+  format: 'A4',
+  border: {
+    "top": "20px", // default is 0, units: mm, cm, in, px
+    "right": "0in",
+    "bottom": "20px",
+    "left": "0in"
+  },
 };
 
 var notifications = require('../notifications');
@@ -48,7 +54,7 @@ module.exports = function (Orders) {
       // console.log("products")
       for (let index = 0; index < orderProducts.length; index++) {
         const element = orderProducts[index];
-        if (index < 15)
+        if (index < 17)
           firstMainProduct.push({
             "index": index + 1,
             "price": element.price,
