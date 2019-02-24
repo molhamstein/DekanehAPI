@@ -1,6 +1,5 @@
-<HTML lang="AR">
-
-<Head>
+<html lang="AR">
+<head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Type" content="text/css; charset=utf-8" />
   <style>
@@ -211,13 +210,11 @@
 </head>
 
 <body>
-  <div class="main" style="
-            width: calc(100% - 80px);
-            margin: 20px 40px;
-        ">
+  <div class="main" style="width: calc(100% - 80px);margin: 20px 40px;">
     <div class="header">
       <div class="firstDiv">
-        <h3 style="margin-bottom: 0px;">الرقم : 36</h3>
+              
+              <h3 style="margin-bottom: 0px;">الرقم : <%= code %></h3>
         <h3 style="margin-top: 0px;">التاريخ :
           <%= date %>
         </h3>
@@ -237,9 +234,7 @@
         <b>
           <%= phoneNumber %></b>
       </div>
-      <div class="name" style="
-      direction: rtl;
-  ">
+      <div class="name" style="direction: rtl;">
         <span>السادة :</span>
         <b>
           <%= ownerName %></b>
@@ -256,29 +251,29 @@
           <th>سعر المستهلك</th>
           <th>م</th>
         </tr>
-        <% for(var i=0; i < mainProduct.length; i++) { %>
+        <% for(var i=0; i < firstMainProduct.length; i++) { %>
 
         <tr>
           <td>
-            <%= mainProduct[i].price*mainProduct[i].count %>
+            <%= firstMainProduct[i].price*firstMainProduct[i].count %>
 
           </td>
           <td>
-            <%= mainProduct[i].price %>
+            <%= firstMainProduct[i].price %>
 
           </td>
           <td>
-            <%= mainProduct[i].count %>
+            <%= firstMainProduct[i].count %>
 
           </td>
           <td>
-            <%= mainProduct[i].nameAr %>
+            <%= firstMainProduct[i].nameAr %>
           </td>
           <td>
-            <%= mainProduct[i].marketOfficialPrice %>
+            <%= firstMainProduct[i].marketOfficialPrice %>
           </td>
           <td>
-            <%= mainProduct[i].index %>
+            <%= firstMainProduct[i].index %>
           </td>
         </tr>
         <% } %>
@@ -309,7 +304,6 @@
         </div>
       </div>
     </div>
-    <!-- <hr> -->
     <div style="background-color: black;width: 100%;margin-top: 22px;height: 2px;"></div>
     <div class="secFooter">
       <div class="text"><b></b></div>
@@ -324,4 +318,4 @@
   </div>
 </body>
 
-</HTML>
+</html>

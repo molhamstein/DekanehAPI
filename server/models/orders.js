@@ -70,7 +70,7 @@ module.exports = function (Orders) {
       console.log(firstMainProduct);
       var discount = data.priceBeforeCoupon - data.totalPrice
       ejs.renderFile(path.resolve(__dirname + "../../../server/views/bills.ejs"), {
-        code:data.code,
+        code: data.code,
         ownerName: JSON.parse(JSON.stringify(data.client())).ownerName + "-" + JSON.parse(JSON.stringify(data.client())).shopName,
         phoneNumber: JSON.parse(JSON.stringify(data.client())).phoneNumber,
         firstMainProduct: firstMainProduct,
@@ -81,6 +81,7 @@ module.exports = function (Orders) {
         userType: userType,
         date: data.orderDate.getDate() + "/" + (data.orderDate.getMonth() + 1) + "/" + data.orderDate.getFullYear(),
       }, function (err, newhtml) {
+        // console.log(newhtml);
         pdf.create(newhtml, options).toFile('./files/pdf/' + name, function (err, res) {
           if (err) return callback(err);
           // console.log(res);
