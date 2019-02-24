@@ -14,9 +14,9 @@ var myConfig = require('../myConfig');
 var options = {
   format: 'A4',
   border: {
-    "top": "20px", // default is 0, units: mm, cm, in, px
+    "top": "40px", // default is 0, units: mm, cm, in, px
     "right": "0in",
-    "bottom": "20px",
+    "bottom": "40px",
     "left": "0in"
   },
 };
