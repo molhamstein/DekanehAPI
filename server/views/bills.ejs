@@ -13,7 +13,7 @@
 
     html {
       font-family: myFirstFont;
-/*      padding-right: 217px;*/
+      /*      padding-right: 217px;*/
     }
 
     body {
@@ -30,11 +30,15 @@
       width: calc(35% - 20px);
       height: 100%;
 
-    font-size: 15px;
+      font-size: 15px;
       padding-top: 30px;
       float: left;
       text-align: right;
       padding-right: 20px;
+    }
+
+    .header .firstDiv h3 {
+      font-size: 15px;
     }
 
     .header .secondeDiv {
@@ -51,7 +55,7 @@
     .header .thierdDiv {
       width: 35%;
 
-    font-size: 15px;
+      font-size: 15px;
       text-align: right;
       float: left;
       padding-top: 30px;
@@ -61,6 +65,7 @@
 
     .secHeader {
       height: 75px;
+      font-size: 13px;
       width: 100%;
     }
 
@@ -84,16 +89,17 @@
 
     table td,
     table th {
-      border: 1px solid rgba(221, 221, 221, 0.6784313725490196);
+      border: 1px solid #8c8a8a;
       text-align: right;
       padding: 2px;
-      font-size: 14px;
+      font-size: 10px;
     }
 
 
     table tr:nth-child(even) {
-      background-color: rgba(221, 221, 221, 0.6784313725490196);
+      background-color: #cccccc;
     }
+
 
     .footer {
       height: 55px;
@@ -103,15 +109,20 @@
 
     .footer .typeUser {
       height: 100%;
-      width: 30%;
+      width: 40%;
       padding-top: 30px;
       text-align: center;
       float: left;
     }
 
+    .footer .typeUser span {
+
+      font-size: 12px;
+    }
+
     .footer .total {
       float: left;
-      width: 70%;
+      width: 60%;
     }
 
     .footer .total .row {
@@ -206,7 +217,9 @@
         ">
     <div class="header">
       <div class="firstDiv">
-        <h3 style="margin-bottom: 0px;">الرقم : 36</h3>
+        <h3 style="margin-bottom: 0px;">الرقم :
+          <%= code %>
+        </h3>
         <h3 style="margin-top: 0px;">التاريخ :
           <%= date %>
         </h3>
@@ -245,7 +258,7 @@
           <th>سعر المستهلك</th>
           <th>م</th>
         </tr>
-        <% for(var i=0; i < mainProduct.length; i++) { %>
+        <% for(var i=0; i < firstMainProduct.length; i++) { %>
 
         <tr>
           <td>
@@ -275,6 +288,50 @@
       </table>
 
     </div>
+    <% if(secondeMainProduct.length != 0){ %>
+
+    <div class="table" style="padding-top: 30px;">
+      <table>
+        <tr>
+          <th>إجمالي البند</th>
+          <th>سعر افرادي</th>
+          <th>الكمية</th>
+          <th>المادة</th>
+          <th>سعر المستهلك</th>
+          <th>م</th>
+        </tr>
+        <% for(var i=0; i < secondeMainProduct.length; i++) { %>
+
+        <tr>
+          <td>
+            <%= secondeMainProduct[i].price*secondeMainProduct[i].count %>
+
+          </td>
+          <td>
+            <%= secondeMainProduct[i].price %>
+
+          </td>
+          <td>
+            <%= secondeMainProduct[i].count %>
+
+          </td>
+          <td>
+            <%= secondeMainProduct[i].nameAr %>
+          </td>
+          <td>
+            <%= secondeMainProduct[i].marketOfficialPrice %>
+          </td>
+          <td>
+            <%= secondeMainProduct[i].index %>
+          </td>
+        </tr>
+        <% } %>
+
+      </table>
+
+    </div>
+    <% } else{ %>
+    <% } %>
 
     <div class="footer">
       <div class="typeUser">

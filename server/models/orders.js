@@ -37,30 +37,44 @@ module.exports = function (Orders) {
       // console.log(data.orderDate.getDate() + "/" + (data.orderDate.getMonth() + 1) + "/" + data.orderDate.getFullYear());
       var userType = ""
       if (data.clientType == "wholesale")
-        userType = "جملة";
+        userType = "الصفة التجارية للمبيع : لمحل جملة";
       else
-        userType = "مفرق";
+        userType = "الصفة التجارية للمبيع : لمحل مفرق";
 
-      var mainProduct = [];
+
+      var firstMainProduct = [];
+      var secondeMainProduct = [];
       var orderProducts = JSON.parse(JSON.stringify(data.orderProducts()));
       // console.log("products")
       for (let index = 0; index < orderProducts.length; index++) {
         const element = orderProducts[index];
-        mainProduct.push({
-          "index": index + 1,
-          "price": element.price,
-          "nameAr": element.nameAr,
-          "count": element.count,
-          "marketOfficialPrice": element.marketOfficialPrice
-        })
+        if (index < 15)
+          firstMainProduct.push({
+            "index": index + 1,
+            "price": element.price,
+            "nameAr": element.nameAr,
+            "count": element.count,
+            "marketOfficialPrice": element.marketOfficialPrice
+          })
+        else {
+          secondeMainProduct.push({
+            "index": index + 1,
+            "price": element.price,
+            "nameAr": element.nameAr,
+            "count": element.count,
+            "marketOfficialPrice": element.marketOfficialPrice
+          })
+        }
       }
 
-      console.log(mainProduct);
+      console.log(firstMainProduct);
       var discount = data.priceBeforeCoupon - data.totalPrice
       ejs.renderFile(path.resolve(__dirname + "../../../server/views/bills.ejs"), {
-        ownerName: JSON.parse(JSON.stringify(data.client())).ownerName,
+        code:data.code,
+        ownerName: JSON.parse(JSON.stringify(data.client())).ownerName + "-" + JSON.parse(JSON.stringify(data.client())).shopName,
         phoneNumber: JSON.parse(JSON.stringify(data.client())).phoneNumber,
-        mainProduct: mainProduct,
+        firstMainProduct: firstMainProduct,
+        secondeMainProduct: secondeMainProduct,
         discount: discount,
         priceBeforeCoupon: data.priceBeforeCoupon,
         totalPrice: data.totalPrice,
