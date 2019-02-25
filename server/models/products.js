@@ -4,10 +4,12 @@ var _ = require('lodash');
 var async = require('async');
 var path = require('path');
 module.exports = function (Products) {
-  Products.validatesInclusionOf('status', { in: ['available', 'unavailable', 'pending']
+  Products.validatesInclusionOf('status', {
+    in: ['available', 'unavailable', 'pending']
   });
   // Products.validatesInclusionOf('offerSource', {in: ['dockan', 'company','supplier']});
-  Products.validatesInclusionOf('availableTo', { in: ['both', 'wholesale', 'horeca']
+  Products.validatesInclusionOf('availableTo', {
+    in: ['both', 'wholesale', 'horeca']
   });
   Products.validatesPresenceOf('categoryId');
 
@@ -51,7 +53,8 @@ module.exports = function (Products) {
     var offerId = result.id;
     console.log(result.productsIds);
     Products.updateAll({
-      _id: { in: result.productsIds
+      _id: {
+        in: result.productsIds
       }
     }, {
       $push: {
@@ -614,7 +617,55 @@ module.exports = function (Products) {
           isOffer: isOffer.toLowerCase() == 'true' ? true : false
         }
       });
+    var stringArray = []
+    if (string != undefined)
+      stringArray = string.split(" ");
+    console.log(stringArray);
+    var nameArMatch = {
+      nameAr: {
+        $regex: ".*(?i)" + string + ".*"
+      }
+    }
+    var nameEnMatch = {
+      nameEn: {
+        $regex: ".*(?i)" + string + ".*"
+      }
+    }
 
+    if (stringArray.length != 0) {
+      for (let index = 0; index < stringArray.length; index++) {
+        const element = stringArray[index];
+        if (index == 0) {
+          nameArMatch = {
+            $and: [{
+              nameAr: {
+                $regex: ".*(?i)" + element + ".*"
+              }
+            }]
+          }
+          nameEnMatch = {
+            $and: [{
+              nameEn: {
+                $regex: ".*(?i)" + element + ".*"
+              }
+            }]
+          }
+        } else {
+          nameArMatch["$and"].push({
+            nameAr: {
+              $regex: ".*(?i)" + element + ".*"
+            }
+          })
+          nameEnMatch["$and"].push({
+            nameEn: {
+              $regex: ".*(?i)" + element + ".*"
+            }
+          })
+        }
+      }
+    }
+    console.log(nameArMatch);
+    console.log(nameEnMatch);
     stages.push({
       $lookup: {
         from: 'manufacturers',
@@ -624,16 +675,9 @@ module.exports = function (Products) {
       }
     }, {
       $match: {
-        $or: [{
-            nameAr: {
-              $regex: ".*(?i)" + string + ".*"
-            }
-          },
-          {
-            nameEn: {
-              $regex: ".*(?i)" + string + ".*"
-            }
-          },
+        $or: [
+          nameArMatch,
+          nameEnMatch,
           {
             'manufacturer.nameEn': {
               $regex: ".*(?i)" + string + ".*"
@@ -798,6 +842,56 @@ module.exports = function (Products) {
         });
       }
 
+      var stringArray = []
+      if (string != undefined)
+        stringArray = string.split(" ");
+      console.log(stringArray);
+      var nameArMatch = {
+        nameAr: {
+          $regex: ".*(?i)" + string + ".*"
+        }
+      }
+      var nameEnMatch = {
+        nameEn: {
+          $regex: ".*(?i)" + string + ".*"
+        }
+      }
+
+      if (stringArray.length != 0) {
+        for (let index = 0; index < stringArray.length; index++) {
+          const element = stringArray[index];
+          if (index == 0) {
+            nameArMatch = {
+              $and: [{
+                nameAr: {
+                  $regex: ".*(?i)" + element + ".*"
+                }
+              }]
+            }
+            nameEnMatch = {
+              $and: [{
+                nameEn: {
+                  $regex: ".*(?i)" + element + ".*"
+                }
+              }]
+            }
+          } else {
+            nameArMatch["$and"].push({
+              nameAr: {
+                $regex: ".*(?i)" + element + ".*"
+              }
+            })
+            nameEnMatch["$and"].push({
+              nameEn: {
+                $regex: ".*(?i)" + element + ".*"
+              }
+            })
+          }
+        }
+      }
+      console.log(nameArMatch);
+      console.log(nameEnMatch);
+
       stages.push({
         $lookup: {
           from: 'manufacturers',
@@ -807,16 +901,8 @@ module.exports = function (Products) {
         }
       }, {
         $match: {
-          $or: [{
-              nameAr: {
-                $regex: ".*(?i)" + string + ".*"
-              }
-            },
-            {
-              nameEn: {
-                $regex: ".*(?i)" + string + ".*"
-              }
-            },
+          $or: [nameArMatch,
+            nameEnMatch,
             {
               'manufacturer.nameEn': {
                 $regex: ".*(?i)" + string + ".*"
@@ -1071,7 +1157,9 @@ module.exports = function (Products) {
 
 
   Products.exportProducts = function (res, cb) {
-    Products.find({ /*where : {status : 'available'}*/ }, function (err, data) {
+    Products.find({
+      /*where : {status : 'available'}*/
+    }, function (err, data) {
       var config = {
         path: 'files/excelFiles',
         save: true,

@@ -72,8 +72,13 @@ module.exports = function (Orders) {
           })
         }
       }
-
-      console.log(firstMainProduct);
+      var paddingFooter = 0;
+      if (firstMainProduct.length > 10 && secondeMainProduct.length == 0)
+        paddingFooter = (16 - firstMainProduct.length) * 20
+      paddingFooter += "px";
+      console.log("paddingFooter")
+      console.log(paddingFooter)
+      // console.log(firstMainProduct);
       var discount = data.priceBeforeCoupon - data.totalPrice
       ejs.renderFile(path.resolve(__dirname + "../../../server/views/bills.ejs"), {
         code: data.code,
@@ -85,6 +90,7 @@ module.exports = function (Orders) {
         priceBeforeCoupon: data.priceBeforeCoupon,
         totalPrice: data.totalPrice,
         userType: userType,
+        paddingFooter: paddingFooter,
         date: data.orderDate.getDate() + "/" + (data.orderDate.getMonth() + 1) + "/" + data.orderDate.getFullYear(),
       }, function (err, newhtml) {
         // console.log(newhtml);
@@ -109,150 +115,150 @@ module.exports = function (Orders) {
     callback(null);
   };
 
-  Orders.beforeRemote('prototype.updateAttributes', function (ctx, modelInstance, next) {
-    console.log('upsert called');
-    console.log(ctx.req.body);
-    if (!ctx.req.accessToken || !ctx.req.accessToken.userId)
-      return next(ERROR(403, 'User not login'))
+  // Orders.beforeRemote('prototype.updateAttributes', function (ctx, modelInstance, next) {
+  //   console.log('upsert called');
+  //   console.log(ctx.req.body);
+  //   if (!ctx.req.accessToken || !ctx.req.accessToken.userId)
+  //     return next(ERROR(403, 'User not login'))
 
-    if (!ctx.req.body.orderProducts || !Array.isArray(ctx.req.body.orderProducts) || ctx.req.body.orderProducts.length == 0)
-      return next(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
-    var products = ctx.req.body.orderProducts;
+  //   if (!ctx.req.body.orderProducts || !Array.isArray(ctx.req.body.orderProducts) || ctx.req.body.orderProducts.length == 0)
+  //     return next(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
+  //   var products = ctx.req.body.orderProducts;
 
-    var productsIds = []
-    _.each(products, product => {
-      try {
-        productsIds.push(Orders.dataSource.ObjectID(product.productId));
-      } catch (e) {
-        return next(ERROR(400, 'productId not ID'))
-      }
-    });
+  //   var productsIds = []
+  //   _.each(products, product => {
+  //     try {
+  //       productsIds.push(Orders.dataSource.ObjectID(product.productId));
+  //     } catch (e) {
+  //       return next(ERROR(400, 'productId not ID'))
+  //     }
+  //   });
 
-    Orders.app.models.user.findById(ctx.req.body.clientId, (err, user) => {
-      if (err)
-        return next(err);
-      if (!user)
-        return next(ERROR(400, 'user not found'));
+  //   Orders.app.models.user.findById(ctx.req.body.clientId, (err, user) => {
+  //     if (err)
+  //       return next(err);
+  //     if (!user)
+  //       return next(ERROR(400, 'user not found'));
 
-      ctx.req.body.clientId = user.id;
+  //     ctx.req.body.clientId = user.id;
 
-      Orders.app.models.products.find({
-        where: {
-          id: {
-            'in': productsIds
-          }
-        }
-      }, function (err, productsFromDb) {
-        if (err)
-          return next(err);
+  //     Orders.app.models.products.find({
+  //       where: {
+  //         id: {
+  //           'in': productsIds
+  //         }
+  //       }
+  //     }, function (err, productsFromDb) {
+  //       if (err)
+  //         return next(err);
 
-        ctx.req.body.status = 'pending';
-        ctx.req.body.clientType = user.clientType;
-        ctx.req.body.totalPrice = 0;
+  //       ctx.req.body.status = 'pending';
+  //       ctx.req.body.clientType = user.clientType;
+  //       ctx.req.body.totalPrice = 0;
 
-        var productsInfo = {};
-        _.each(productsFromDb, p => {
-          productsInfo[p.id.toString()] = p;
-        });
-        var tempProduct = [];
-        _.each(products, (product, index) => {
-          var pInfo = productsInfo[product.productId];
-          if (!pInfo)
-            return delete products[index]
-          if (pInfo.availableTo != user.clientType && pInfo.availableTo != 'both')
-            return delete products[index]
+  //       var productsInfo = {};
+  //       _.each(productsFromDb, p => {
+  //         productsInfo[p.id.toString()] = p;
+  //       });
+  //       var tempProduct = [];
+  //       _.each(products, (product, index) => {
+  //         var pInfo = productsInfo[product.productId];
+  //         if (!pInfo)
+  //           return delete products[index]
+  //         if (pInfo.availableTo != user.clientType && pInfo.availableTo != 'both')
+  //           return delete products[index]
 
-          product.nameEn = pInfo.nameEn;
-          product.nameAr = pInfo.nameAr;
-          product.pack = pInfo.pack;
-          product.description = pInfo.description;
-          product.marketOfficialPrice = pInfo.marketOfficialPrice;
-          product.dockanBuyingPrice = pInfo.dockanBuyingPrice;
-          product.wholeSaleMarketPrice = pInfo.wholeSaleMarketPrice;
-          product.horecaPriceDiscount = pInfo.horecaPriceDiscount;
-          product.wholeSalePriceDiscount = pInfo.wholeSalePriceDiscount;
-          product.horecaPrice = pInfo.horecaPrice;
-          product.wholeSalePrice = pInfo.wholeSalePrice;
-          product.offerSource = pInfo.offerSource;
-          product.media = pInfo.media;
-          if (user.clientType == 'wholesale') {
-            product.price = (pInfo.wholeSalePriceDiscount && pInfo.wholeSalePriceDiscount) == 0 ? pInfo.wholeSalePrice : pInfo.wholeSalePriceDiscount;
-          } else {
-            product.price = (pInfo.horecaPriceDiscount && pInfo.horecaPriceDiscount) == 0 ? pInfo.horecaPrice : pInfo.horecaPriceDiscount;
-          }
-          ctx.req.body.totalPrice += Number(product.count) * Number(product.price);
-          product.isOffer = pInfo.isOffer;
-          if (pInfo.isOffer && pInfo.products) {
-            product.products = JSON.parse(JSON.stringify(pInfo.products()));
-          }
-          tempProduct.push(product)
-        });
-        console.log(ctx.req.body.totalPrice)
-        if (ctx.req.body.totalPrice < 20000)
-          return next(ERROR(602, 'total price is low'));
-        ctx.req.body.tempProduct = tempProduct
+  //         product.nameEn = pInfo.nameEn;
+  //         product.nameAr = pInfo.nameAr;
+  //         product.pack = pInfo.pack;
+  //         product.description = pInfo.description;
+  //         product.marketOfficialPrice = pInfo.marketOfficialPrice;
+  //         product.dockanBuyingPrice = pInfo.dockanBuyingPrice;
+  //         product.wholeSaleMarketPrice = pInfo.wholeSaleMarketPrice;
+  //         product.horecaPriceDiscount = pInfo.horecaPriceDiscount;
+  //         product.wholeSalePriceDiscount = pInfo.wholeSalePriceDiscount;
+  //         product.horecaPrice = pInfo.horecaPrice;
+  //         product.wholeSalePrice = pInfo.wholeSalePrice;
+  //         product.offerSource = pInfo.offerSource;
+  //         product.media = pInfo.media;
+  //         if (user.clientType == 'wholesale') {
+  //           product.price = (pInfo.wholeSalePriceDiscount && pInfo.wholeSalePriceDiscount) == 0 ? pInfo.wholeSalePrice : pInfo.wholeSalePriceDiscount;
+  //         } else {
+  //           product.price = (pInfo.horecaPriceDiscount && pInfo.horecaPriceDiscount) == 0 ? pInfo.horecaPrice : pInfo.horecaPriceDiscount;
+  //         }
+  //         ctx.req.body.totalPrice += Number(product.count) * Number(product.price);
+  //         product.isOffer = pInfo.isOffer;
+  //         if (pInfo.isOffer && pInfo.products) {
+  //           product.products = JSON.parse(JSON.stringify(pInfo.products()));
+  //         }
+  //         tempProduct.push(product)
+  //       });
+  //       console.log(ctx.req.body.totalPrice)
+  //       if (ctx.req.body.totalPrice < 20000)
+  //         return next(ERROR(602, 'total price is low'));
+  //       ctx.req.body.tempProduct = tempProduct
 
-        if (!ctx.req.body.couponCode)
-          return next();
+  //       if (!ctx.req.body.couponCode)
+  //         return next();
 
-        Orders.app.models.coupons.findOne({
-          where: {
-            code: ctx.req.body.couponCode,
-            expireDate: {
-              gte: new Date()
-            },
-            userId: user.id
-          }
-        }, function (err, coupon) {
-          if (err)
-            return next(err);
-          if (!coupon)
-            return next(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
-          if (coupon.numberOfUsed >= coupon.numberOfTimes || coupon.status == 'used')
-            return next(ERROR(400, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
+  //       Orders.app.models.coupons.findOne({
+  //         where: {
+  //           code: ctx.req.body.couponCode,
+  //           expireDate: {
+  //             gte: new Date()
+  //           },
+  //           userId: user.id
+  //         }
+  //       }, function (err, coupon) {
+  //         if (err)
+  //           return next(err);
+  //         if (!coupon)
+  //           return next(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
+  //         if (coupon.numberOfUsed >= coupon.numberOfTimes || coupon.status == 'used')
+  //           return next(ERROR(400, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
 
-          ctx.req.body.couponId = coupon.id;
-          ctx.req.body.priceBeforeCoupon = ctx.req.body.totalPrice;
-          if (coupon.type == 'fixed') {
-            ctx.req.body.totalPrice -= coupon.value;
-          } else {
-            ctx.req.body.totalPrice -= ((ctx.req.body.totalPrice * coupon.value) / 100)
-          }
+  //         ctx.req.body.couponId = coupon.id;
+  //         ctx.req.body.priceBeforeCoupon = ctx.req.body.totalPrice;
+  //         if (coupon.type == 'fixed') {
+  //           ctx.req.body.totalPrice -= coupon.value;
+  //         } else {
+  //           ctx.req.body.totalPrice -= ((ctx.req.body.totalPrice * coupon.value) / 100)
+  //         }
 
-          // edit coupon
-          coupon.numberOfUsed++;
-          if (coupon.numberOfUsed == coupon.numberOfTimes)
-            coupon.status = 'used';
-          coupon.save(function (err) {
-            if (err)
-              return next(err);
-            return next();
-          });
-        });
-      });
-    });
-  })
+  //         // edit coupon
+  //         coupon.numberOfUsed++;
+  //         if (coupon.numberOfUsed == coupon.numberOfTimes)
+  //           coupon.status = 'used';
+  //         coupon.save(function (err) {
+  //           if (err)
+  //             return next(err);
+  //           return next();
+  //         });
+  //       });
+  //     });
+  //   });
+  // })
 
-  Orders.afterRemote('prototype.updateAttributes', function (ctx, result, next) {
-    Orders.app.models.orderProducts.destroyAll({
-        "orderId": result.id
-      },
-      function (err, isDelete) {
-        if (err)
-          return next(err)
-        console.log(err)
-        _.each(result.tempProduct, oneProduct => {
-          oneProduct.orderId = result.id;
-        })
-        Orders.app.models.orderProducts.create(result.tempProduct, function (err, data) {
-          if (err)
-            return next(err)
-          result.tempProduct = null;
-          result.code = result.id.toString().slice(18);
-          return result.save(next);
-        })
-      })
-  })
+  // Orders.afterRemote('prototype.updateAttributes', function (ctx, result, next) {
+  //   Orders.app.models.orderProducts.destroyAll({
+  //       "orderId": result.id
+  //     },
+  //     function (err, isDelete) {
+  //       if (err)
+  //         return next(err)
+  //       console.log(err)
+  //       _.each(result.tempProduct, oneProduct => {
+  //         oneProduct.orderId = result.id;
+  //       })
+  //       Orders.app.models.orderProducts.create(result.tempProduct, function (err, data) {
+  //         if (err)
+  //           return next(err)
+  //         result.tempProduct = null;
+  //         result.code = result.id.toString().slice(18);
+  //         return result.save(next);
+  //       })
+  //     })
+  // })
 
 
   Orders.editOrder = function (id, data, context, callback) {
@@ -264,6 +270,12 @@ module.exports = function (Orders) {
     if (!data.orderProducts || !Array.isArray(data.orderProducts) || data.orderProducts.length == 0)
       return callback(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
     var products = data.orderProducts;
+    var isAdmin = false
+    if (data.isAdmin == true) {
+      isAdmin = true
+      delete data.isAdmin;
+    }
+
 
     var productsIds = []
     _.each(products, product => {
@@ -382,6 +394,8 @@ module.exports = function (Orders) {
 
             product.isOffer = pInfo.isOffer;
             if (pInfo.isOffer && pInfo.products) {
+              console.log("pInfo.products");
+              console.log(pInfo.products);
               product.products = pInfo.products;
             }
 
@@ -389,7 +403,7 @@ module.exports = function (Orders) {
           });
           // console.log(tempProduct)
           console.log(data.totalPrice)
-          if (data.totalPrice < 20000)
+          if (isAdmin == false && data.totalPrice < 20000)
             return callback(ERROR(602, 'total price is low'));
 
           delete data['orderProducts'];
@@ -433,6 +447,8 @@ module.exports = function (Orders) {
                   return callback(ERROR(400, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
 
                 data.couponId = coupon.id;
+                console.log("coupon///////////");
+                console.log(coupon);
                 data.priceBeforeCoupon = data.totalPrice;
                 if (coupon.type == 'fixed') {
                   data.totalPrice -= coupon.value;
@@ -441,24 +457,23 @@ module.exports = function (Orders) {
                 }
 
                 // edit coupon
+
                 coupon.numberOfUsed++;
                 if (coupon.numberOfUsed == coupon.numberOfTimes)
                   coupon.status = 'used';
-                coupon.save(function (err) {
+                coupon.save()
+                changeOrderProduct(id, tempProduct, function (err) {
                   if (err)
-                    return callback(err);
-                  changeOrderProduct(id, tempProduct, function (err) {
+                    return callback(err)
+                  console.log("data************");
+                  console.log(data);
+                  mainOrder.updateAttributes(data, function (err, data) {
                     if (err)
                       return callback(err)
-                    mainOrder.updateAttributes(data, function (err, data) {
-                      if (err)
-                        return callback(err)
-                      return callback();
-                    })
+                    return callback();
                   })
-                });
+                })
               });
-
             } else {
               return callback(ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE'));
             }
@@ -496,6 +511,11 @@ module.exports = function (Orders) {
       return next(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
     var products = ctx.req.body.orderProducts;
 
+    var isAdmin = false
+    if (ctx.req.body.isAdmin == true) {
+      isAdmin = true
+      delete ctx.req.body.isAdmin;
+    }
 
     var productsIds = []
     _.each(products, product => {
@@ -542,7 +562,7 @@ module.exports = function (Orders) {
 
         if (unavalidProd.length != 0) {
           return next({
-            "statusCode": 603,
+            "statusCode": 611,
             "data": unavalidProd
           });
         }
@@ -601,7 +621,7 @@ module.exports = function (Orders) {
           }
         });
         console.log(ctx.req.body.totalPrice)
-        if (ctx.req.body.totalPrice < 20000)
+        if (isAdmin == false && ctx.req.body.totalPrice < 20000)
           return next(ERROR(602, 'total price is low'));
         ctx.req.body.priceBeforeCoupon = ctx.req.body.totalPrice;
         console.log("coupon**************************");
