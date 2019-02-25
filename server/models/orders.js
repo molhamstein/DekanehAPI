@@ -43,9 +43,9 @@ module.exports = function (Orders) {
       // console.log(data.orderDate.getDate() + "/" + (data.orderDate.getMonth() + 1) + "/" + data.orderDate.getFullYear());
       var userType = ""
       if (data.clientType == "wholesale")
-        userType = "الصفة التجارية للمبيع : لمحل جملة";
-      else
         userType = "الصفة التجارية للمبيع : لمحل مفرق";
+      else
+        userType = "الصفة التجارية للمبيع : لمحل جملة";
 
 
       var firstMainProduct = [];
@@ -74,7 +74,7 @@ module.exports = function (Orders) {
       }
       var paddingFooter = 10;
       if (firstMainProduct.length > 13 && secondeMainProduct.length == 0)
-        paddingFooter = (16 - firstMainProduct.length) * 30
+        paddingFooter = (17 - firstMainProduct.length) * 40
       paddingFooter += "px";
       console.log("paddingFooter")
       console.log(paddingFooter)
