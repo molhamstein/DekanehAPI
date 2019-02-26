@@ -73,7 +73,7 @@ module.exports = function (Orders) {
         }
       }
       var paddingFooter = 10;
-      if (firstMainProduct.length > 13 && secondeMainProduct.length == 0)
+      if (firstMainProduct.length >= 13 && secondeMainProduct.length == 0)
         paddingFooter = (17 - firstMainProduct.length) * 40
       paddingFooter += "px";
       console.log("paddingFooter")
