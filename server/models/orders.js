@@ -417,6 +417,8 @@ module.exports = function (Orders) {
             console.log(data.couponCode)
             console.log("old couponCode")
             console.log(mainOrder.couponCode)
+            data.priceBeforeCoupon = data.totalPrice;
+
             if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
               changeOrderProduct(id, tempProduct, function (err) {
                 console.log("no Counpon");
@@ -449,7 +451,6 @@ module.exports = function (Orders) {
                 data.couponId = coupon.id;
                 console.log("coupon///////////");
                 console.log(coupon);
-                data.priceBeforeCoupon = data.totalPrice;
                 if (coupon.type == 'fixed') {
                   data.totalPrice -= coupon.value;
                 } else {
