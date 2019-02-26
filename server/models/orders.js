@@ -54,7 +54,7 @@ module.exports = function (Orders) {
       // console.log("products")
       for (let index = 0; index < orderProducts.length; index++) {
         const element = orderProducts[index];
-        if (index < 17)
+        if (index < 18)
           firstMainProduct.push({
             "index": index + 1,
             "price": element.price,
