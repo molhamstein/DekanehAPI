@@ -475,6 +475,43 @@ module.exports = function (Orders) {
                   })
                 })
               });
+            } else if (data.couponCode != undefined && mainOrder.couponCode != undefined && mainOrder.couponCode == data.couponCode) {
+              console.log("reused counpon");
+              Orders.app.models.coupons.findOne({
+                where: {
+                  code: data.couponCode,
+                  expireDate: {
+                    gte: new Date()
+                  },
+                  userId: user.id
+                }
+              }, function (err, coupon) {
+                if (err)
+                  return callback(err);
+                if (!coupon)
+                  return callback(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
+
+                data.couponId = coupon.id;
+                console.log("coupon///////////");
+                console.log(coupon);
+                if (coupon.type == 'fixed') {
+                  data.totalPrice -= coupon.value;
+                } else {
+                  data.totalPrice -= ((ctx.req.body.totalPrice * coupon.value) / 100)
+                }
+
+                changeOrderProduct(id, tempProduct, function (err) {
+                  if (err)
+                    return callback(err)
+                  console.log("data************");
+                  console.log(data);
+                  mainOrder.updateAttributes(data, function (err, data) {
+                    if (err)
+                      return callback(err)
+                    return callback();
+                  })
+                })
+              });
             } else {
               return callback(ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE'));
             }
