@@ -497,7 +497,7 @@ module.exports = function (Orders) {
                 if (coupon.type == 'fixed') {
                   data.totalPrice -= coupon.value;
                 } else {
-                  data.totalPrice -= ((ctx.req.body.totalPrice * coupon.value) / 100)
+                  data.totalPrice -= ((data.totalPrice * coupon.value) / 100)
                 }
 
                 changeOrderProduct(id, tempProduct, function (err) {
