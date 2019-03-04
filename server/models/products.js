@@ -609,7 +609,7 @@ module.exports = function (Products) {
   //      db.collection('products').createIndex({ titleAr: "text", titleEn: "text" }, function(err) {
   //      });
   //    })
-  Products.search = function (string, isOffer, limit = 10, skip = 0, res, cb) {
+  Products.search = function (string, isOffer, clientType = "", limit = 10, skip = 0, res, cb) {
     var stages = []
     if (isOffer != undefined)
       stages.push({
@@ -666,6 +666,17 @@ module.exports = function (Products) {
     }
     console.log(nameArMatch);
     console.log(nameEnMatch);
+    var clientTypeObject = {
+      $or: [{
+        availableTo: "both"
+      }, {
+        availableTo: clientType
+      }]
+    }
+
+    if (clientType == "") {
+      clientTypeObject = {}
+    }
     stages.push({
       $lookup: {
         from: 'manufacturers',
@@ -675,26 +686,30 @@ module.exports = function (Products) {
       }
     }, {
       $match: {
-        $or: [
-          nameArMatch,
-          nameEnMatch,
-          {
-            'manufacturer.nameEn': {
-              $regex: ".*(?i)" + string + ".*"
-            }
-          },
-          {
-            'manufacturer.nameAr': {
-              $regex: ".*(?i)" + string + ".*"
-            }
-          },
-          {
-            tagsIds: {
-              $regex: ".*(?i)" + string + ".*"
-            }
-          },
+        $and: [{
+          status: "available",
+        }, {
+          $or: [
+            nameArMatch,
+            nameEnMatch,
+            {
+              'manufacturer.nameEn': {
+                $regex: ".*(?i)" + string + ".*"
+              }
+            },
+            {
+              'manufacturer.nameAr': {
+                $regex: ".*(?i)" + string + ".*"
+              }
+            },
+            {
+              tagsIds: {
+                $regex: ".*(?i)" + string + ".*"
+              }
+            },
 
-        ]
+          ]
+        }, clientTypeObject],
       }
     }, {
       $skip: skip
@@ -775,6 +790,13 @@ module.exports = function (Products) {
       },
       {
         arg: 'isOffer',
+        type: 'string',
+        'http': {
+          source: 'query'
+        }
+      },
+      {
+        arg: 'clientType',
         type: 'string',
         'http': {
           source: 'query'
