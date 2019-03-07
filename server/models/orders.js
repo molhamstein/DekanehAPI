@@ -74,7 +74,7 @@ module.exports = function (Orders) {
       }
       var paddingFooter = 10;
       if (firstMainProduct.length >= 13 && secondeMainProduct.length == 0)
-        paddingFooter = (17 - firstMainProduct.length) * 40
+        paddingFooter = (18 - firstMainProduct.length) * 40
       paddingFooter += "px";
       console.log("paddingFooter")
       console.log(paddingFooter)
@@ -86,9 +86,9 @@ module.exports = function (Orders) {
         phoneNumber: JSON.parse(JSON.stringify(data.client())).phoneNumber,
         firstMainProduct: firstMainProduct,
         secondeMainProduct: secondeMainProduct,
-        discount: discount,
-        priceBeforeCoupon: data.priceBeforeCoupon,
-        totalPrice: data.totalPrice,
+        discount: Math.round(discount),
+        priceBeforeCoupon: Math.round(data.priceBeforeCoupon),
+        totalPrice: Math.round(data.totalPrice),
         userType: userType,
         paddingFooter: paddingFooter,
         date: data.orderDate.getDate() + "/" + (data.orderDate.getMonth() + 1) + "/" + data.orderDate.getFullYear(),
