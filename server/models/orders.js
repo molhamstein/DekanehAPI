@@ -79,7 +79,7 @@ module.exports = function (Orders) {
       console.log("paddingFooter")
       console.log(paddingFooter)
       // console.log(firstMainProduct);
-      var discount = data.priceBeforeCoupon - data.totalPrice
+      var discount = Math.round(data.priceBeforeCoupon) - Math.round(data.totalPrice)
       ejs.renderFile(path.resolve(__dirname + "../../../server/views/bills.ejs"), {
         code: data.code,
         ownerName: JSON.parse(JSON.stringify(data.client())).ownerName + " - " + JSON.parse(JSON.stringify(data.client())).shopName,
