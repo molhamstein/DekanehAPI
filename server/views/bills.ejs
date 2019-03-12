@@ -112,9 +112,9 @@
       width: 512px
     }
 
-    /* .footerMargin {
+    .footerMargin {
       margin-top: <%=paddingFooter %>;
-    } */
+    }
 
     .footer .typeUser {
       height: 100%;
@@ -334,59 +334,61 @@
     </div>
     <% } else{ %>
     <% } %>
+    <div style="width: 100%;background-color: red" class="footerMargin">
 
-    <div class="table footerMargin" style="height: 60px;padding: 0px 40px">
-      <table style="width: 70%;float: right;">
-        <tr>
-          <td style="border: 0px;width: 50%;">
-            <h3 style="margin: 0px;font-size: 15px">الحسم </h3>
-            <h1 style="width: 100%;text-align: right;margin: 0px;font-size: 3em;">
-              <%= discount %>
-            </h1>
+      <div class="table" style="height: 60px;padding: 0px 40px">
+        <table style="width: 70%;float: right;">
+          <tr>
+            <td style="border: 0px;width: 50%;">
+              <h3 style="margin: 0px;font-size: 15px">الحسم </h3>
+              <h1 style="width: 100%;text-align: right;margin: 0px;font-size: 3em;">
+                <%= discount %>
+              </h1>
 
-          </td>
-          <td style="border: 0px;width: 50%;">
-            <h3 style="margin: 0px;font-size: 15px">الإجمالي </h3>
-            <h1 style="width: 100%;text-align: right;margin: 0px;font-size: 3em;">
-              <%= priceBeforeCoupon %>
-            </h1>
+            </td>
+            <td style="border: 0px;width: 50%;">
+              <h3 style="margin: 0px;font-size: 15px">الإجمالي </h3>
+              <h1 style="width: 100%;text-align: right;margin: 0px;font-size: 3em;">
+                <%= priceBeforeCoupon %>
+              </h1>
 
-          </td>
-        </tr>
-      </table>
-      <table style="width: 30%;position: relative;">
-        <tr>
-          <td style="border: 0px">
-            <span style="position: absolute;left: 0px;top: 20px;">
-              <%= userType %></span>
-          </td>
-        </tr>
-      </table>
-    </div>
+            </td>
+          </tr>
+        </table>
+        <table style="width: 30%;position: relative;">
+          <tr>
+            <td style="border: 0px">
+              <span style="position: absolute;left: 0px;top: 20px;">
+                <%= userType %></span>
+            </td>
+          </tr>
+        </table>
+      </div>
 
-    <div class="table">
-      <table style="width: 100%">
-        <tr>
-          <div style="background-color: black;width: 100%;margin-top: 40px;height: 2px;"></div>
+      <div class="table">
+        <table style="width: 100%">
+          <tr>
+            <div style="background-color: black;width: 100%;margin-top: 40px;height: 2px;"></div>
 
-        </tr>
-      </table>
-    </div>
+          </tr>
+        </table>
+      </div>
 
-    <div class="table" style="padding: 0px 40px">
-      <table style="width: 35%;
+      <div class="table" style="padding: 0px 40px">
+        <table style="width: 35%;
           float: right;">
-        <tr>
-          <td style="border: 0px;">
-            <h3 style="margin: 0px;font-size: 15px">الإجمالي </h3>
-            <h1 style="width: 100%;text-align: right;margin: 0px;font-size: 3em;">
-              <%= totalPrice %>
-            </h1>
+          <tr>
+            <td style="border: 0px;">
+              <h3 style="margin: 0px;font-size: 15px">الإجمالي </h3>
+              <h1 style="width: 100%;text-align: right;margin: 0px;font-size: 3em;">
+                <%= totalPrice %>
+              </h1>
 
 
-          </td>
-        </tr>
-      </table>
+            </td>
+          </tr>
+        </table>
+      </div>
     </div>
   </div>
 </body>
