@@ -673,9 +673,13 @@ module.exports = function (Products) {
         availableTo: clientType
       }]
     }
+    var statusObject = {
+      status: "available",
+    }
 
     if (clientType == "") {
       clientTypeObject = {}
+      statusObject = {}
     }
     stages.push({
       $lookup: {
@@ -686,9 +690,7 @@ module.exports = function (Products) {
       }
     }, {
       $match: {
-        $and: [{
-          status: "available",
-        }, {
+        $and: [statusObject, {
           $or: [
             nameArMatch,
             nameEnMatch,

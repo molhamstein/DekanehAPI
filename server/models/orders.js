@@ -324,197 +324,230 @@ module.exports = function (Orders) {
             tempOldProducts.push(element)
         });
 
-        console.log("productsIds")
-        console.log(productsIds)
-
-        console.log("oldProductsIds");
-        console.log(oldProductsIds);
-
-        console.log("deletedProductsId");
-        console.log(deletedProductsId);
-
-        console.log("newProductsId");
-        console.log(newProductsId);
-
-        console.log("tempOldProducts.length")
-        console.log(tempOldProducts.length)
-
-
 
         Orders.app.models.products.find({
           where: {
             id: {
-              'inq': newProductsId
+              'inq': productsIds
             }
           }
-        }, function (err, newProducts) {
+        }, function (err, productsFromDb) {
           if (err)
-            return next(err);
+            return callback(err);
+          // console.log("productsFromDb")
+          // console.log(productsFromDb)
 
-          data.clientType = user.clientType;
-
-          var productsInfo = {};
-          _.each(newProducts, p => {
-            productsInfo[p.id.toString()] = p;
-          });
-
-          _.each(tempOldProducts, p => {
-            productsInfo[p.productId.toString()] = p;
-          });
-          data.totalPrice = 0
-          console.log("productsInfo.length");
-          console.log(productsInfo.length);
-          var tempProduct = [];
-          _.each(products, (product, index) => {
-            var pInfo = productsInfo[product.productId];
-            // if (!pInfo)
-            //   return delete products[index]
-            // if (pInfo.availableTo != user.clientType && pInfo.availableTo != 'both')
-            //   return delete products[index]
-
-            product.nameEn = pInfo.nameEn;
-            product.nameAr = pInfo.nameAr;
-            product.pack = pInfo.pack;
-            product.description = pInfo.description;
-            product.marketOfficialPrice = pInfo.marketOfficialPrice;
-            product.dockanBuyingPrice = pInfo.dockanBuyingPrice;
-            product.wholeSaleMarketPrice = pInfo.wholeSaleMarketPrice;
-            product.horecaPriceDiscount = pInfo.horecaPriceDiscount;
-            product.wholeSalePriceDiscount = pInfo.wholeSalePriceDiscount;
-            product.horecaPrice = pInfo.horecaPrice;
-            product.wholeSalePrice = pInfo.wholeSalePrice;
-            product.offerSource = pInfo.offerSource;
-            product.media = pInfo.media;
-            if (user.clientType == 'wholesale') {
-              product.price = (pInfo.wholeSalePriceDiscount && pInfo.wholeSalePriceDiscount) == 0 ? pInfo.wholeSalePrice : pInfo.wholeSalePriceDiscount;
-            } else {
-              product.price = (pInfo.horecaPriceDiscount && pInfo.horecaPriceDiscount) == 0 ? pInfo.horecaPrice : pInfo.horecaPriceDiscount;
+          var unavalidProd = [];
+          console.log("******element.status**********")
+          console.log(productsIds)
+          console.log(productsFromDb.length)
+          productsFromDb.forEach(element => {
+            console.log("******element.status**********")
+            console.log(element.status)
+            if (element.status != "available") {
+              unavalidProd.push(element);
             }
-            data.totalPrice += Number(product.count) * Number(product.price);
-
-            product.isOffer = pInfo.isOffer;
-            if (pInfo.isOffer && pInfo.products) {
-              console.log("pInfo.products");
-              console.log(pInfo.products);
-              product.products = pInfo.products;
-            }
-
-            tempProduct.push(product)
           });
-          // console.log(tempProduct)
-          console.log(data.totalPrice)
-          if (isAdmin == false && data.totalPrice < 20000)
-            return callback(ERROR(602, 'total price is low'));
 
-          delete data['orderProducts'];
-          delete data['client'];
-          console.log(data);
+          if (unavalidProd.length != 0) {
+            return callback({
+              "statusCode": 611,
+              "data": unavalidProd
+            });
+          }
 
-          Orders.findById(id, function (err, mainOrder) {
+          console.log("productsIds")
+          console.log(productsIds)
+
+          console.log("oldProductsIds");
+          console.log(oldProductsIds);
+
+          console.log("deletedProductsId");
+          console.log(deletedProductsId);
+
+          console.log("newProductsId");
+          console.log(newProductsId);
+
+          console.log("tempOldProducts.length")
+          console.log(tempOldProducts.length)
+
+
+
+          Orders.app.models.products.find({
+            where: {
+              id: {
+                'inq': newProductsId
+              }
+            }
+          }, function (err, newProducts) {
             if (err)
-              return callback(err, null)
-            console.log("new couponCode")
-            console.log(data.couponCode)
-            console.log("old couponCode")
-            console.log(mainOrder.couponCode)
-            data.priceBeforeCoupon = data.totalPrice;
+              return next(err);
 
-            if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
-              changeOrderProduct(id, tempProduct, function (err) {
-                console.log("no Counpon");
-                if (err)
-                  return callback(err)
-                mainOrder.updateAttributes(data, function (err, data) {
-                  if (err)
-                    return callback(err)
-                  return callback();
-                })
-              })
-            } else if (data.couponCode != undefined && mainOrder.couponCode == undefined) {
-              console.log("new counpon");
-              Orders.app.models.coupons.findOne({
-                where: {
-                  code: data.couponCode,
-                  expireDate: {
-                    gte: new Date()
-                  },
-                  userId: user.id
-                }
-              }, function (err, coupon) {
-                if (err)
-                  return callback(err);
-                if (!coupon)
-                  return callback(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
-                if (coupon.numberOfUsed >= coupon.numberOfTimes || coupon.status == 'used')
-                  return callback(ERROR(400, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
+            data.clientType = user.clientType;
 
-                data.couponId = coupon.id;
-                console.log("coupon///////////");
-                console.log(coupon);
-                if (coupon.type == 'fixed') {
-                  data.totalPrice -= coupon.value;
-                } else {
-                  data.totalPrice -= ((data.totalPrice * coupon.value) / 100)
-                }
+            var productsInfo = {};
+            _.each(newProducts, p => {
+              productsInfo[p.id.toString()] = p;
+            });
 
-                // edit coupon
+            _.each(tempOldProducts, p => {
+              productsInfo[p.productId.toString()] = p;
+            });
+            data.totalPrice = 0
+            console.log("productsInfo.length");
+            console.log(productsInfo.length);
+            var tempProduct = [];
+            _.each(products, (product, index) => {
+              var pInfo = productsInfo[product.productId];
+              // if (!pInfo)
+              //   return delete products[index]
+              // if (pInfo.availableTo != user.clientType && pInfo.availableTo != 'both')
+              //   return delete products[index]
 
-                coupon.numberOfUsed++;
-                if (coupon.numberOfUsed == coupon.numberOfTimes)
-                  coupon.status = 'used';
-                coupon.save()
+              product.nameEn = pInfo.nameEn;
+              product.nameAr = pInfo.nameAr;
+              product.pack = pInfo.pack;
+              product.description = pInfo.description;
+              product.marketOfficialPrice = pInfo.marketOfficialPrice;
+              product.dockanBuyingPrice = pInfo.dockanBuyingPrice;
+              product.wholeSaleMarketPrice = pInfo.wholeSaleMarketPrice;
+              product.horecaPriceDiscount = pInfo.horecaPriceDiscount;
+              product.wholeSalePriceDiscount = pInfo.wholeSalePriceDiscount;
+              product.horecaPrice = pInfo.horecaPrice;
+              product.wholeSalePrice = pInfo.wholeSalePrice;
+              product.offerSource = pInfo.offerSource;
+              product.media = pInfo.media;
+              if (user.clientType == 'wholesale') {
+                product.price = (pInfo.wholeSalePriceDiscount && pInfo.wholeSalePriceDiscount) == 0 ? pInfo.wholeSalePrice : pInfo.wholeSalePriceDiscount;
+              } else {
+                product.price = (pInfo.horecaPriceDiscount && pInfo.horecaPriceDiscount) == 0 ? pInfo.horecaPrice : pInfo.horecaPriceDiscount;
+              }
+              data.totalPrice += Number(product.count) * Number(product.price);
+
+              product.isOffer = pInfo.isOffer;
+              if (pInfo.isOffer && pInfo.products) {
+                console.log("pInfo.products");
+                console.log(pInfo.products);
+                product.products = pInfo.products;
+              }
+
+              tempProduct.push(product)
+            });
+            // console.log(tempProduct)
+            console.log(data.totalPrice)
+            if (isAdmin == false && data.totalPrice < 20000)
+              return callback(ERROR(602, 'total price is low'));
+
+            delete data['orderProducts'];
+            delete data['client'];
+            console.log(data);
+
+            Orders.findById(id, function (err, mainOrder) {
+              if (err)
+                return callback(err, null)
+              console.log("new couponCode")
+              console.log(data.couponCode)
+              console.log("old couponCode")
+              console.log(mainOrder.couponCode)
+              data.priceBeforeCoupon = data.totalPrice;
+
+              if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
                 changeOrderProduct(id, tempProduct, function (err) {
+                  console.log("no Counpon");
                   if (err)
                     return callback(err)
-                  console.log("data************");
-                  console.log(data);
                   mainOrder.updateAttributes(data, function (err, data) {
                     if (err)
                       return callback(err)
                     return callback();
                   })
                 })
-              });
-            } else if (data.couponCode != undefined && mainOrder.couponCode != undefined && mainOrder.couponCode == data.couponCode) {
-              console.log("reused counpon");
-              Orders.app.models.coupons.findOne({
-                where: {
-                  code: data.couponCode,
-                  expireDate: {
-                    gte: new Date()
-                  },
-                  userId: user.id
-                }
-              }, function (err, coupon) {
-                if (err)
-                  return callback(err);
-                if (!coupon)
-                  return callback(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
-
-                data.couponId = coupon.id;
-                console.log("coupon///////////");
-                console.log(coupon);
-                if (coupon.type == 'fixed') {
-                  data.totalPrice -= coupon.value;
-                } else {
-                  data.totalPrice -= ((data.totalPrice * coupon.value) / 100)
-                }
-
-                changeOrderProduct(id, tempProduct, function (err) {
+              } else if (data.couponCode != undefined && mainOrder.couponCode == undefined) {
+                console.log("new counpon");
+                Orders.app.models.coupons.findOne({
+                  where: {
+                    code: data.couponCode,
+                    expireDate: {
+                      gte: new Date()
+                    },
+                    userId: user.id
+                  }
+                }, function (err, coupon) {
                   if (err)
-                    return callback(err)
-                  console.log("data************");
-                  console.log(data);
-                  mainOrder.updateAttributes(data, function (err, data) {
+                    return callback(err);
+                  if (!coupon)
+                    return callback(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
+                  if (coupon.numberOfUsed >= coupon.numberOfTimes || coupon.status == 'used')
+                    return callback(ERROR(400, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
+
+                  data.couponId = coupon.id;
+                  console.log("coupon///////////");
+                  console.log(coupon);
+                  if (coupon.type == 'fixed') {
+                    data.totalPrice -= coupon.value;
+                  } else {
+                    data.totalPrice -= ((data.totalPrice * coupon.value) / 100)
+                  }
+
+                  // edit coupon
+
+                  coupon.numberOfUsed++;
+                  if (coupon.numberOfUsed == coupon.numberOfTimes)
+                    coupon.status = 'used';
+                  coupon.save()
+                  changeOrderProduct(id, tempProduct, function (err) {
                     if (err)
                       return callback(err)
-                    return callback();
+                    console.log("data************");
+                    console.log(data);
+                    mainOrder.updateAttributes(data, function (err, data) {
+                      if (err)
+                        return callback(err)
+                      return callback();
+                    })
                   })
-                })
-              });
-            } else {
-              return callback(ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE'));
-            }
+                });
+              } else if (data.couponCode != undefined && mainOrder.couponCode != undefined && mainOrder.couponCode == data.couponCode) {
+                console.log("reused counpon");
+                Orders.app.models.coupons.findOne({
+                  where: {
+                    code: data.couponCode,
+                    expireDate: {
+                      gte: new Date()
+                    },
+                    userId: user.id
+                  }
+                }, function (err, coupon) {
+                  if (err)
+                    return callback(err);
+                  if (!coupon)
+                    return callback(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
+
+                  data.couponId = coupon.id;
+                  console.log("coupon///////////");
+                  console.log(coupon);
+                  if (coupon.type == 'fixed') {
+                    data.totalPrice -= coupon.value;
+                  } else {
+                    data.totalPrice -= ((data.totalPrice * coupon.value) / 100)
+                  }
+
+                  changeOrderProduct(id, tempProduct, function (err) {
+                    if (err)
+                      return callback(err)
+                    console.log("data************");
+                    console.log(data);
+                    mainOrder.updateAttributes(data, function (err, data) {
+                      if (err)
+                        return callback(err)
+                      return callback();
+                    })
+                  })
+                });
+              } else {
+                return callback(ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE'));
+              }
+            })
           })
         })
       })
@@ -582,7 +615,7 @@ module.exports = function (Orders) {
       Orders.app.models.products.find({
         where: {
           id: {
-            'in': productsIds
+            'inq': productsIds
           }
         }
       }, function (err, productsFromDb) {
