@@ -10,7 +10,8 @@
       "category",
       "subCategory",
       "manufacturer",
-      "products"
+      "products",
+      "productAbstract"
     ]
   },
   "properties": {

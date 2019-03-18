@@ -5,6 +5,12 @@
   "options": {
     "validateUpsert": true
   },
+  "scope": {
+    "include": [
+      "category",
+      "subCategory"
+    ]
+  },
   "properties": {
     "nameEn": {
       "type": "string",
@@ -16,11 +22,6 @@
     "price": {
       "type": "number",
       "required": true
-    },
-    "threshold": {
-      "type": "number",
-      "required": true,
-      "default": 0
     }
   },
   "validations": [],

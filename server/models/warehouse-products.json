@@ -6,7 +6,12 @@
     "validateUpsert": true
   },
   "properties": {
-    "count": {
+    "effictiveCount": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "expectedCount" : {
       "type": "number",
       "required": true,
       "default": 0
@@ -15,6 +20,11 @@
       "type": "string",
       "required": true,
       "default": "available"
+    },
+    "threshold": {
+      "type": "number",
+      "required": true,
+      "default": 0
     }
   },
   "validations": [],
