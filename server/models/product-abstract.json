@@ -1,0 +1,47 @@
+{
+  "name": "productAbstract",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "nameEn": {
+      "type": "string",
+      "required": true
+    },
+    "nameAr": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number",
+      "required": true
+    },
+    "threshold": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    }
+  },
+  "validations": [],
+  "relations": {
+    "category": {
+      "type": "belongsTo",
+      "model": "categories",
+      "foreignKey": "",
+      "options": {
+        "nestRemoting": true
+      }
+    },
+    "subCategory": {
+      "type": "belongsTo",
+      "model": "categories",
+      "foreignKey": "",
+      "options": {
+        "nestRgitemoting": true
+      }
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
