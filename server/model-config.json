@@ -132,5 +132,13 @@
   "userNot": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "warehouse": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "productAbstract": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

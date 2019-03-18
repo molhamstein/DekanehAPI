@@ -38,7 +38,11 @@
       "model": "categories",
       "foreignKey": "",
       "options": {
+<<<<<<< HEAD
         "nestRemoting": true
+=======
+        "nestRgitemoting": true
+>>>>>>> master
       }
     }
   },
