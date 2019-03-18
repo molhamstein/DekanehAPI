@@ -40,6 +40,11 @@
       "options": {
         "nestRemoting": true
       }
+    },
+    "MEDIA": {
+      "type": "embedsOne",
+      "model": "media",
+      "property": "media"
     }
   },
   "acls": [],

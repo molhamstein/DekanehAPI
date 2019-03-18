@@ -140,5 +140,9 @@
   "productAbstract": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "warehouseProducts": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

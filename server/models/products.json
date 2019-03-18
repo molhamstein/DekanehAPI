@@ -139,6 +139,14 @@
       "type": "embedsOne",
       "model": "media",
       "property": "media"
+    },
+    "productAbstract": {
+      "type": "belongsTo",
+      "model": "productAbstract",
+      "foreignKey": "",
+      "options": {
+        "nestRemoting": true
+      }
     }
   },
   "acls": [],
