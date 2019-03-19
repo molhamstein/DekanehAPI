@@ -795,7 +795,6 @@ module.exports = function (Orders) {
   });
 
   Orders.afterRemote('create', function (ctx, result, next) {
-    console.log("FUUCK bla"); 
     result.orderProducts(function (err, data) {
       _.each(data, oneProduct => {
         oneProduct.orderId = result.id;
@@ -808,13 +807,18 @@ module.exports = function (Orders) {
 
         // update warehouse products expected count 
         let parsedItems = ctx.parsedItems;        
-                
+              
+        
+        // @todo bulk update in case of performance issues 
         for(let {warehouseProduct , updateExpectedCount} of parsedItems){
 
               warehouseProduct.expectedCount = updateExpectedCount; 
-              //await warehouseProduct.save();
-              let updates  = await Orders.app.models.warehouseProducts.createUpdates( {_id , expectedCount} = warehouseProduct );
-              await Orders.app.models.warehouseProducts.bulkUpdate(updates);
+              try{
+                await warehouseProduct.save();
+              }catch(err){
+                return next(err); 
+              }
+              
 
         }
 
