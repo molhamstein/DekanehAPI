@@ -36,11 +36,11 @@ module.exports = function (Orders) {
       if (err)
         callback(err)
       var name = new Date().getTime() + ".pdf"
-      // console.log("owner name");
+      // 
       // console.log(JSON.parse(JSON.stringify(data.client())).ownerName);
-      // console.log("owner phoneNumber");
+      // 
       // console.log(JSON.parse(JSON.stringify(data.client())).phoneNumber);
-      // console.log("order date");
+      // 
       // console.log(data.orderDate.getDate() + "/" + (data.orderDate.getMonth() + 1) + "/" + data.orderDate.getFullYear());
       var userType = ""
       if (data.clientType == "wholesale")
@@ -358,13 +358,13 @@ module.exports = function (Orders) {
           console.log("productsIds")
           console.log(productsIds)
 
-          console.log("oldProductsIds");
+          
           console.log(oldProductsIds);
 
-          console.log("deletedProductsId");
+          
           console.log(deletedProductsId);
 
-          console.log("newProductsId");
+          
           console.log(newProductsId);
 
           console.log("tempOldProducts.length")
@@ -393,7 +393,7 @@ module.exports = function (Orders) {
               productsInfo[p.productId.toString()] = p;
             });
             data.totalPrice = 0
-            console.log("productsInfo.length");
+            
             console.log(productsInfo.length);
             var tempProduct = [];
             _.each(products, (product, index) => {
@@ -425,7 +425,7 @@ module.exports = function (Orders) {
 
               product.isOffer = pInfo.isOffer;
               if (pInfo.isOffer && pInfo.products) {
-                console.log("pInfo.products");
+                
                 console.log(pInfo.products);
                 product.products = pInfo.products;
               }
@@ -452,7 +452,7 @@ module.exports = function (Orders) {
 
               if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
                 changeOrderProduct(id, tempProduct, function (err) {
-                  console.log("no Counpon");
+                  
                   if (err)
                     return callback(err)
                   mainOrder.updateAttributes(data, function (err, data) {
@@ -462,7 +462,7 @@ module.exports = function (Orders) {
                   })
                 })
               } else if (data.couponCode != undefined && mainOrder.couponCode == undefined) {
-                console.log("new counpon");
+                
                 Orders.app.models.coupons.findOne({
                   where: {
                     code: data.couponCode,
@@ -480,7 +480,7 @@ module.exports = function (Orders) {
                     return callback(ERROR(400, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
 
                   data.couponId = coupon.id;
-                  console.log("coupon///////////");
+                  
                   console.log(coupon);
                   if (coupon.type == 'fixed') {
                     data.totalPrice -= coupon.value;
@@ -497,7 +497,7 @@ module.exports = function (Orders) {
                   changeOrderProduct(id, tempProduct, function (err) {
                     if (err)
                       return callback(err)
-                    console.log("data************");
+                    
                     console.log(data);
                     mainOrder.updateAttributes(data, function (err, data) {
                       if (err)
@@ -507,7 +507,7 @@ module.exports = function (Orders) {
                   })
                 });
               } else if (data.couponCode != undefined && mainOrder.couponCode != undefined && mainOrder.couponCode == data.couponCode) {
-                console.log("reused counpon");
+                
                 Orders.app.models.coupons.findOne({
                   where: {
                     code: data.couponCode,
@@ -523,7 +523,7 @@ module.exports = function (Orders) {
                     return callback(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
 
                   data.couponId = coupon.id;
-                  console.log("coupon///////////");
+                  
                   console.log(coupon);
                   if (coupon.type == 'fixed') {
                     data.totalPrice -= coupon.value;
@@ -534,7 +534,7 @@ module.exports = function (Orders) {
                   changeOrderProduct(id, tempProduct, function (err) {
                     if (err)
                       return callback(err)
-                    console.log("data************");
+                    
                     console.log(data);
                     mainOrder.updateAttributes(data, function (err, data) {
                       if (err)
@@ -583,6 +583,7 @@ module.exports = function (Orders) {
     //var warehouseId = ctx.req.body.warehouseId;
     //if(!ctx.req.body.warehouseId )
     //return next
+    ctx.bla = "asd"; 
 
     //assign first warehouse in database as warehouse for the order
     Orders.app.models.warehouse.findOne({}, (err, warehouse) => {
@@ -653,6 +654,7 @@ module.exports = function (Orders) {
 
             //validate order product availability in warehouse product 
             let unvalidWarehouseProducts = [] ; 
+            let parsedItems = []; 
             for(let product of productsFromDb){
 
               let productAbstractId = product.productAbstract().id;              
@@ -667,12 +669,13 @@ module.exports = function (Orders) {
                 warehouseProduct = warehouseProduct[0]; 
 
                 // warehouse doesn't have enough amount of the product 
-                let orderProudct = products.find( p => p.id == product.id); 
+                let orderProudct = products.find( p => p.productId == product.id); 
                 let total =  warehouseProduct.expectedCount - orderProudct.count * product.parentCount; 
-
-                if( total > warehouseProduct.threshold){
+                if( total < warehouseProduct.threshold){
                   unvalidWarehouseProducts.push(product); 
                 }
+
+                parsedItems.push( {warehouseProduct , updateExpectedCount:total})
 
             }      
             
@@ -680,10 +683,11 @@ module.exports = function (Orders) {
             
           if (unvalidWarehouseProducts.length != 0) {
             return next({
-              "statusCode": 612,
+              "statusCode": 612, // unavailble in warehouse 
               "data": unvalidWarehouseProducts
             });
-          }                    
+          }         
+          ctx.parsedItems = parsedItems;            
          }catch(err){
               // data format error e.g product doesn't belong to productAbstract 
              return next(err); 
@@ -703,20 +707,16 @@ module.exports = function (Orders) {
           });
           _.each(products, (product, index) => {
             var pInfo = productsInfo[product.productId];
-            console.log("**********************");
-            console.log(pInfo);
+        
 
             if (pInfo == null) {
               return delete products[index]
             }
-            console.log("-----------------------------")
-            console.log(user.clientType)
-
+          
             if (pInfo.availableTo != user.clientType && pInfo.availableTo != 'both') {
               return delete products[index]
             }
-            console.log("///////////////////////////")
-
+          
             product.nameEn = pInfo.nameEn;
             product.nameAr = pInfo.nameAr;
             product.pack = pInfo.pack;
@@ -738,8 +738,6 @@ module.exports = function (Orders) {
             } else {
               product.price = (pInfo.horecaPriceDiscount && pInfo.horecaPriceDiscount) == 0 ? pInfo.horecaPrice : pInfo.horecaPriceDiscount;
             }
-            console.log("-------------------------")
-            console.log(Number(product.count) * Number(product.price))
             ctx.req.body.totalPrice += Number(product.count) * Number(product.price);
             product.isOffer = pInfo.isOffer;
             if (pInfo.isOffer && pInfo.products) {
@@ -797,15 +795,29 @@ module.exports = function (Orders) {
   });
 
   Orders.afterRemote('create', function (ctx, result, next) {
+    console.log("FUUCK bla"); 
     result.orderProducts(function (err, data) {
       _.each(data, oneProduct => {
         oneProduct.orderId = result.id;
       })
-      Orders.app.models.orderProducts.create(data, function (err, data) {
+      Orders.app.models.orderProducts.create(data,async function (err, data) {
         if (err)
           return next(err)
         result['products'] = null;
         //   result.orderProducts=data;
+
+        // update warehouse products expected count 
+        let parsedItems = ctx.parsedItems;        
+                
+        for(let {warehouseProduct , updateExpectedCount} of parsedItems){
+
+              warehouseProduct.expectedCount = updateExpectedCount; 
+              //await warehouseProduct.save();
+              let updates  = await Orders.app.models.warehouseProducts.createUpdates( {_id , expectedCount} = warehouseProduct );
+              await Orders.app.models.warehouseProducts.bulkUpdate(updates);
+
+        }
+
         Orders.app.models.notification.create({
           "type": "order",
           "orderId": result.id
@@ -1061,7 +1073,7 @@ module.exports = function (Orders) {
 
   function _toArray(data, cb) {
     var result = [];
-    console.log("data");
+    
     for (var key in data) {
 
       result.push(data[key]);

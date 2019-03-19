@@ -144,5 +144,9 @@
   "warehouseProducts": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "test": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }
