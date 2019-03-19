@@ -11,7 +11,7 @@
       "required": true,
       "default": 0
     },
-    "expectedCount" : {
+    "expectedCount": {
       "type": "number",
       "required": true,
       "default": 0
@@ -28,7 +28,18 @@
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "warehouse": {
+      "type": "belongsTo",
+      "model": "warehouse",
+      "foreignKey": ""
+    },
+    "productAbstract": {
+      "type": "belongsTo",
+      "model": "productAbstract",
+      "foreignKey": ""
+    }
+  },
   "acls": [],
   "methods": {}
 }

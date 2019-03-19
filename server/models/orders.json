@@ -66,6 +66,14 @@
       "type": "hasMany",
       "model": "orderProducts",
       "foreignKey": "orderId"
+    },
+    "warehouse": {
+      "type": "belongsTo",
+      "model": "warehouse",
+      "foreignKey": "warehouseId",
+      "options": {
+        "nestRemoting": true
+      }
     }
   },
   "acls": [],
