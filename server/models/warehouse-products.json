@@ -40,6 +40,13 @@
       "foreignKey": ""
     }
   },
+  "indexes": {
+    "warehouse_product_idnex": {
+      "keys": {"warehouseId": 1, "productAbstractId": 1}
+      ,
+      "options": {"unique": true}
+    } 
+  },
   "acls": [],
   "methods": {}
 }

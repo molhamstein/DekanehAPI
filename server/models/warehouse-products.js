@@ -2,11 +2,15 @@
 
 module.exports = function(Warehouseproducts) {
 
+    var ds = Warehouseproducts.app.dataSources.mongodb;
+
+    ds.automigrate(function () {
+    });
+
     Warehouseproducts.validatesInclusionOf('status', {
         in: ['available', 'unavailable', 'pending']
     });
-    
-        
+            
     Warehouseproducts.prototype.updateExpectedCount = function (expectedCountDiff){
         
          this.expectedCount = this.expectedCount + expectedCountDiff; 
@@ -16,6 +20,8 @@ module.exports = function(Warehouseproducts) {
         this.effictiveCount = this.effictiveCount + effictiveCountDiff; 
         return this.save(); 
     }
+
+    
     
 
 };

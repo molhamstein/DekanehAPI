@@ -1017,13 +1017,37 @@ module.exports = function (Orders) {
 
   Orders.assignOrderToCancel = function (orderId, cb) {
 
-    Orders.findById(orderId, function (err, order) {
+    Orders.findById(orderId, async function (err, order) {
       if (err)
         return cb(err);
       if (!order)
         return cb(ERROR(404, 'order not found'));
-      if (order.status == 'canceled')
+      if (order.status == 'canceled' || order.status === 'delivered')
         return cb(ERROR(400, 'order already in canceled'));
+
+
+      // @todo in case of performance issues use bulk updates 
+      for(let orderProduct of order.orderProducts()){
+        
+          let product = orderProduct.product();         
+          let productAbstractId = product.productAbstract().id; 
+          let warehouse =  order.warehouse();
+          let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
+          warehouseProduct = warehouseProduct[0];
+
+          // in: ['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered', 'canceled']        
+          // restore warehouse expected count           
+          if(['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered'].includes(order.status)){
+            await warehouseProduct.updateExpectedCount( orderProduct.count * product.parentCount);        
+          }
+
+          // restore warehouse effictive count 
+          if(['inDelivery'].includes(order.status)){
+            await warehouseProduct.updateEffictiveCount( orderProduct.count * product.parentCount);        
+          }
+      }
+
+
 
       order.status = 'canceled';
       order.canceledDate = new Date();
