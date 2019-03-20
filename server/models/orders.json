@@ -9,7 +9,7 @@
     "include": [
       "client",
       "deliveryMember",
-      "orderProducts", 
+      "orderProducts",
       "warehouse"
     ]
   },
@@ -42,11 +42,11 @@
     "assignedDate": {
       "type": "date"
     },
-    "warehouseDate" : {
-      "type" : "date" 
-    }, 
-    "packDate" : {
-      "type" : "date"
+    "warehouseDate": {
+      "type": "date"
+    },
+    "packDate": {
+      "type": "date"
     },
     "deliveredDate": {
       "type": "date"

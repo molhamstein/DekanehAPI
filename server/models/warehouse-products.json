@@ -2,6 +2,17 @@
   "name": "warehouseProducts",
   "base": "PersistedModel",
   "idInjection": true,
+  "indexes": {
+    "warehouse_product_idnex": {
+      "keys": {
+        "warehouseId": 1,
+        "productAbstractId": 1
+      },
+      "options": {
+        "unique": true
+      }
+    }
+  },
   "options": {
     "validateUpsert": true
   },
@@ -16,12 +27,32 @@
       "required": true,
       "default": 0
     },
+    "accumulatedCountOverTime": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
     "status": {
       "type": "string",
       "required": true,
       "default": "available"
     },
     "threshold": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "buyingPrice": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "marketOfficialPrice": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "avgPrice": {
       "type": "number",
       "required": true,
       "default": 0
@@ -39,13 +70,6 @@
       "model": "productAbstract",
       "foreignKey": ""
     }
-  },
-  "indexes": {
-    "warehouse_product_idnex": {
-      "keys": {"warehouseId": 1, "productAbstractId": 1}
-      ,
-      "options": {"unique": true}
-    } 
   },
   "acls": [],
   "methods": {}

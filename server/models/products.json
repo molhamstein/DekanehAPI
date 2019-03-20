@@ -39,9 +39,6 @@
     "wholeSaleMarketPrice": {
       "type": "number"
     },
-    "marketOfficialPrice": {
-      "type": "number"
-    },
     "dockanBuyingPrice": {
       "type": "number"
     },

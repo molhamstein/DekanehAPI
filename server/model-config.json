@@ -148,5 +148,9 @@
   "test": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "warehouseProductHistory": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

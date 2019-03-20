@@ -1,0 +1,41 @@
+{
+  "name": "warehouseProductHistory",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "date": {
+      "type": "date"
+    },
+    "shift": {
+      "type": "number"
+    },
+    "avgPrice": {
+      "type": "number"
+    },
+    "effictiveCount": {
+      "type": "number"
+    },
+    "expectedCount": {
+      "type": "number"
+    },
+    "accumulatedCountOverTime": {
+      "type": "number"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "warehouseProduct": {
+      "type": "belongsTo",
+      "model": "warehouseProducts",
+      "foreignKey": "",
+      "options": {
+        "nestRemoting": true
+      }
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

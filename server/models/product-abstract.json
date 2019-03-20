@@ -18,10 +18,6 @@
     },
     "nameAr": {
       "type": "string"
-    },
-    "price": {
-      "type": "number",
-      "required": true
     }
   },
   "validations": [],
