@@ -5,6 +5,8 @@
   "options": {
     "validateUpsert": true
   },
+  "scope" : { 
+  },
   "properties": {
     "nameAr": {
       "type": "string",
@@ -24,12 +26,50 @@
     "warehouseProducts": {
       "type": "hasMany",
       "model": "warehouseProducts",
-      "foreignKey": "",
+      "foreignKey": "warehouseId",
       "options": {
         "nestRemoting": true
       }
     }
   },
   "acls": [],
-  "methods": {}
+  "methods": {
+
+    "logProducts": {
+      "isStatic": true,
+      "accepts": [
+        
+        {
+          "arg": "id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "source": "path"
+        }
+        ,
+        {
+          "arg": "shift",
+          "type": "number",
+          "required": true,
+          "source": "body"
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/:id/log",
+          "verb": "post"
+        }
+      ]
+    }
+
+  }
 }

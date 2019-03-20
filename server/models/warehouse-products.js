@@ -2,10 +2,7 @@
 
 module.exports = function(Warehouseproducts) {
 
-    var ds = Warehouseproducts.app.dataSources.mongodb;
-
-    ds.automigrate(function () {
-    });
+   
 
     Warehouseproducts.validatesInclusionOf('status', {
         in: ['available', 'unavailable', 'pending']

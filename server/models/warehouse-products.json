@@ -3,7 +3,7 @@
   "base": "PersistedModel",
   "idInjection": true,
   "indexes": {
-    "warehouse_product_idnex": {
+    "warehouse_product_index": {
       "keys": {
         "warehouseId": 1,
         "productAbstractId": 1
@@ -63,12 +63,12 @@
     "warehouse": {
       "type": "belongsTo",
       "model": "warehouse",
-      "foreignKey": ""
+      "foreignKey": "warehouseId"
     },
     "productAbstract": {
       "type": "belongsTo",
       "model": "productAbstract",
-      "foreignKey": ""
+      "foreignKey": "productAbstractId"
     }
   },
   "acls": [],
