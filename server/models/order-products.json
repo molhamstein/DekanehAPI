@@ -5,6 +5,11 @@
   "options": {
     "validateUpsert": true
   },
+  "scope": {
+    "include": [
+      "product"
+    ]
+  },
   "properties": {
     "nameAr": {
       "type": "string"

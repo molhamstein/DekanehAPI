@@ -830,6 +830,114 @@ module.exports = function (Orders) {
     })
   });
 
+  Orders.assignOrderToWarehouse = function (orderId, userId, cb) {  
+
+    Orders.app.models.user.findById(userId, function (err, user) {
+      if (err)
+        return cb(err);
+      if (!user) {
+        return cb(ERROR(404, 'user not found'));
+      }
+      if (!user.hasPrivilege('userDelivery')) // @todo define role for warehouse  
+        return cb(ERROR(400, 'user not delivery'));
+
+
+        Orders.findById(orderId, function (err, order) {
+          if (err)
+            return cb(err);
+          if (!order)
+            return cb(ERROR(404, 'order not found'));
+  
+          
+          if (order.status !== 'pending')
+            return cb(ERROR(400, 'order is not pending'));
+
+                
+            order.status = 'inWarehouse';
+            order.warehouseDate = new Date();
+            order.save((err) => {
+              if(err)  return cb(err); 
+              // TODO : send Notification to warehouse user  
+              return cb(null, 'order is in warehouse');
+            })           
+        });
+    });
+  };
+  
+  Orders.remoteMethod('assignOrderToWarehouse', {
+    accepts: [{
+      arg: 'orderId',
+      type: 'string',
+      required: true
+    }, {
+      arg: 'userId',
+      type: 'string',
+      required: true
+    }],
+    returns: {
+      arg: 'message',
+      type: 'string'
+    },
+    http: {
+      verb: 'post',
+      path: '/:orderId/assignWarehouse'
+    },
+  });
+
+  
+  Orders.assignOrderToPack = function (orderId, userId, cb) {
+
+    Orders.app.models.user.findById(userId, function (err, user) {
+      if (err)
+        return cb(err);
+      if (!user) {
+        return cb(ERROR(404, 'user not found'));
+      }
+      if (!user.hasPrivilege('userDelivery')) // @todo define role for warehouse  
+        return cb(ERROR(400, 'user not delivery'));
+
+
+        Orders.findById(orderId, function (err, order) {
+          if (err)
+            return cb(err);
+          if (!order)
+            return cb(ERROR(404, 'order not found'));
+  
+          
+          if (order.status !== 'inWarehouse')
+            return cb(ERROR(400, 'order is not in warehouse'));
+
+                
+            order.status = 'packed';
+            order.deliveredDate = new Date();
+            order.save((err) => {
+              // TODO : send Notification to delivery user   
+              return cb(null, 'order is packed');
+            })           
+        });
+    });
+  };
+  
+  Orders.remoteMethod('assignOrderToPack', {
+    accepts: [{
+      arg: 'orderId',
+      type: 'string',
+      required: true
+    }, {
+      arg: 'userId',
+      type: 'string',
+      required: true
+    }],
+    returns: {
+      arg: 'message',
+      type: 'string'
+    },
+    http: {
+      verb: 'post',
+      path: '/:orderId/assignPack'
+    },
+  });
+
 
   Orders.assignOrderToDelivery = function (orderId, userId, cb) {
     Orders.app.models.user.findById(userId, function (err, user) {
@@ -841,15 +949,39 @@ module.exports = function (Orders) {
       if (!user.hasPrivilege('userDelivery'))
         return cb(ERROR(400, 'user not delivery'));
 
-      Orders.findById(orderId, function (err, order) {
+       
+
+      Orders.findById(orderId, async function (err, order) {
         if (err)
           return cb(err);
         if (!order)
           return cb(ERROR(404, 'order not found'));
 
+        
+        if (order.status !== 'packed')
+          return cb(ERROR(400, 'order is not ready to deilivery or order is already in delivery'));
+
         order.status = 'inDelivery';
         order.deliveryMemberId = userId;
         order.assignedDate = new Date();
+
+        for(let orderProduct of order.orderProducts()){
+        
+            let product = orderProduct.product(); 
+            
+
+            let productAbstractId = product.productAbstract().id; 
+            let warehouse =  order.warehouse();
+            let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
+
+
+
+            warehouseProduct = warehouseProduct[0];
+            // update warehouse effictive count 
+            await warehouseProduct.updateEffictiveCount( - orderProduct.count * product.parentCount);
+            
+        }
+
         order.save((err) => {
           // TODO : send Notification to user delivery 
           return cb(null, 'order is assigned');

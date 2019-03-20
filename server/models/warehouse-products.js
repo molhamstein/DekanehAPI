@@ -7,9 +7,14 @@ module.exports = function(Warehouseproducts) {
     });
     
         
-    Warehouseproducts.prototype.updateExpectedCount = function (expectedCountDiff){        
+    Warehouseproducts.prototype.updateExpectedCount = function (expectedCountDiff){
+        
          this.expectedCount = this.expectedCount + expectedCountDiff; 
-         return this.save(); 
+        return this.save(); 
+    }
+    Warehouseproducts.prototype.updateEffictiveCount = function(effictiveCountDiff){
+        this.effictiveCount = this.effictiveCount + effictiveCountDiff; 
+        return this.save(); 
     }
     
 
