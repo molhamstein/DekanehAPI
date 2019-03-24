@@ -4,7 +4,6 @@ var loopback = require('loopback');
 var boot = require('loopback-boot');
 
 global.app = module.exports = loopback();
-console.error("ssssssssssssssssssss")
 app.start = function () {
   // start the web server
   return app.listen(function () {
