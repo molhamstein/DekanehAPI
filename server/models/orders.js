@@ -259,10 +259,35 @@ module.exports = function (Orders) {
   //     })
   // })
 
+  async function validateWarehouseProductsAvailability(warehouse, orderProducts, products) {
+
+
+    //validate new order products availability in warehouse product 
+    let unvalidWarehouseProducts = [];
+    let warehouseProductCountUpdate = [];
+    for (let product of products) {
+
+      let productAbstractId = product.productAbstract().id;
+      let warehouseProduct = await warehouse.warehouseProducts.findOne({ productAbstractId });
+      // warehouse doesn't have  the product 
+      if (!warehouseProduct) {
+        throw new Error("warehouse doesn't have a product");
+      }
+      // warehouse doesn't have enough amount of the product 
+      let orderProduct = orderProducts.find(p => p.productId == product.id);
+      let total = warehouseProduct.expectedCount - orderProduct.count * product.parentCount;
+
+      if (total < warehouseProduct.threshold) {
+        unvalidWarehouseProducts.push(product);
+      }
+      warehouseProductCountUpdate.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount) })
+    }
+
+    return { unvalidWarehouseProducts, warehouseProductCountUpdate };
+
+  }
 
   Orders.editOrder = function (id, data, context, callback) {
-    console.log(id);
-    console.log('upsert called');
     if (!context.req.accessToken || !context.req.accessToken.userId)
       return callback(ERROR(403, 'User not login'))
 
@@ -317,11 +342,16 @@ module.exports = function (Orders) {
           if (oldProductsIds.includes(element) == false)
             newProductsId.push(element)
         });
-        var tempOldProducts = []
+        var tempOldProducts = [];
+        var oldDeletedOrderProducts = [];
         oldOrderProducts.forEach(element => {
           if (deletedProductsId.includes(element.productId.toString()) == false)
-            tempOldProducts.push(element)
+            tempOldProducts.push(element);
+          else
+            oldDeletedOrderProducts.push(element);
+
         });
+
 
 
         Orders.app.models.products.find({
@@ -333,16 +363,9 @@ module.exports = function (Orders) {
         }, function (err, productsFromDb) {
           if (err)
             return callback(err);
-          // console.log("productsFromDb")
-          // console.log(productsFromDb)
 
           var unavalidProd = [];
-          console.log("******element.status**********")
-          console.log(productsIds)
-          console.log(productsFromDb.length)
           productsFromDb.forEach(element => {
-            console.log("******element.status**********")
-            console.log(element.status)
             if (element.status != "available") {
               unavalidProd.push(element);
             }
@@ -355,22 +378,6 @@ module.exports = function (Orders) {
             });
           }
 
-          console.log("productsIds")
-          console.log(productsIds)
-
-
-          console.log(oldProductsIds);
-
-
-          console.log(deletedProductsId);
-
-
-          console.log(newProductsId);
-
-          console.log("tempOldProducts.length")
-          console.log(tempOldProducts.length)
-
-
 
           Orders.app.models.products.find({
             where: {
@@ -378,9 +385,61 @@ module.exports = function (Orders) {
                 'inq': newProductsId
               }
             }
-          }, function (err, newProducts) {
+          }, async function (err, newProducts) {
             if (err)
               return next(err);
+
+            let order = await Orders.app.models.orders.findById(id);
+            try {
+              //validate new order products availability in warehouse product 
+              let unvalidWarehouseProducts = [];
+              let warehouseProductCountUpdate = [];
+
+              let warehouse = order.warehouse();
+              let temp = await validateWarehouseProductsAvailability(warehouse, products, newProducts);
+
+              unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
+              warehouseProductCountUpdate = [...warehouseProductCountUpdate, ...temp.warehouseProductCountUpdate];
+
+
+              let orderProductsCountDiff = tempOldProducts.map(oldProduct => {
+                let newOldProduct = products.find(p => p.productId == oldProduct.productId);
+                return { id: newOldProduct.id, productId: newOldProduct.productId, count: (newOldProduct.count - oldProduct.count) };
+              });
+              let oldProductsFromDb = tempOldProducts.map(orderProduct => orderProduct.product());
+
+              // validate to be edited order product  availability in warehouse product                   
+              temp = await validateWarehouseProductsAvailability(warehouse, orderProductsCountDiff, oldProductsFromDb);
+              unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
+              warehouseProductCountUpdate = [...warehouseProductCountUpdate, ...temp.warehouseProductCountUpdate];
+
+              if (unvalidWarehouseProducts.length != 0) {
+                return callback({
+                  "statusCode": 612, // unavailble in warehouse 
+                  "data": unvalidWarehouseProducts
+                });
+              }
+
+              // add deleted orders product to be updated in warehouse products  
+              for (let orderProduct of oldDeletedOrderProducts) {
+                let product = orderProduct.product(); 
+                let productAbstractId = product.productAbstract().id;
+                let warehouseProduct = await warehouse.warehouseProducts.findOne({ productAbstractId });
+                // warehouse doesn't have  the product 
+                if (!warehouseProduct) {
+                  throw new Error("warehouse doesn't have a product");
+                }
+                // warehouse doesn't have enough amount of the product 
+                warehouseProductCountUpdate.push({ warehouseProduct, countDiff: (orderProduct.count * product.parentCount) })
+              }
+
+
+
+            } catch (err) {
+              // data format error e.g product doesn't belong to productAbstract 
+              return callback(err);
+            }
+            return next("testing");
 
             data.clientType = user.clientType;
 
@@ -394,7 +453,6 @@ module.exports = function (Orders) {
             });
             data.totalPrice = 0
 
-            console.log(productsInfo.length);
             var tempProduct = [];
             _.each(products, (product, index) => {
               var pInfo = productsInfo[product.productId];
@@ -426,28 +484,20 @@ module.exports = function (Orders) {
               product.isOffer = pInfo.isOffer;
               if (pInfo.isOffer && pInfo.products) {
 
-                console.log(pInfo.products);
                 product.products = pInfo.products;
               }
 
               tempProduct.push(product)
             });
-            // console.log(tempProduct)
-            console.log(data.totalPrice)
             if (isAdmin == false && data.totalPrice < 20000)
               return callback(ERROR(602, 'total price is low'));
 
             delete data['orderProducts'];
             delete data['client'];
-            console.log(data);
 
             Orders.findById(id, function (err, mainOrder) {
               if (err)
                 return callback(err, null)
-              console.log("new couponCode")
-              console.log(data.couponCode)
-              console.log("old couponCode")
-              console.log(mainOrder.couponCode)
               data.priceBeforeCoupon = data.totalPrice;
 
               if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
@@ -481,7 +531,6 @@ module.exports = function (Orders) {
 
                   data.couponId = coupon.id;
 
-                  console.log(coupon);
                   if (coupon.type == 'fixed') {
                     data.totalPrice -= coupon.value;
                   } else {
@@ -498,7 +547,6 @@ module.exports = function (Orders) {
                     if (err)
                       return callback(err)
 
-                    console.log(data);
                     mainOrder.updateAttributes(data, function (err, data) {
                       if (err)
                         return callback(err)
@@ -524,7 +572,6 @@ module.exports = function (Orders) {
 
                   data.couponId = coupon.id;
 
-                  console.log(coupon);
                   if (coupon.type == 'fixed') {
                     data.totalPrice -= coupon.value;
                   } else {
@@ -535,7 +582,6 @@ module.exports = function (Orders) {
                     if (err)
                       return callback(err)
 
-                    console.log(data);
                     mainOrder.updateAttributes(data, function (err, data) {
                       if (err)
                         return callback(err)
@@ -580,15 +626,11 @@ module.exports = function (Orders) {
     if (!ctx.req.body.orderProducts || !Array.isArray(ctx.req.body.orderProducts) || ctx.req.body.orderProducts.length == 0)
       return next(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
 
-    //var warehouseId = ctx.req.body.warehouseId;
-    //if(!ctx.req.body.warehouseId )
-    //return next
-    ctx.bla = "asd";
+
 
     //assign first warehouse in database as warehouse for the order
     Orders.app.models.warehouse.findOne({}, (err, warehouse) => {
       ctx.req.body.warehouseId = warehouse.id;
-
 
 
       var products = ctx.req.body.orderProducts;
@@ -653,40 +695,14 @@ module.exports = function (Orders) {
 
 
             //validate order product availability in warehouse product 
-            let unvalidWarehouseProducts = [];
-            let parsedItems = [];
-            for (let product of productsFromDb) {
-
-              let productAbstractId = product.productAbstract().id;
-              let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
-
-              // warehouse doesn't have  the product 
-              if (warehouseProduct.length == 0) {
-                unvalidWarehouseProducts.push(product);
-                continue;
-              }
-              warehouseProduct = warehouseProduct[0];
-
-              // warehouse doesn't have enough amount of the product 
-              let orderProudct = products.find(p => p.productId == product.id);
-              let total = warehouseProduct.expectedCount - orderProudct.count * product.parentCount;
-              if (total < warehouseProduct.threshold) {
-                unvalidWarehouseProducts.push(product);
-              }
-
-              parsedItems.push({ warehouseProduct, expectedCountDiff: (-orderProudct.count * product.parentCount) })
-
-            }
-
-
-
+            let { unvalidWarehouseProducts, warehouseProductCountUpdate } = await validateWarehouseProductsAvailability(warehouse, products, productsFromDb);
             if (unvalidWarehouseProducts.length != 0) {
               return next({
                 "statusCode": 612, // unavailble in warehouse 
                 "data": unvalidWarehouseProducts
               });
             }
-            ctx.parsedItems = parsedItems;
+            ctx.warehouseProductCountUpdate = warehouseProductCountUpdate;
           } catch (err) {
             // data format error e.g product doesn't belong to productAbstract 
             return next(err);
@@ -805,12 +821,12 @@ module.exports = function (Orders) {
         //   result.orderProducts=data;
 
         // update warehouse products expected count 
-        let parsedItems = ctx.parsedItems;
+        let warehouseProductCountUpdate = ctx.warehouseProductCountUpdate;
 
         // @todo bulk update in case of performance issues 
-        for (let { warehouseProduct, expectedCountDiff } of parsedItems) {
+        for (let { warehouseProduct, countDiff } of warehouseProductCountUpdate) {
           try {
-            await warehouseProduct.updateExpectedCount(expectedCountDiff);
+            await warehouseProduct.updateExpectedCount(countDiff);
           } catch (err) {
             return next(err);
           }
@@ -830,7 +846,7 @@ module.exports = function (Orders) {
     })
   });
 
-  Orders.assignOrderToWarehouse = function (orderId, userId, cb) {  
+  Orders.assignOrderToWarehouse = function (orderId, userId, cb) {
 
     Orders.app.models.user.findById(userId, function (err, user) {
       if (err)
@@ -842,28 +858,28 @@ module.exports = function (Orders) {
         return cb(ERROR(400, 'user not delivery'));
 
 
-        Orders.findById(orderId, function (err, order) {
-          if (err)
-            return cb(err);
-          if (!order)
-            return cb(ERROR(404, 'order not found'));
-  
-          
-          if (order.status !== 'pending')
-            return cb(ERROR(400, 'order is not pending'));
+      Orders.findById(orderId, function (err, order) {
+        if (err)
+          return cb(err);
+        if (!order)
+          return cb(ERROR(404, 'order not found'));
 
-                
-            order.status = 'inWarehouse';
-            order.warehouseDate = new Date();
-            order.save((err) => {
-              if(err)  return cb(err); 
-              // TODO : send Notification to warehouse user  
-              return cb(null, 'order is in warehouse');
-            })           
-        });
+
+        if (order.status !== 'pending')
+          return cb(ERROR(400, 'order is not pending'));
+
+
+        order.status = 'inWarehouse';
+        order.warehouseDate = new Date();
+        order.save((err) => {
+          if (err) return cb(err);
+          // TODO : send Notification to warehouse user  
+          return cb(null, 'order is in warehouse');
+        })
+      });
     });
   };
-  
+
   Orders.remoteMethod('assignOrderToWarehouse', {
     accepts: [{
       arg: 'orderId',
@@ -884,7 +900,7 @@ module.exports = function (Orders) {
     },
   });
 
-  
+
   Orders.assignOrderToPack = function (orderId, userId, cb) {
 
     Orders.app.models.user.findById(userId, function (err, user) {
@@ -897,27 +913,27 @@ module.exports = function (Orders) {
         return cb(ERROR(400, 'user not delivery'));
 
 
-        Orders.findById(orderId, function (err, order) {
-          if (err)
-            return cb(err);
-          if (!order)
-            return cb(ERROR(404, 'order not found'));
-  
-          
-          if (order.status !== 'inWarehouse')
-            return cb(ERROR(400, 'order is not in warehouse'));
+      Orders.findById(orderId, function (err, order) {
+        if (err)
+          return cb(err);
+        if (!order)
+          return cb(ERROR(404, 'order not found'));
 
-                
-            order.status = 'packed';
-            order.deliveredDate = new Date();
-            order.save((err) => {
-              // TODO : send Notification to delivery user   
-              return cb(null, 'order is packed');
-            })           
-        });
+
+        if (order.status !== 'inWarehouse')
+          return cb(ERROR(400, 'order is not in warehouse'));
+
+
+        order.status = 'packed';
+        order.deliveredDate = new Date();
+        order.save((err) => {
+          // TODO : send Notification to delivery user   
+          return cb(null, 'order is packed');
+        })
+      });
     });
   };
-  
+
   Orders.remoteMethod('assignOrderToPack', {
     accepts: [{
       arg: 'orderId',
@@ -949,7 +965,7 @@ module.exports = function (Orders) {
       if (!user.hasPrivilege('userDelivery'))
         return cb(ERROR(400, 'user not delivery'));
 
-       
+
 
       Orders.findById(orderId, async function (err, order) {
         if (err)
@@ -957,7 +973,7 @@ module.exports = function (Orders) {
         if (!order)
           return cb(ERROR(404, 'order not found'));
 
-        
+
         if (order.status !== 'packed')
           return cb(ERROR(400, 'order is not ready to deilivery or order is already in delivery'));
 
@@ -965,21 +981,21 @@ module.exports = function (Orders) {
         order.deliveryMemberId = userId;
         order.assignedDate = new Date();
 
-        for(let orderProduct of order.orderProducts()){
-        
-            let product = orderProduct.product(); 
-            
+        for (let orderProduct of order.orderProducts()) {
 
-            let productAbstractId = product.productAbstract().id; 
-            let warehouse =  order.warehouse();
-            let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
+          let product = orderProduct.product();
 
 
+          let productAbstractId = product.productAbstract().id;
+          let warehouse = order.warehouse();
+          let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
 
-            warehouseProduct = warehouseProduct[0];
-            // update warehouse effictive count 
-            await warehouseProduct.updateEffictiveCount( - orderProduct.count * product.parentCount);
-            
+
+
+          warehouseProduct = warehouseProduct[0];
+          // update warehouse effictive count 
+          await warehouseProduct.updateEffictiveCount(- orderProduct.count * product.parentCount);
+
         }
 
         order.save((err) => {
@@ -1027,24 +1043,24 @@ module.exports = function (Orders) {
 
 
       // @todo in case of performance issues use bulk updates 
-      for(let orderProduct of order.orderProducts()){
-        
-          let product = orderProduct.product();         
-          let productAbstractId = product.productAbstract().id; 
-          let warehouse =  order.warehouse();
-          let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
-          warehouseProduct = warehouseProduct[0];
+      for (let orderProduct of order.orderProducts()) {
 
-          // in: ['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered', 'canceled']        
-          // restore warehouse expected count           
-          if(['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered'].includes(order.status)){
-            await warehouseProduct.updateExpectedCount( orderProduct.count * product.parentCount);        
-          }
+        let product = orderProduct.product();
+        let productAbstractId = product.productAbstract().id;
+        let warehouse = order.warehouse();
+        let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
+        warehouseProduct = warehouseProduct[0];
 
-          // restore warehouse effictive count 
-          if(['inDelivery'].includes(order.status)){
-            await warehouseProduct.updateEffictiveCount( orderProduct.count * product.parentCount);        
-          }
+        // in: ['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered', 'canceled']        
+        // restore warehouse expected count           
+        if (['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered'].includes(order.status)) {
+          await warehouseProduct.updateExpectedCount(orderProduct.count * product.parentCount);
+        }
+
+        // restore warehouse effictive count 
+        if (['inDelivery'].includes(order.status)) {
+          await warehouseProduct.updateEffictiveCount(orderProduct.count * product.parentCount);
+        }
       }
 
 
