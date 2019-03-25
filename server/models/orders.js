@@ -932,8 +932,8 @@ module.exports = function (Orders) {
       if (!user) {
         return cb(ERROR(404, 'user not found'));
       }
-      if (!user.hasPrivilege('userDelivery')) // @todo define role for warehouse  
-        return cb(ERROR(400, 'user not delivery'));
+      if (!user.hasPrivilege('packageOrder')) 
+        return cb(ERROR(400, 'user not packageOrder'));
 
 
       Orders.findById(orderId, function (err, order) {
