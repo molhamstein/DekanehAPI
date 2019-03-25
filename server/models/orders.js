@@ -37,11 +37,11 @@ module.exports = function (Orders) {
         callback(err)
       var name = new Date().getTime() + ".pdf"
       // 
-      // console.log(JSON.parse(JSON.stringify(data.client())).ownerName);
+      
       // 
-      // console.log(JSON.parse(JSON.stringify(data.client())).phoneNumber);
+      
       // 
-      // console.log(data.orderDate.getDate() + "/" + (data.orderDate.getMonth() + 1) + "/" + data.orderDate.getFullYear());
+      
       var userType = ""
       if (data.clientType == "wholesale")
         userType = "الصفة التجارية للمبيع : لمحل مفرق";
@@ -77,7 +77,7 @@ module.exports = function (Orders) {
       if (firstMainProduct.length >= 13 && secondeMainProduct.length == 0)
         paddingFooter = (18 - firstMainProduct.length) * 40
       paddingFooter += "px";
-      // console.log(firstMainProduct);
+      
       var discount = Math.round(data.priceBeforeCoupon) - Math.round(data.totalPrice)
       ejs.renderFile(path.resolve(__dirname + "../../../server/views/bills.ejs"), {
         code: data.code,
@@ -92,15 +92,15 @@ module.exports = function (Orders) {
         paddingFooter: paddingFooter,
         date: data.orderDate.getDate() + "/" + (data.orderDate.getMonth() + 1) + "/" + data.orderDate.getFullYear(),
       }, function (err, newhtml) {
-        // console.log(newhtml);
+        
         pdf.create(newhtml, options).toFile('./files/pdf/' + name, function (err, res) {
           if (err) return callback(err);
-          // console.log(res);
-          // console.log(html);
+          
+          
           console.log("discount" + discount)
           console.log("priceBeforeCoupon" + data.priceBeforeCoupon)
           console.log("totalPrice" + data.totalPrice)
-          console.log(myConfig.host + '/pdf/' + name);
+
           callback(null, {
             "path": myConfig.host + '/pdf/' + name
           })
@@ -115,8 +115,8 @@ module.exports = function (Orders) {
   };
 
   // Orders.beforeRemote('prototype.updateAttributes', function (ctx, modelInstance, next) {
-  //   console.log('upsert called');
-  //   console.log(ctx.req.body);
+  
+  
   //   if (!ctx.req.accessToken || !ctx.req.accessToken.userId)
   //     return next(ERROR(403, 'User not login'))
 
@@ -264,11 +264,11 @@ module.exports = function (Orders) {
 
     //validate new order products availability in warehouse product 
     let unvalidWarehouseProducts = [];
-    let warehouseProductCountUpdate = [];
+    let warehouseProductCountUpdates = [];
     for (let product of products) {
 
       let productAbstractId = product.productAbstract().id;
-      let warehouseProduct = await warehouse.warehouseProducts.findOne({ productAbstractId });
+      let warehouseProduct = await warehouse.warehouseProducts.findOne({ where : { productAbstractId  }  });
       // warehouse doesn't have  the product 
       if (!warehouseProduct) {
         throw new Error("warehouse doesn't have a product");
@@ -280,10 +280,10 @@ module.exports = function (Orders) {
       if (total < warehouseProduct.threshold) {
         unvalidWarehouseProducts.push(product);
       }
-      warehouseProductCountUpdate.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount) })
+      warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount) })
     }
 
-    return { unvalidWarehouseProducts, warehouseProductCountUpdate };
+    return { unvalidWarehouseProducts, warehouseProductCountUpdates };
 
   }
 
@@ -389,29 +389,30 @@ module.exports = function (Orders) {
             if (err)
               return next(err);
 
+            let warehouseProductCountUpdates = [];
+
             let order = await Orders.app.models.orders.findById(id);
             try {
               //validate new order products availability in warehouse product 
               let unvalidWarehouseProducts = [];
-              let warehouseProductCountUpdate = [];
-
+    
               let warehouse = order.warehouse();
               let temp = await validateWarehouseProductsAvailability(warehouse, products, newProducts);
 
               unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
-              warehouseProductCountUpdate = [...warehouseProductCountUpdate, ...temp.warehouseProductCountUpdate];
+              warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
 
 
               let orderProductsCountDiff = tempOldProducts.map(oldProduct => {
                 let newOldProduct = products.find(p => p.productId == oldProduct.productId);
-                return { id: newOldProduct.id, productId: newOldProduct.productId, count: (newOldProduct.count - oldProduct.count) };
+                return {  productId: newOldProduct.productId, count: (newOldProduct.count - oldProduct.count) };
               });
               let oldProductsFromDb = tempOldProducts.map(orderProduct => orderProduct.product());
 
               // validate to be edited order product  availability in warehouse product                   
               temp = await validateWarehouseProductsAvailability(warehouse, orderProductsCountDiff, oldProductsFromDb);
               unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
-              warehouseProductCountUpdate = [...warehouseProductCountUpdate, ...temp.warehouseProductCountUpdate];
+              warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
 
               if (unvalidWarehouseProducts.length != 0) {
                 return callback({
@@ -424,13 +425,13 @@ module.exports = function (Orders) {
               for (let orderProduct of oldDeletedOrderProducts) {
                 let product = orderProduct.product(); 
                 let productAbstractId = product.productAbstract().id;
-                let warehouseProduct = await warehouse.warehouseProducts.findOne({ productAbstractId });
+                let warehouseProduct = await warehouse.warehouseProducts.findOne({ where : { productAbstractId } } );
                 // warehouse doesn't have  the product 
                 if (!warehouseProduct) {
                   throw new Error("warehouse doesn't have a product");
                 }
                 // warehouse doesn't have enough amount of the product 
-                warehouseProductCountUpdate.push({ warehouseProduct, countDiff: (orderProduct.count * product.parentCount) })
+                warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (orderProduct.count * product.parentCount) })
               }
 
 
@@ -439,8 +440,9 @@ module.exports = function (Orders) {
               // data format error e.g product doesn't belong to productAbstract 
               return callback(err);
             }
-            return next("testing");
 
+
+       
             data.clientType = user.clientType;
 
             var productsInfo = {};
@@ -501,7 +503,7 @@ module.exports = function (Orders) {
               data.priceBeforeCoupon = data.totalPrice;
 
               if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
-                changeOrderProduct(id, tempProduct, function (err) {
+                changeOrderProduct(order, tempProduct, warehouseProductCountUpdates, function (err) {
 
                   if (err)
                     return callback(err)
@@ -537,13 +539,13 @@ module.exports = function (Orders) {
                     data.totalPrice -= ((data.totalPrice * coupon.value) / 100)
                   }
 
-                  // edit coupon
+                  // edit coupon1
 
                   coupon.numberOfUsed++;
                   if (coupon.numberOfUsed == coupon.numberOfTimes)
                     coupon.status = 'used';
                   coupon.save()
-                  changeOrderProduct(id, tempProduct, function (err) {
+                  changeOrderProduct(order, tempProduct, warehouseProductCountUpdates ,  function (err) {
                     if (err)
                       return callback(err)
 
@@ -578,7 +580,7 @@ module.exports = function (Orders) {
                     data.totalPrice -= ((data.totalPrice * coupon.value) / 100)
                   }
 
-                  changeOrderProduct(id, tempProduct, function (err) {
+                  changeOrderProduct(order, tempProduct,warehouseProductCountUpdates, function (err) {
                     if (err)
                       return callback(err)
 
@@ -599,20 +601,39 @@ module.exports = function (Orders) {
     })
   }
 
-  function changeOrderProduct(id, tempProduct, callback) {
+   function changeOrderProduct(order, tempProduct, warehouseProductCountUpdates , callback) {
+    let id = order.id; 
+  
+  
     Orders.app.models.orderProducts.destroyAll({
       "orderId": id
     },
-      function (err, isDelete) {
-        if (err)
+    function (err, isDelete) {
+    if (err)
           return callback(err)
 
+        
         _.each(tempProduct, oneProduct => {
           oneProduct.orderId = id;
         })
-        Orders.app.models.orderProducts.create(tempProduct, function (err, data) {
+        Orders.app.models.orderProducts.create(tempProduct,async function (err, data) {
           if (err)
             return callback(err)
+
+            for(let {warehouseProduct , countDiff } of warehouseProductCountUpdates) { 
+              
+
+                try {
+                  // update warehouse products count 
+                  await warehouseProduct.updateExpectedCount(countDiff);
+                  if( ['inDelivery', 'delivered'].includes(order.status) )
+                    await warehouseProduct.updateEffictiveCount(countDiff);
+                } catch (err) {
+                  return callback(err);
+                }
+                
+            }
+
           callback()
         })
       })
@@ -695,14 +716,15 @@ module.exports = function (Orders) {
 
 
             //validate order product availability in warehouse product 
-            let { unvalidWarehouseProducts, warehouseProductCountUpdate } = await validateWarehouseProductsAvailability(warehouse, products, productsFromDb);
+            let { unvalidWarehouseProducts, warehouseProductCountUpdates } = await validateWarehouseProductsAvailability(warehouse, products, productsFromDb);
+            
             if (unvalidWarehouseProducts.length != 0) {
               return next({
                 "statusCode": 612, // unavailble in warehouse 
                 "data": unvalidWarehouseProducts
               });
             }
-            ctx.warehouseProductCountUpdate = warehouseProductCountUpdate;
+            ctx.warehouseProductCountUpdates = warehouseProductCountUpdates;
           } catch (err) {
             // data format error e.g product doesn't belong to productAbstract 
             return next(err);
@@ -821,11 +843,12 @@ module.exports = function (Orders) {
         //   result.orderProducts=data;
 
         // update warehouse products expected count 
-        let warehouseProductCountUpdate = ctx.warehouseProductCountUpdate;
+        let warehouseProductCountUpdates = ctx.warehouseProductCountUpdates;
 
         // @todo bulk update in case of performance issues 
-        for (let { warehouseProduct, countDiff } of warehouseProductCountUpdate) {
+        for (let { warehouseProduct, countDiff } of warehouseProductCountUpdates) {
           try {
+            console.log({ warehouseProduct, countDiff } ); 
             await warehouseProduct.updateExpectedCount(countDiff);
           } catch (err) {
             return next(err);
