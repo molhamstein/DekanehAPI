@@ -734,7 +734,7 @@ module.exports = function (Orders) {
 
 
 
-          ctx.req.body.status = 'pending';
+          ctx.req.body.status = 'inWarehouse';
           ctx.req.body.clientType = user.clientType;
           ctx.req.body.totalPrice = 0;
 
