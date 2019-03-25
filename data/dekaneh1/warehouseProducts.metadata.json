@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":2,"key":{"_id":1},"name":"_id_","ns":"dekaneh1.warehouseProducts"},{"v":2,"unique":true,"key":{"warehouseId":1,"productAbstractId":1},"name":"warehouse_product_index","ns":"dekaneh1.warehouseProducts"}],"uuid":"610f9c2aff9e4560a1338cdfaa924ed4"}
