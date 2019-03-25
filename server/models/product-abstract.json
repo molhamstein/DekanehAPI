@@ -22,6 +22,10 @@
   },
   "validations": [],
   "relations": {
+    "manufacturer": {
+      "type": "belongsTo",
+      "model": "manufacturers"
+    },
     "category": {
       "type": "belongsTo",
       "model": "categories",
