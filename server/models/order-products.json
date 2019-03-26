@@ -11,36 +11,21 @@
     ]
   },
   "properties": {
-    "pack": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },   
-    "subtotalSellingPrice": {
+  
+    "sellingPrice": {
       "type": "number"
     },
     "count": {
       "type": "number",
       "required": true,
       "default": 1
-    },
-    "offerSource": {
-      "type": "string",
-      "default": "dockan"
-    },
+    },   
     "creationDate": {
       "type": "date",
       "required": true,
       "default": "$now"
-    },
-    "media": {
-      "type": "object",
-      "required": true
-    },
-    "isOffer": {
-      "type": "boolean"
     }
+  
   },
   "validations": [],
   "relations": {

@@ -37,6 +37,23 @@
     "wholeSalePriceDiscount": {
       "type": "number",
       "default": 0
+    },
+    "pack": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "offerSource": {
+      "type": "string",
+      "default": "dockan"
+    },
+    "isOffer": {
+      "type": "boolean"
+    },
+    "media": {
+      "type": "object",
+      "required": true
     }
   },
   "validations": [],
