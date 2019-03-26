@@ -6,12 +6,12 @@ module.exports = function (Supply) {
     Supply.beforeRemote('create', async (ctx, modelInstance, next) => {
 
         if (!ctx.req.accessToken || !ctx.req.accessToken.userId)
-            return next(ERROR(403, 'User not login'))
+            throw (ERROR(403, 'User not login'))
 
         let supplyProducts = ctx.req.body.products ; 
 
         if (!supplyProducts || !Array.isArray(supplyProducts) || supplyProducts.length == 0)
-            return next(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED")); 
+            throw (ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED")); 
 
         let warehouse =  await Supply.app.models.warehouse.findOne({}); 
 
@@ -38,14 +38,25 @@ module.exports = function (Supply) {
 
         }
 
-        console.log(supplyProducts); 
+        ctx.supplyProducts =  supplyProducts; 
+        delete ctx.req.body.products; 
+
+
+        // calculate supply order total price 
+        let totalPrice = supplyProducts.reduce( (accumulator , {count , price }) => accumulator + count * price , 0); 
+        ctx.req.body.totalPrice = totalPrice ; 
+        
 
 
 
-       
 
-
-        next(); 
 
     });
+
+    
+    Supply.afterRemote('create',  (ctx, modelInstance, next) => {
+      console.log(ctx.supplyProducts) ; 
+
+      next(); 
+    }); 
 };
