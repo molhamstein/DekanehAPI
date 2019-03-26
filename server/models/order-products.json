@@ -11,51 +11,23 @@
     ]
   },
   "properties": {
-    "nameAr": {
-      "type": "string"
-    },
-    "nameEn": {
-      "type": "string",
-      "required": true
-    },
     "pack": {
       "type": "string"
     },
     "description": {
       "type": "string"
-    },
-    "marketOfficialPrice": {
-      "type": "number"
-    },
-    "dockanBuyingPrice": {
-      "type": "number"
-    },
-    "wholeSaleMarketPrice": {
-      "type": "number"
-    },
-    "horecaPriceDiscount": {
-      "type": "number"
-    },
-    "wholeSalePriceDiscount": {
-      "type": "number"
-    },
-    "horecaPrice": {
-      "type": "number"
-    },
-    "wholeSalePrice": {
-      "type": "number"
-    },
-    "offerSource": {
-      "type": "string",
-      "default": "dockan"
-    },
-    "price": {
+    },   
+    "subtotalSellingPrice": {
       "type": "number"
     },
     "count": {
       "type": "number",
       "required": true,
       "default": 1
+    },
+    "offerSource": {
+      "type": "string",
+      "default": "dockan"
     },
     "creationDate": {
       "type": "date",
@@ -80,6 +52,15 @@
       "type": "belongsTo",
       "model": "orders",
       "foreignKey": "orderId"
+    } ,
+    "orderProductSnapshotRelation": {
+      "type": "embedsOne",
+      "model": "orderProductSnapshot",
+      "property" : "orderProductSnapshot",
+      "options": {
+        "validate": true,
+        "forceId": false
+      } 
     }
   },
   "acls": [],

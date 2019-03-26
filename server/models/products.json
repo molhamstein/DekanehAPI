@@ -28,28 +28,26 @@
     "description": {
       "type": "string"
     },
+
     "horecaPrice": {
       "type": "number",
       "required": true
-    },
-    "wholeSalePrice": {
-      "type": "number",
-      "required": true
-    },
-    "wholeSaleMarketPrice": {
-      "type": "number"
-    },
-    "dockanBuyingPrice": {
-      "type": "number"
     },
     "horecaPriceDiscount": {
       "type": "number",
       "default": 0
     },
+    "wholeSalePrice": {
+      "type": "number",
+      "required": true
+    },
     "wholeSalePriceDiscount": {
       "type": "number",
       "default": 0
     },
+
+    
+   
     "isFeatured": {
       "type": "boolean",
       "required": true,
@@ -94,8 +92,8 @@
     },
     "parentCount": {
       "type": "number",
-      "default": 0,
-      "required": true
+      "required": true,
+      "default": 0
     }
   },
   "validations": [],

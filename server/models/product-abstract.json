@@ -9,7 +9,8 @@
     "include": [
       "category",
       "subCategory",
-      "manufacturer"
+      "manufacturer",
+      "warehouseProducts"
     ]
   },
   "properties": {
@@ -20,19 +21,10 @@
     "nameAr": {
       "type": "string"
     },
-    "marketOfficialPrice": {
-      "type": "number"
-    },
-    "dockanBuyingPrice": {
-      "type": "number"
-    },
-    "wholeSaleMarketPrice": {
-      "type": "number"
-    },
-    "wholeSalePriceDiscount": {
+    "officialConsumerPrice": {
       "type": "number"
     },    
-    "wholeSalePrice": {
+    "officalMassMarketPrice": {
       "type": "number"
     }
   },
@@ -62,6 +54,11 @@
       "type": "embedsOne",
       "model": "media",
       "property": "media"
+    },
+    "warehouseProducts": {
+      "type": "hasMany",
+      "model": "warehouseProducts",
+      "foreignKey": ""
     }
   },
   "acls": [],

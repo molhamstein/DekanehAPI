@@ -1,0 +1,46 @@
+{
+  "name": "orderProductSnapshot",
+  "base": "Model",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "nameAr": {
+      "type": "string"
+    },
+    "nameEn": {
+      "type": "string",
+      "required": true
+    },
+    "officialConsumerPrice": {
+      "type": "number"
+    },
+    "warehouseAvgBuyingPrice": {
+      "type": "number"
+    },
+    "officalMassMarketPrice": {
+      "type": "number"
+    },
+    "horecaPrice": {
+      "type": "number",
+      "required": true
+    },
+    "horecaPriceDiscount": {
+      "type": "number",
+      "default": 0
+    },
+    "wholeSalePrice": {
+      "type": "number",
+      "required": true
+    },
+    "wholeSalePriceDiscount": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

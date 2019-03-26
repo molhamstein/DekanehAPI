@@ -27,11 +27,6 @@
       "required": true,
       "default": 0
     },
-    "accumulatedCountOverTime": {
-      "type": "number",
-      "required": true,
-      "default": 0
-    },
     "status": {
       "type": "string",
       "required": true,
@@ -42,17 +37,12 @@
       "required": true,
       "default": 0
     },
-    "buyingPrice": {
+    "accumulatedCountOverTime": {
       "type": "number",
       "required": true,
       "default": 0
     },
-    "marketOfficialPrice": {
-      "type": "number",
-      "required": true,
-      "default": 0
-    },
-    "avgPrice": {
+    "avgBuyingPrice": {
       "type": "number",
       "required": true,
       "default": 0

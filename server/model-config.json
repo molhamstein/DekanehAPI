@@ -160,5 +160,13 @@
   "supplyProduct": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "orderProductSnapshot": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "supplyProductSnapshot": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

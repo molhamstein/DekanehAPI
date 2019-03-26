@@ -1,8 +1,4 @@
 {
-  "db": {
-    "name": "db",
-    "connector": "memory"
-  },
   "mongoDb": {
     "host": "localhost",
     "port": 27017,
@@ -13,6 +9,10 @@
     "user": "",
     "allowExtendedOperators": true,
     "connector": "mongodb"
+  },
+  "db": {
+    "name": "db",
+    "connector": "memory"
   },
   "storage": {
     "name": "storage",

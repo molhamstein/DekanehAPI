@@ -240,11 +240,14 @@ module.exports = function (Orders) {
             let warehouseProductCountUpdates = [];
 
             let order = await Orders.app.models.orders.findById(id);
+
+        
             try {
               //validate new order products availability in warehouse product 
               let unvalidWarehouseProducts = [];
     
               let warehouse = order.warehouse();
+              //return callback("testing" + order.warehouseId); 
               let temp = await validateWarehouseProductsAvailability(warehouse, products, newProducts);
 
               unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
@@ -696,7 +699,7 @@ module.exports = function (Orders) {
        // @todo bulk update in case of performance issues 
        for (let { warehouseProduct, countDiff } of warehouseProductCountUpdates) {
         try {
-          console.log({ warehouseProduct, countDiff } ); 
+          
           await warehouseProduct.updateExpectedCount(countDiff);
         } catch (err) {
           return next(err);
@@ -782,14 +785,14 @@ module.exports = function (Orders) {
       }
       if (!user.hasPrivilege('packageOrder')) 
         return cb(ERROR(400, 'user not packageOrder'));
-
+      
 
       Orders.findById(orderId, function (err, order) {
         if (err)
           return cb(err);
         if (!order)
           return cb(ERROR(404, 'order not found'));
-
+        
 
         if (order.status !== 'inWarehouse')
           return cb(ERROR(400, 'order is not in warehouse'));

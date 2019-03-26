@@ -6,32 +6,10 @@
     "validateUpsert": true
   },
   "properties": {
-    "nameAr": {
-      "type": "string"
-    },
-    "nameEn": {
-      "type": "string",
-      "required": true
-    },
     "description": {
       "type": "string"
     },
-    "marketOfficialPrice": {
-      "type": "number"
-    },
-    "dockanBuyingPrice": {
-      "type": "number"
-    },
-    "wholeSaleMarketPrice": {
-      "type": "number"
-    },
-    "wholeSalePriceDiscount": {
-      "type": "number"
-    },    
-    "wholeSalePrice": {
-      "type": "number"
-    },    
-    "price": {
+    "subtotalBuyingPrice": {
       "type": "number"
     },
     "count": {
@@ -51,6 +29,15 @@
       "type": "belongsTo",
       "model": "productAbstract",
       "foreignKey": ""
+    },
+    "supplyProductSnapshotRelation": {
+      "type": "embedsOne",
+      "model": "supplyProductSnapshot",
+      "property" : "supplyProductSnapshot",
+      "options": {
+        "validate": true,
+        "forceId": false
+      } 
     }
   },
   "acls": [],
