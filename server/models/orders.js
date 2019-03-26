@@ -948,7 +948,8 @@ module.exports = function (Orders) {
 
 
         order.status = 'packed';
-        order.deliveredDate = new Date();
+        order.packDate = new Date();
+        order.packagerMemberId = userId; 
         order.save((err) => {
           // TODO : send Notification to delivery user   
           return cb(null, 'order is packed');
