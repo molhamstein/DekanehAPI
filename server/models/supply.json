@@ -1,0 +1,41 @@
+{
+  "name": "supply",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "orderDate": {
+      "type": "date",
+      "default": "$now"
+    },
+    "totalPrice": {
+      "type": "number"
+    },
+    "note": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "warehouse": {
+      "type": "belongsTo",
+      "model": "warehouse",
+      "foreignKey": "",
+      "options": {
+        "nestRemoting": true
+      }
+    },
+    "supplyProducts": {
+      "type": "hasMany",
+      "model": "supplyProduct",
+      "foreignKey": ""
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

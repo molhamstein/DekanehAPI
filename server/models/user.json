@@ -74,7 +74,7 @@
     "privileges": {
       "type": "referencesMany",
       "model": "privilege"
-    },  
+    },
     "favorite": {
       "type": "hasMany",
       "model": "products",

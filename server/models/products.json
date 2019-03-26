@@ -94,6 +94,7 @@
     },
     "parentCount": {
       "type": "number",
+      "default": 0,
       "required": true
     }
   },

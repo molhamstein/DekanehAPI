@@ -152,5 +152,13 @@
   "warehouseProductHistory": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "supply": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "supplyProduct": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

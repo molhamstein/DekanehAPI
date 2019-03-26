@@ -3,7 +3,7 @@
   "base": "PersistedModel",
   "idInjection": true,
   "indexes": {
-    "warehouse_product_index": { 
+    "warehouse_product_index": {
       "keys": {
         "warehouseId": 1,
         "productAbstractId": 1

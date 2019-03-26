@@ -1,23 +1,19 @@
 {
-  "name": "productAbstract",
+  "name": "supplyProduct",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
-  "scope": {
-    "include": [
-      "category",
-      "subCategory",
-      "manufacturer"
-    ]
-  },
   "properties": {
+    "nameAr": {
+      "type": "string"
+    },
     "nameEn": {
       "type": "string",
       "required": true
     },
-    "nameAr": {
+    "description": {
       "type": "string"
     },
     "marketOfficialPrice": {
@@ -34,34 +30,27 @@
     },    
     "wholeSalePrice": {
       "type": "number"
+    },    
+    "price": {
+      "type": "number"
+    },
+    "count": {
+      "type": "number",
+      "required": true,
+      "default": 1
     }
   },
   "validations": [],
   "relations": {
-    "manufacturer": {
+    "supply": {
       "type": "belongsTo",
-      "model": "manufacturers"
+      "model": "supply",
+      "foreignKey": ""
     },
-    "category": {
+    "productAbstract": {
       "type": "belongsTo",
-      "model": "categories",
-      "foreignKey": "",
-      "options": {
-        "nestRemoting": true
-      }
-    },
-    "subCategory": {
-      "type": "belongsTo",
-      "model": "categories",
-      "foreignKey": "",
-      "options": {
-        "nestRemoting": true
-      }
-    },
-    "MEDIA": {
-      "type": "embedsOne",
-      "model": "media",
-      "property": "media"
+      "model": "productAbstract",
+      "foreignKey": ""
     }
   },
   "acls": [],
