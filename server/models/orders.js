@@ -344,12 +344,12 @@ module.exports = function (Orders) {
               let unvalidWarehouseProducts = [];
 
               let warehouse = order.warehouse();
-              //return callback("testing" + order.warehouseId); 
               let temp = await validateWarehouseProductsAvailability(warehouse, orderProducts, newProducts);
 
               unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
               warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
 
+              // validate to be edited order product  availability in warehouse product                   
 
               let orderProductsCountDiff = tempOldProducts.map(oldProduct => {
                 let newOldProduct = orderProducts.find(p => p.productId == oldProduct.productId);
@@ -357,7 +357,6 @@ module.exports = function (Orders) {
               });
               let oldProductsFromDb = tempOldProducts.map(orderProduct => orderProduct.product());
 
-              // validate to be edited order product  availability in warehouse product                   
               temp = await validateWarehouseProductsAvailability(warehouse, orderProductsCountDiff, oldProductsFromDb);
               unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
               warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];

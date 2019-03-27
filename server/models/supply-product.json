@@ -9,7 +9,7 @@
     "description": {
       "type": "string"
     },
-    "subtotalBuyingPrice": {
+    "buyingPrice": {
       "type": "number"
     },
     "count": {
