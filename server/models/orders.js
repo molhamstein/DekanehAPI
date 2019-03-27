@@ -54,6 +54,11 @@ module.exports = function (Orders) {
   }
 
 
+  /**
+   * 
+   * @param {Product} product source product to clone data from it 
+   * @param {WarehouseProduct} warehouseProduct assoicated warehouseProduct to clone data from it 
+   */
   function createOrderProductSnapshot(product, warehouseProduct) {
 
 
@@ -79,6 +84,64 @@ module.exports = function (Orders) {
 
     return snapshot;
   };
+
+  /**
+   * 
+   * @param {OrderProduct[]} orderProducts Array of target product to assign the snapshot to 
+   * @param {Product[]} products Array of source product to clone the data from
+   * @param {Warehouse} warehouse Warhouse to load the data from 
+   */
+  async function assignOrderProductsSnapshot(orderProducts, products, warehouse) {
+
+    for (let orderProduct of orderProducts) {
+
+      let product = products.find(p => p.id == orderProduct.productId);
+      if (!product)
+        throw (ERROR(404, "Product not found in db"));
+
+      //order-product snapshot      
+      let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId: product.productAbstractId } });
+      orderProduct.orderProductSnapshot = createOrderProductSnapshot(product, warehouseProduct);
+    }
+  }
+
+  /**
+  * 
+  * @param {OrderProduct[]} orderProducts Array of order product to calculate sellingPrice for  
+  * @param {Product[]} products Array of source product to query the price 
+  * @param {User} user Order owner to query clientType 
+  */
+  function assignOrderProductsSellingPrice(orderProducts, products , user) {
+
+    for (let orderProduct of orderProducts) {
+
+      let product = products.find(p => p.id == orderProduct.productId);
+      if (!product)
+        throw (ERROR(404, "Product not found in db"));
+
+      if (product.availableTo != user.clientType && product.availableTo != 'both') {
+        // @todo check the case 
+        continue;
+      }
+      if (user.clientType == 'wholesale') {
+        orderProduct.sellingPrice = product.wholeSalePriceDiscount == 0 ? product.wholeSalePrice : product.wholeSalePriceDiscount;
+      } else {
+        orderProduct.sellingPrice = product.horecaPriceDiscount == 0 ? product.horecaPrice : product.horecaPriceDiscount;
+      }
+    }
+
+  }
+
+  /**
+   * 
+   * @param {OrderProducts[]} orderProducts orderProduct to calculate total price for 
+   * @returns number | total price of the order 
+   */
+  function calcOrderProductsTotalPrice(orderProducts){
+
+    return orderProducts.reduce((accumelator, { count, sellingPrice }) => accumelator  +  Number(count) * Number(sellingPrice), 0); 
+    
+  }
 
 
 
@@ -227,7 +290,7 @@ module.exports = function (Orders) {
           else
             oldDeletedOrderProducts.push(element);
 
-        }); 
+        });
 
 
 
@@ -269,12 +332,12 @@ module.exports = function (Orders) {
             let warehouseProductCountUpdates = [];
 
             let order = await Orders.app.models.orders.findById(id);
-            if(!order) 
-                return callback(ERROR(404, "order not found")); 
+            if (!order)
+              return callback(ERROR(404, "order not found"));
 
-            let warehouse = order.warehouse(); 
+            let warehouse = order.warehouse();
 
-         
+
 
             try {
               //validate new order products availability in warehouse product 
@@ -330,33 +393,18 @@ module.exports = function (Orders) {
 
             data.clientType = user.clientType;
 
-            let totalPrice = 0
-
-            var tempProduct = [];
           
-            for (let orderProduct of orderProducts) {
-
-              let productFromDb = productsFromDb.find(p => p.id == orderProduct.productId);
-              if (!productFromDb)
-                return next(ERROR(404, "Product not found in db"));
-
-              if (productFromDb.availableTo != user.clientType && productFromDb.availableTo != 'both') {
-                // @todo check the case 
-                continue;
-              }
-              if (user.clientType == 'wholesale') {
-                orderProduct.sellingPrice = productFromDb.wholeSalePriceDiscount == 0 ? productFromDb.wholeSalePrice : productFromDb.wholeSalePriceDiscount;
-              } else {
-                orderProduct.sellingPrice = productFromDb.horecaPriceDiscount == 0 ? productFromDb.horecaPrice : productFromDb.horecaPriceDiscount;
-              }
-              totalPrice += Number(orderProduct.count) * Number(orderProduct.sellingPrice);
-
-              //order-product snapshot      
-              let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId: productFromDb.productAbstractId } });
-              orderProduct.orderProductSnapshot = createOrderProductSnapshot(productFromDb, warehouseProduct);
-              tempProduct.push(orderProduct);
-
+            try {
+              assignOrderProductsSellingPrice(orderProducts, productsFromDb , user);
+              await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
+            } catch (err) {
+              return next(err);
             }
+
+            let tempProduct = orderProducts;
+            // calc total price 
+            let totalPrice = calcOrderProductsTotalPrice(orderProducts); 
+
             if (isAdmin == false && totalPrice < 20000)
               return callback(ERROR(602, 'total price is low'));
 
@@ -598,33 +646,18 @@ module.exports = function (Orders) {
 
           ctx.req.body.status = 'inWarehouse';
           ctx.req.body.clientType = user.clientType;
-          let totalPrice = 0;
-
-          // calculate product sellingPrice 
-          for (let orderProduct of orderProducts) {
-            let productFromDb = productsFromDb.find(p => p.id == orderProduct.productId);
-            if (!productFromDb)
-              return next(ERROR(404, "Product not found in db"));
-
-            if (productFromDb.availableTo != user.clientType && productFromDb.availableTo != 'both') {
-              // @todo check the case 
-              continue;
-            }
-            if (user.clientType == 'wholesale') {
-              orderProduct.sellingPrice = productFromDb.wholeSalePriceDiscount == 0 ? productFromDb.wholeSalePrice : productFromDb.wholeSalePriceDiscount;
-            } else {
-              orderProduct.sellingPrice = productFromDb.horecaPriceDiscount == 0 ? productFromDb.horecaPrice : productFromDb.horecaPriceDiscount;
-            }
-            totalPrice += Number(orderProduct.count) * Number(orderProduct.sellingPrice);
-
-            //order-product snapshot       
-            let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId: productFromDb.productAbstractId } });
-            orderProduct.orderProductSnapshot = createOrderProductSnapshot(productFromDb, warehouseProduct);
-
-
-
-
+         
+          
+          try {
+            assignOrderProductsSellingPrice(orderProducts, productsFromDb , user);
+            await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
+          } catch (err) {
+            return next(err);
           }
+          
+          // calc total price 
+          let totalPrice = calcOrderProductsTotalPrice(orderProducts); 
+
 
           if (isAdmin == false && totalPrice < 20000)
             return next(ERROR(602, 'total price is low'));
