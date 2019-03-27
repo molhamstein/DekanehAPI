@@ -16,7 +16,7 @@
     "officialConsumerPrice": {
       "type": "number"
     },
-    "officalMassMarketPrice": {
+    "officialMassMarketPrice": {
       "type": "number"
     }
   },

@@ -25,6 +25,60 @@ module.exports = function (Orders) {
   });
   Orders.validatesPresenceOf('warehouseId');
 
+  async function validateWarehouseProductsAvailability(warehouse, orderProducts, products) {
+
+
+    //validate new order products availability in warehouse product 
+    let unvalidWarehouseProducts = [];
+    let warehouseProductCountUpdates = [];
+    for (let product of products) {
+
+      let productAbstractId = product.productAbstract().id;
+      let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
+      // warehouse doesn't have  the product 
+      if (!warehouseProduct) {
+        throw new Error("warehouse doesn't have a product");
+      }
+      // warehouse doesn't have enough amount of the product 
+      let orderProduct = orderProducts.find(p => p.productId == product.id);
+      let total = warehouseProduct.expectedCount - orderProduct.count * product.parentCount;
+
+      if (total < warehouseProduct.threshold) {
+        unvalidWarehouseProducts.push(product);
+      }
+      warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount) })
+    }
+
+    return { unvalidWarehouseProducts, warehouseProductCountUpdates };
+
+  }
+
+
+  function createOrderProductSnapshot(product, warehouseProduct) {
+
+
+    let snapshot = {};
+    // product 
+    let productProps = ["nameAr", "nameEn", "horecaPrice", "horecaPriceDiscount", "wholeSalePrice",
+      "wholeSalePriceDiscount", "pack", "description",
+      "offerSource", "isOffer", "media"];
+
+    productProps.forEach((val, index) => {
+      snapshot[val] = product[val];
+    });
+    // product-abstract                          
+    let productAbstractProps = ["officialConsumerPrice", "officialMassMarketPrice"];
+    let productAbstract = product.productAbstract();
+    productAbstractProps.forEach((val, index) => {
+      snapshot[val] = productAbstract[val];
+    });
+
+    // warehouse-product 
+
+    snapshot["warehouseAvgBuyingPrice"] = warehouseProduct.avgBuyingPrice;
+
+    return snapshot;
+  };
 
 
 
@@ -107,41 +161,13 @@ module.exports = function (Orders) {
     callback(null);
   };
 
-  async function validateWarehouseProductsAvailability(warehouse, orderProducts, products) {
-
-
-    //validate new order products availability in warehouse product 
-    let unvalidWarehouseProducts = [];
-    let warehouseProductCountUpdates = [];
-    for (let product of products) {
-
-      let productAbstractId = product.productAbstract().id;
-      let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
-      // warehouse doesn't have  the product 
-      if (!warehouseProduct) {
-        throw new Error("warehouse doesn't have a product");
-      }
-      // warehouse doesn't have enough amount of the product 
-      let orderProduct = orderProducts.find(p => p.productId == product.id);
-      let total = warehouseProduct.expectedCount - orderProduct.count * product.parentCount;
-
-      if (total < warehouseProduct.threshold) {
-        unvalidWarehouseProducts.push(product);
-      }
-      warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount) })
-    }
-
-    return { unvalidWarehouseProducts, warehouseProductCountUpdates };
-
-  }
-
   Orders.editOrder = function (id, data, context, callback) {
     if (!context.req.accessToken || !context.req.accessToken.userId)
       return callback(ERROR(403, 'User not login'))
 
     if (!data.orderProducts || !Array.isArray(data.orderProducts) || data.orderProducts.length == 0)
       return callback(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
-    var products = data.orderProducts;
+    var orderProducts = data.orderProducts;
     var isAdmin = false
     if (data.isAdmin == true) {
       isAdmin = true
@@ -150,7 +176,7 @@ module.exports = function (Orders) {
 
 
     var productsIds = []
-    _.each(products, product => {
+    _.each(orderProducts, product => {
       try {
         productsIds.push(Orders.dataSource.ObjectID(product.productId).toString());
       } catch (e) {
@@ -190,15 +216,18 @@ module.exports = function (Orders) {
           if (oldProductsIds.includes(element) == false)
             newProductsId.push(element)
         });
+        // old products which are not deleted 
         var tempOldProducts = [];
+        // old products which are deleted 
         var oldDeletedOrderProducts = [];
+
         oldOrderProducts.forEach(element => {
           if (deletedProductsId.includes(element.productId.toString()) == false)
             tempOldProducts.push(element);
           else
             oldDeletedOrderProducts.push(element);
 
-        });
+        }); 
 
 
 
@@ -235,12 +264,17 @@ module.exports = function (Orders) {
             }
           }, async function (err, newProducts) {
             if (err)
-              return next(err);
+              return callback(err);
 
             let warehouseProductCountUpdates = [];
 
             let order = await Orders.app.models.orders.findById(id);
+            if(!order) 
+                return callback(ERROR(404, "order not found")); 
 
+            let warehouse = order.warehouse(); 
+
+         
 
             try {
               //validate new order products availability in warehouse product 
@@ -248,14 +282,14 @@ module.exports = function (Orders) {
 
               let warehouse = order.warehouse();
               //return callback("testing" + order.warehouseId); 
-              let temp = await validateWarehouseProductsAvailability(warehouse, products, newProducts);
+              let temp = await validateWarehouseProductsAvailability(warehouse, orderProducts, newProducts);
 
               unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
               warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
 
 
               let orderProductsCountDiff = tempOldProducts.map(oldProduct => {
-                let newOldProduct = products.find(p => p.productId == oldProduct.productId);
+                let newOldProduct = orderProducts.find(p => p.productId == oldProduct.productId);
                 return { productId: newOldProduct.productId, count: (newOldProduct.count - oldProduct.count) };
               });
               let oldProductsFromDb = tempOldProducts.map(orderProduct => orderProduct.product());
@@ -296,55 +330,37 @@ module.exports = function (Orders) {
 
             data.clientType = user.clientType;
 
-            var productsInfo = {};
-            _.each(newProducts, p => {
-              productsInfo[p.id.toString()] = p;
-            });
-
-            _.each(tempOldProducts, p => {
-              productsInfo[p.productId.toString()] = p;
-            });
-            data.totalPrice = 0
+            let totalPrice = 0
 
             var tempProduct = [];
-            _.each(products, (product, index) => {
-              var pInfo = productsInfo[product.productId];
-              // if (!pInfo)
-              //   return delete products[index]
-              // if (pInfo.availableTo != user.clientType && pInfo.availableTo != 'both')
-              //   return delete products[index]
+          
+            for (let orderProduct of orderProducts) {
 
-              product.nameEn = pInfo.nameEn;
-              product.nameAr = pInfo.nameAr;
-              product.pack = pInfo.pack;
-              product.description = pInfo.description;
-              product.marketOfficialPrice = pInfo.marketOfficialPrice;
-              product.dockanBuyingPrice = pInfo.dockanBuyingPrice;
-              product.wholeSaleMarketPrice = pInfo.wholeSaleMarketPrice;
-              product.horecaPriceDiscount = pInfo.horecaPriceDiscount;
-              product.wholeSalePriceDiscount = pInfo.wholeSalePriceDiscount;
-              product.horecaPrice = pInfo.horecaPrice;
-              product.wholeSalePrice = pInfo.wholeSalePrice;
-              product.offerSource = pInfo.offerSource;
-              product.media = pInfo.media;
+              let productFromDb = productsFromDb.find(p => p.id == orderProduct.productId);
+              if (!productFromDb)
+                return next(ERROR(404, "Product not found in db"));
+
+              if (productFromDb.availableTo != user.clientType && productFromDb.availableTo != 'both') {
+                // @todo check the case 
+                continue;
+              }
               if (user.clientType == 'wholesale') {
-                product.price = (pInfo.wholeSalePriceDiscount && pInfo.wholeSalePriceDiscount) == 0 ? pInfo.wholeSalePrice : pInfo.wholeSalePriceDiscount;
+                orderProduct.sellingPrice = productFromDb.wholeSalePriceDiscount == 0 ? productFromDb.wholeSalePrice : productFromDb.wholeSalePriceDiscount;
               } else {
-                product.price = (pInfo.horecaPriceDiscount && pInfo.horecaPriceDiscount) == 0 ? pInfo.horecaPrice : pInfo.horecaPriceDiscount;
+                orderProduct.sellingPrice = productFromDb.horecaPriceDiscount == 0 ? productFromDb.horecaPrice : productFromDb.horecaPriceDiscount;
               }
-              data.totalPrice += Number(product.count) * Number(product.price);
+              totalPrice += Number(orderProduct.count) * Number(orderProduct.sellingPrice);
 
-              product.isOffer = pInfo.isOffer;
-              if (pInfo.isOffer && pInfo.products) {
+              //order-product snapshot      
+              let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId: productFromDb.productAbstractId } });
+              orderProduct.orderProductSnapshot = createOrderProductSnapshot(productFromDb, warehouseProduct);
+              tempProduct.push(orderProduct);
 
-                product.products = pInfo.products;
-              }
-
-              tempProduct.push(product)
-            });
-            if (isAdmin == false && data.totalPrice < 20000)
+            }
+            if (isAdmin == false && totalPrice < 20000)
               return callback(ERROR(602, 'total price is low'));
 
+            data.totalPrice = totalPrice;
             delete data['orderProducts'];
             delete data['client'];
 
@@ -491,33 +507,8 @@ module.exports = function (Orders) {
 
   }
 
-  
 
-  function createOrderProductSnapshot( product , warehouseProduct) {
-       
 
-      let snapshot = {}; 
-      // product 
-      let productProps = ["nameAr" , "nameEn",  "horecaPrice", "horecaPriceDiscount", "wholeSalePrice" ,
-                         "wholeSalePriceDiscount", "pack" ,  "description" ,
-                          "offerSource" , "isOffer" , "media"]; 
-
-      productProps.forEach( (val , index ) => {
-          snapshot[val] = product[val]; 
-      }); 
-      // product-abstract                          
-      let productAbstractProps =  ["officialConsumerPrice" , "officalMassMarketPrice"]; 
-      let productAbstract = product.productAbstract(); 
-      productAbstractProps.forEach( (val , index ) => {
-        snapshot[val] = productAbstract[val]; 
-      }); 
-
-      // warehouse-product 
-
-      snapshot["warehouseAvgBuyingPrice"] = warehouseProduct.avgBuyingPrice; 
-      
-      return snapshot; 
-  }; 
   Orders.beforeRemote('create', function (ctx, modelInstance, next) {
     if (!ctx.req.accessToken || !ctx.req.accessToken.userId)
       return next(ERROR(403, 'User not login'))
@@ -627,8 +618,8 @@ module.exports = function (Orders) {
             totalPrice += Number(orderProduct.count) * Number(orderProduct.sellingPrice);
 
             //order-product snapshot       
-            let warehouseProduct = await warehouse.warehouseProducts.findOne( { where : { productAbstractId : productFromDb.productAbstract().id }}) ; 
-            orderProduct.orderProductSnapshot = createOrderProductSnapshot(productFromDb , warehouseProduct); 
+            let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId: productFromDb.productAbstractId } });
+            orderProduct.orderProductSnapshot = createOrderProductSnapshot(productFromDb, warehouseProduct);
 
 
 

@@ -19,7 +19,7 @@
     "warehouseAvgBuyingPrice": {
       "type": "number"
     },
-    "officalMassMarketPrice": {
+    "officialMassMarketPrice": {
       "type": "number"
     },
     "horecaPrice": {
