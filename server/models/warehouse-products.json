@@ -13,6 +13,11 @@
       }
     }
   },
+  "scope": {
+    "include": [
+      "warehouse"
+    ]
+  },
   "options": {
     "validateUpsert": true
   },
@@ -39,8 +44,7 @@
     },
     "accumulatedCountOverTime": {
       "type": "number",
-      "required": true,
-      "default": 0
+      "required": true
     },
     "avgBuyingPrice": {
       "type": "number",
