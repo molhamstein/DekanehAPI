@@ -57,8 +57,7 @@ module.exports = function (Productabstract) {
         }
       }
     }
-    console.log(nameArMatch);
-    console.log(nameEnMatch);
+
     var clientTypeObject = {
       $or: [{
         availableTo: "both"
@@ -175,5 +174,22 @@ module.exports = function (Productabstract) {
 
   }
 
+  Productabstract.beforeRemote('create',  function (ctx, productAbstract , next) {
 
+    // parse threshold 
+    ctx.threshold = ctx.req.body.threshold; 
+    delete ctx.req.body.threshold ; 
+    next(); 
+
+  }); 
+  Productabstract.afterRemote('create', async function (ctx, productAbstract, next) {
+
+    let warehouses = await Productabstract.app.models.warehouse.find({}); 
+    let threshold = ctx.threshold ; 
+    let warehouseProducts = warehouses.map( (warehouse) => { 
+      return {warehouseId : warehouse.id , productAbstractId : productAbstract.id , threshold}; 
+    }); 
+    await Productabstract.app.models.warehouseProducts.create(warehouseProducts); 
+   
+  });
 };

@@ -44,7 +44,8 @@
     },
     "accumulatedCountOverTime": {
       "type": "number",
-      "required": true
+      "required": true , 
+      "default" : 0 
     },
     "avgBuyingPrice": {
       "type": "number",
