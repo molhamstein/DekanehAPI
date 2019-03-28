@@ -7,8 +7,7 @@ module.exports = function (Warehouseproducts) {
     });
 
     Warehouseproducts.prototype.updateExpectedCount = function (expectedCountDiff) {
-
-        this.expectedCount = this.expectedCount + expectedCountDiff;
+        this.expectedCount = this.expectedCount + expectedCountDiff;        
         return this.save();
     }
     Warehouseproducts.prototype.updatetotalCount = function (totalCountDiff) {

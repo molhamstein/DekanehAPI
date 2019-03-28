@@ -4,10 +4,11 @@
   "idInjection": true,
   "options": {
     "validateUpsert": true
-  },  
+  },
   "scope": {
     "include": [
-      "warehouse"
+      "warehouse",
+      "supplyProducts"
     ]
   },
   "properties": {
@@ -42,5 +43,44 @@
     }
   },
   "acls": [],
-  "methods": {}
+  "methods": {
+    "edit": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "path"
+          }
+        },
+        {
+          "arg": "context",
+          "type": "object",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "context"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "edit supply order ",
+      "http": [
+        {
+          "path": "/:id/edit",
+          "verb": "put"
+        }
+      ]
+    }
+  }
 }
