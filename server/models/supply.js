@@ -88,8 +88,6 @@ module.exports = function (Supply) {
         ctx.req.body.totalPrice = totalPrice;
 
     });
-
-
     Supply.afterRemote('create', async (ctx, supply, next) => {
         let { supplyProducts } = ctx;
 
@@ -98,12 +96,13 @@ module.exports = function (Supply) {
 
         let warehouse = await supply.warehouse.getAsync();
         // update warehouse product 
-        let warehouseProductUpdates = await createSupplyProductsWarehouseUpdates(createdSupplyProducts, supply.warehouse());
+        let warehouseProductUpdates = await createSupplyProductsWarehouseUpdates(createdSupplyProducts, warehouse);
 
         for (let { warehouseProduct, countDiff } of warehouseProductUpdates) {
             await warehouseProduct.updateExpectedCount(countDiff);
-            await warehouseProduct.updateEffictiveCount(countDiff);
+            await warehouseProduct.updateeffectiveCount(countDiff);
         }
 
     });
+
 };

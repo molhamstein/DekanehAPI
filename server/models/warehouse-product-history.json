@@ -15,7 +15,7 @@
     "avgBuyingPrice": {
       "type": "number"
     },
-    "effictiveCount": {
+    "effectiveCount": {
       "type": "number"
     },
     "expectedCount": {

@@ -11,8 +11,8 @@ module.exports = function (Warehouseproducts) {
         this.expectedCount = this.expectedCount + expectedCountDiff;
         return this.save();
     }
-    Warehouseproducts.prototype.updateEffictiveCount = function (effictiveCountDiff) {
-        this.effictiveCount = this.effictiveCount + effictiveCountDiff;
+    Warehouseproducts.prototype.updateeffectiveCount = function (effectiveCountDiff) {
+        this.effectiveCount = this.effectiveCount + effectiveCountDiff;
         return this.save();
     }
 

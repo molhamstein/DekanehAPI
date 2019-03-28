@@ -16,8 +16,8 @@ module.exports = function(Warehouse) {
 
         let warehouseProcutsHistory = warehouseProducts.map( (warehouseProduct) => { 
 
-            let {avgPrice ,effictiveCount , expectedCount , accumulatedCountOverTime} = warehouseProduct ; 
-            return {avgPrice ,effictiveCount , expectedCount , accumulatedCountOverTime , 
+            let {avgPrice ,effectiveCount , expectedCount , accumulatedCountOverTime} = warehouseProduct ; 
+            return {avgPrice ,effectiveCount , expectedCount , accumulatedCountOverTime , 
                  date: Date.now() , shift , warehouseProductId : id }; 
         }); 
 

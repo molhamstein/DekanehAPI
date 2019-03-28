@@ -17,7 +17,7 @@
     "validateUpsert": true
   },
   "properties": {
-    "effictiveCount": {
+    "effectiveCount": {
       "type": "number",
       "required": true,
       "default": 0
