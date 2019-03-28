@@ -204,7 +204,6 @@ module.exports = function (Productabstract) {
           // select warehouseProducts under warningThreshold 
           { $match: { $expr: { $lte: ["$expectedCount", "$warningThreshold"] } } },
           // join product abstract 
-
           {
             $lookup:
             {
@@ -213,13 +212,57 @@ module.exports = function (Productabstract) {
               foreignField: "_id",
               as: "productAbstract"
             }
-          },
-          
+          },          
           {
             $unwind : {
               path : "$productAbstract", 
             }
           }
+          , 
+          {
+            $lookup:
+            {
+              from: "manufacturers",
+              localField: "productAbstract.manufacturerId",
+              foreignField: "_id",
+              as: "manufacturer"
+            }
+          },          
+          {
+            $unwind : {
+              path : "$manufacturer", 
+            }
+          },
+          {
+            $lookup:
+            {
+              from: "categories",
+              localField: "productAbstract.categoryId",
+              foreignField: "_id",
+              as: "category"
+            }
+          },          
+          {
+            $unwind : {
+              path : "$category", 
+            }
+          },
+          {
+            $lookup:
+            {
+              from: "categories",
+              localField: "productAbstract.subCategoryId",
+              foreignField: "_id",
+              as: "subCategory"
+            }
+          },          
+          {
+            $unwind : {
+              path : "$subCategory", 
+            }
+          },
+
+
           
 
         ], (err, warehouseProducts) => {
