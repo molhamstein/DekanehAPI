@@ -174,26 +174,61 @@ module.exports = function (Productabstract) {
 
   }
 
-  Productabstract.beforeRemote('create',  function (ctx, productAbstract , next) {
+  Productabstract.beforeRemote('create', function (ctx, productAbstract, next) {
 
     // parse threshold 
-    ctx.threshold = ctx.req.body.threshold; 
-    ctx.warningThreshold = ctx.req.body.warningThreshold; 
-    delete ctx.req.body.threshold ; 
-    next(); 
+    ctx.threshold = ctx.req.body.threshold;
+    ctx.warningThreshold = ctx.req.body.warningThreshold;
+    delete ctx.req.body.threshold;
+    next();
 
-  }); 
+  });
   Productabstract.afterRemote('create', async function (ctx, productAbstract, next) {
 
-    let warehouses = await Productabstract.app.models.warehouse.find({}); 
-    let { threshold , warningThreshold}  = ctx ; 
-    let warehouseProducts = warehouses.map( (warehouse) => { 
-      return {warehouseId : warehouse.id , productAbstractId : productAbstract.id , threshold , warningThreshold}; 
-    }); 
-    await Productabstract.app.models.warehouseProducts.create(warehouseProducts);    
+    let warehouses = await Productabstract.app.models.warehouse.find({});
+    let { threshold, warningThreshold } = ctx;
+    let warehouseProducts = warehouses.map((warehouse) => {
+      return { warehouseId: warehouse.id, productAbstractId: productAbstract.id, threshold, warningThreshold };
+    });
+    await Productabstract.app.models.warehouseProducts.create(warehouseProducts);
   });
 
-  Productabstract.warnings = async function(context){
-    return "test"; 
+  Productabstract.warnings = async function (context, res, next) {
+
+
+    let warehouseProducts = new Promise((resolve, recject) => {
+
+
+      Productabstract.getDataSource().connector.collection('warehouseProducts')
+        .aggregate([
+          // select warehouseProducts under warningThreshold 
+          { $match: { $expr: { $lte: ["$expectedCount", "$warningThreshold"] } } },
+          // join product abstract 
+
+          {
+            $lookup:
+            {
+              from: "productAbstract",
+              localField: "productAbstractId",
+              foreignField: "_id",
+              as: "productAbstract"
+            }
+          },
+          
+          {
+            $unwind : {
+              path : "$productAbstract", 
+            }
+          }
+          
+
+        ], (err, warehouseProducts) => {
+          resolve(warehouseProducts);
+        });
+
+    });
+
+
+    return warehouseProducts;
   }
 };

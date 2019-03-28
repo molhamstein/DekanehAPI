@@ -125,6 +125,12 @@
           "http": {
             "source": "context"
           }
+        },
+        {
+          "arg": "res",
+          "http": {
+            "source": "res"
+          }
         }
       ],
       "returns": [
