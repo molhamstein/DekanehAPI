@@ -17,7 +17,7 @@
     "validateUpsert": true
   },
   "properties": {
-    "effectiveCount": {
+    "totalCount": {
       "type": "number",
       "required": true,
       "default": 0

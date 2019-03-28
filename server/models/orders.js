@@ -541,7 +541,7 @@ module.exports = function (Orders) {
               // update warehouse products count 
               await warehouseProduct.updateExpectedCount(countDiff);
               if (['inDelivery', 'delivered'].includes(order.status))
-                await warehouseProduct.updateeffectiveCount(countDiff);
+                await warehouseProduct.updatetotalCount(countDiff);
             } catch (err) {
               return callback(err);
             }
@@ -900,8 +900,8 @@ module.exports = function (Orders) {
 
 
           warehouseProduct = warehouseProduct[0];
-          // update warehouse effective count 
-          await warehouseProduct.updateeffectiveCount(- orderProduct.count * product.parentCount);
+          // update warehouse total count 
+          await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount);
 
         }
 
@@ -964,9 +964,9 @@ module.exports = function (Orders) {
           await warehouseProduct.updateExpectedCount(orderProduct.count * product.parentCount);
         }
 
-        // restore warehouse effective count 
+        // restore warehouse total count 
         if (['inDelivery'].includes(order.status)) {
-          await warehouseProduct.updateeffectiveCount(orderProduct.count * product.parentCount);
+          await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount);
         }
       }
 

@@ -100,7 +100,7 @@ module.exports = function (Supply) {
 
         for (let { warehouseProduct, countDiff } of warehouseProductUpdates) {
             await warehouseProduct.updateExpectedCount(countDiff);
-            await warehouseProduct.updateeffectiveCount(countDiff);
+            await warehouseProduct.updatetotalCount(countDiff);
         }
 
     });

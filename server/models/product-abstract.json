@@ -23,7 +23,7 @@
     },
     "officialConsumerPrice": {
       "type": "number"
-    },    
+    },
     "officialMassMarketPrice": {
       "type": "number"
     }
@@ -62,5 +62,55 @@
     }
   },
   "acls": [],
-  "methods": {}
+  "methods": {
+    "search": {
+      "accepts": [
+        {
+          "arg": "string",
+          "type": "string",
+          "http": {
+            "source": "query"
+          }
+        },
+        {
+          "arg": "isOffer",
+          "type": "string",
+          "http": {
+            "source": "query"
+          }
+        },
+        {
+          "arg": "clientType",
+          "type": "string",
+          "http": {
+            "source": "query"
+          }
+        },
+        {
+          "arg": "limit",
+          "type": "number",
+          "http": {
+            "source": "query"
+          }
+        },
+        {
+          "arg": "skip",
+          "type": "number",
+          "http": {
+            "source": "query"
+          }
+        },
+        {
+          "arg": "res",
+          "http": {
+            "source": "res"
+          }
+        }
+      ],
+      "http": {
+        "verb": "get",
+        "path": "/search"
+      }
+    }
+  }
 }
