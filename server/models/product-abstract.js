@@ -178,6 +178,7 @@ module.exports = function (Productabstract) {
 
     // parse threshold 
     ctx.threshold = ctx.req.body.threshold; 
+    ctx.warningThreshold = ctx.req.body.warningThreshold; 
     delete ctx.req.body.threshold ; 
     next(); 
 
@@ -185,11 +186,14 @@ module.exports = function (Productabstract) {
   Productabstract.afterRemote('create', async function (ctx, productAbstract, next) {
 
     let warehouses = await Productabstract.app.models.warehouse.find({}); 
-    let threshold = ctx.threshold ; 
+    let { threshold , warningThreshold}  = ctx ; 
     let warehouseProducts = warehouses.map( (warehouse) => { 
-      return {warehouseId : warehouse.id , productAbstractId : productAbstract.id , threshold}; 
+      return {warehouseId : warehouse.id , productAbstractId : productAbstract.id , threshold , warningThreshold}; 
     }); 
-    await Productabstract.app.models.warehouseProducts.create(warehouseProducts); 
-   
+    await Productabstract.app.models.warehouseProducts.create(warehouseProducts);    
   });
+
+  Productabstract.warnings = async function(context){
+    return "test"; 
+  }
 };

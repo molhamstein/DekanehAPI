@@ -64,6 +64,7 @@
   "acls": [],
   "methods": {
     "search": {
+      "isStatic": true,
       "accepts": [
         {
           "arg": "string",
@@ -111,6 +112,36 @@
         "verb": "get",
         "path": "/search"
       }
+    }
+    , 
+    "warnings": {
+      "isStatic": true,
+      "accepts": [        
+        {
+          "arg": "context",
+          "type": "object",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "context"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "get warehouse products which are close to runing out",
+      "http": [
+        {
+          "path": "/warnings",
+          "verb": "get"
+        }
+      ]
     }
   }
 }
