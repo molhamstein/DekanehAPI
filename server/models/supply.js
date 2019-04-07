@@ -12,6 +12,10 @@ module.exports = function (Supply) {
         in: Object.values(SupplyOrderStatus)
     });
 
+    Supply.validatesPresenceOf('warehouseId', 'supplierId');
+
+
+
     /**
      * 
      * @param {SupplyProduct[]} supplyProducts Array of SupplyProduct to create snapshot 

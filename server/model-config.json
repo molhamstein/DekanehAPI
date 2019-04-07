@@ -168,5 +168,9 @@
   "damageProduct": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "supplier": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

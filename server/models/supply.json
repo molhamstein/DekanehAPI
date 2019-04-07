@@ -8,6 +8,7 @@
   "scope": {
     "include": [
       "warehouse",
+      "supplier",
       "supplyProducts"
     ]
   },
@@ -40,6 +41,14 @@
     "warehouse": {
       "type": "belongsTo",
       "model": "warehouse",
+      "foreignKey": "",
+      "options": {
+        "nestRemoting": true
+      }
+    },
+    "supplier": {
+      "type": "belongsTo",
+      "model": "supplier",
       "foreignKey": "",
       "options": {
         "nestRemoting": true
