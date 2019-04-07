@@ -1,5 +1,5 @@
 {
-  "name": "orderProductSnapshot",
+  "name": "productSnapshot",
   "base": "Model",
   "idInjection": true,
   "options": {

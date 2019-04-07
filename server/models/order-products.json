@@ -11,7 +11,6 @@
     ]
   },
   "properties": {
-  
     "sellingPrice": {
       "type": "number"
     },
@@ -19,13 +18,12 @@
       "type": "number",
       "required": true,
       "default": 1
-    },   
+    },
     "creationDate": {
       "type": "date",
       "required": true,
       "default": "$now"
     }
-  
   },
   "validations": [],
   "relations": {
@@ -37,15 +35,15 @@
       "type": "belongsTo",
       "model": "orders",
       "foreignKey": "orderId"
-    } ,
-    "orderProductSnapshotRelation": {
+    },
+    "productSnapshotRelation": {
       "type": "embedsOne",
-      "model": "orderProductSnapshot",
-      "property" : "orderProductSnapshot",
+      "model": "productSnapshot",
+      "property": "productSnapshot",
       "options": {
         "validate": true,
         "forceId": false
-      } 
+      }
     }
   },
   "acls": [],

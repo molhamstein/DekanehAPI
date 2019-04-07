@@ -28,7 +28,6 @@
     "description": {
       "type": "string"
     },
-
     "horecaPrice": {
       "type": "number",
       "required": true
@@ -45,9 +44,6 @@
       "type": "number",
       "default": 0
     },
-
-    
-   
     "isFeatured": {
       "type": "boolean",
       "required": true,
@@ -94,10 +90,9 @@
       "type": "number",
       "required": true,
       "default": 0
-    }
-    ,
-    "barcode" : {
-      "type" : "array"
+    },
+    "barcode": {
+      "type": "array"
     }
   },
   "validations": [],
@@ -156,6 +151,30 @@
   },
   "acls": [],
   "methods": {
+    "findByBarcode": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "code",
+          "type": "string",
+          "http": {
+            "source": "query"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "http": {
+        "verb": "get",
+        "path": "/barcode"
+      }
+    },
     "productsFeatured": {
       "isStatic": true,
       "accepts": [
@@ -304,33 +323,6 @@
         {
           "path": "/getOffers",
           "verb": "get"
-        }
-      ]
-    } , 
-    
-    
-    "findByBarcode": {
-      "isStatic": true,
-      "accepts": [
-        {
-          "arg": "code",
-          "type": "string",
-          "http": {
-            "source": "query"
-          }
-        }
-        
-      ],
-      "http": {
-        "verb": "get",
-        "path": "/barcode"
-      } ,
-      "returns": [
-        {
-          "arg": "result",
-          "type": "array",
-          "root": true,
-          "description": ""
         }
       ]
     }

@@ -13,13 +13,13 @@
       }
     }
   },
+  "options": {
+    "validateUpsert": true
+  },
   "scope": {
     "include": [
       "warehouse"
     ]
-  },
-  "options": {
-    "validateUpsert": true
   },
   "properties": {
     "totalCount": {
@@ -44,15 +44,15 @@
     },
     "accumulatedCountOverTime": {
       "type": "number",
-      "required": true , 
-      "default" : 0 
+      "required": true,
+      "default": 0
     },
     "avgBuyingPrice": {
       "type": "number",
       "required": true,
       "default": 0
     },
-    "warningThreshold" : {
+    "warningThreshold": {
       "type": "number",
       "required": true,
       "default": 0

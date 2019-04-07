@@ -21,8 +21,8 @@
     "nameAr": {
       "type": "string"
     },
-    "barcode" : {
-      "type" : "array"
+    "barcode": {
+      "type": "array"
     },
     "officialConsumerPrice": {
       "type": "number"
@@ -115,37 +115,10 @@
         "verb": "get",
         "path": "/search"
       }
-    } ,
-
-    "findByBarcode": {
-      "isStatic": true,
-      "accepts": [
-        {
-          "arg": "code",
-          "type": "string",
-          "http": {
-            "source": "query"
-          }
-        }
-        
-      ],
-      "http": {
-        "verb": "get",
-        "path": "/barcode"
-      } ,
-      "returns": [
-        {
-          "arg": "result",
-          "type": "array",
-          "root": true,
-          "description": ""
-        }
-      ]
-    }
-    , 
+    },
     "warnings": {
       "isStatic": true,
-      "accepts": [        
+      "accepts": [
         {
           "arg": "context",
           "type": "object",
@@ -160,8 +133,7 @@
           "http": {
             "source": "res"
           }
-        }, 
-
+        },
         {
           "arg": "warehouseId",
           "type": "string",
@@ -170,7 +142,7 @@
           "http": {
             "source": "path"
           }
-        }        
+        }
       ],
       "returns": [
         {

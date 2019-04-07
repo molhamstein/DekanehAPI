@@ -161,11 +161,19 @@
     "dataSource": "mongoDb",
     "public": true
   },
-  "orderProductSnapshot": {
+  "productSnapshot": {
     "dataSource": "mongoDb",
     "public": true
   },
-  "supplyProductSnapshot": {
+  "productAbstractSnapshot": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "damage": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "damageProduct": {
     "dataSource": "mongoDb",
     "public": true
   }

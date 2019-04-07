@@ -1,5 +1,5 @@
 {
-  "name": "supplyProduct",
+  "name": "damageProduct",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
@@ -9,9 +9,6 @@
     "description": {
       "type": "string"
     },
-    "buyingPrice": {
-      "type": "number"
-    },
     "count": {
       "type": "number",
       "required": true,
@@ -20,9 +17,9 @@
   },
   "validations": [],
   "relations": {
-    "supply": {
+    "damage": {
       "type": "belongsTo",
-      "model": "supply",
+      "model": "damage",
       "foreignKey": ""
     },
     "productAbstract": {

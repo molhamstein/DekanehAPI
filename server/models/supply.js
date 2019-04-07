@@ -31,7 +31,7 @@ module.exports = function (Supply) {
             propsToClone.forEach((val, index) => {
                 snapshot[val] = abstractProduct[val];
             });
-            supplyProduct.supplyProductSnapshot = snapshot;
+            supplyProduct.productAbstractSnapshot = snapshot;
         }
 
     }
@@ -81,7 +81,7 @@ module.exports = function (Supply) {
         //set supply status 
         ctx.req.body.status = SupplyOrderStatus.Pending;
 
-    
+
         let supplyProductsIds = supplyProducts.map(p => p.productAbstractId);
 
         // validate products in db 
@@ -130,26 +130,26 @@ module.exports = function (Supply) {
         }
 
         // set supply status to deliver 
-        supply.status = SupplyOrderStatus.Delivered; 
-        supply.deliverDate = Date.now(); 
+        supply.status = SupplyOrderStatus.Delivered;
+        supply.deliverDate = Date.now();
 
         return supply.save();
     }
 
-    Supply.cancel = async function(id){
+    Supply.cancel = async function (id) {
 
-        
+
         let supply = await Supply.app.models.supply.findById(id);
 
         if (supply.status !== SupplyOrderStatus.Pending) {
             throw ERROR(400, "supply order is not pending");
         }
-        
+
         // set supply status to cancel 
-        supply.status = SupplyOrderStatus.Canceled; 
-        supply.cancelDate = Date.now(); 
+        supply.status = SupplyOrderStatus.Canceled;
+        supply.cancelDate = Date.now();
         return supply.save();
-        
+
     }
 
 

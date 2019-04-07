@@ -90,8 +90,7 @@
           "verb": "put"
         }
       ]
-    } , 
-
+    },
     "deliver": {
       "isStatic": true,
       "accepts": [
@@ -120,9 +119,7 @@
           "verb": "put"
         }
       ]
-    }
-
-    ,
+    },
     "cancel": {
       "isStatic": true,
       "accepts": [
@@ -152,6 +149,5 @@
         }
       ]
     }
-    
   }
 }

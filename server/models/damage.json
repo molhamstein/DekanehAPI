@@ -1,0 +1,42 @@
+{
+  "name": "damage",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {
+    "include": [
+      "warehouse",
+      "supplyProducts"
+    ]
+  },
+  "properties": {
+    "date": {
+      "type": "date",
+      "default": "$now"
+    },
+    "note": {
+      "type": "string",
+      "required": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "warehouse": {
+      "type": "belongsTo",
+      "model": "warehouse",
+      "foreignKey": "",
+      "options": {
+        "nestRemoting": true
+      }
+    },
+    "damageProducts": {
+      "type": "hasMany",
+      "model": "damageProduct",
+      "foreignKey": ""
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
