@@ -12,9 +12,18 @@
     ]
   },
   "properties": {
-    "date": {
+    "createDate": {
       "type": "date",
       "default": "$now"
+    },
+    "deliverDate": {
+      "type": "date"
+    },
+    "cancelDate": {
+      "type": "date"
+    },
+    "status": {
+      "type": "string"
     },
     "totalPrice": {
       "type": "number"
@@ -81,6 +90,68 @@
           "verb": "put"
         }
       ]
+    } , 
+
+    "deliver": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "path"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "deliver supply order ",
+      "http": [
+        {
+          "path": "/:id/deliver",
+          "verb": "put"
+        }
+      ]
     }
+
+    ,
+    "cancel": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "http": {
+            "source": "path"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "cancel supply order ",
+      "http": [
+        {
+          "path": "/:id/cancel",
+          "verb": "put"
+        }
+      ]
+    }
+    
   }
 }

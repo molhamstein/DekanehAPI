@@ -1,7 +1,16 @@
 'use strict';
 
+// suplly order status enumeration 
+const SupplyOrderStatus = { Pending: "pending", Canceled: "canceled", Delivered: "delivered" };
+
+
 module.exports = function (Supply) {
 
+
+
+    Supply.validatesInclusionOf('status', {
+        in: Object.values(SupplyOrderStatus)
+    });
 
     /**
      * 
@@ -47,8 +56,8 @@ module.exports = function (Supply) {
 
             let productAbstractId = supplyProduct.productAbstractId;
             let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
-            if(!warehouseProduct)
-                throw  ERROR(422, 'product has no warehouse product');
+            if (!warehouseProduct)
+                throw ERROR(422, 'product has no warehouse product');
             warehouseProductUpdates.push({ warehouseProduct, countDiff: supplyProduct.count });
         }
         return warehouseProductUpdates;
@@ -69,6 +78,10 @@ module.exports = function (Supply) {
 
         // set warehouse for supply 
         ctx.req.body.warehouseId = warehouse.id;
+        //set supply status 
+        ctx.req.body.status = SupplyOrderStatus.Pending;
+
+    
         let supplyProductsIds = supplyProducts.map(p => p.productAbstractId);
 
         // validate products in db 
@@ -95,17 +108,49 @@ module.exports = function (Supply) {
         let createdSupplyProducts = await supply.supplyProducts.create(supplyProducts);
 
 
+
+
+    });
+
+    Supply.deliver = async function (id) {
+
+        let supply = await Supply.app.models.supply.findById(id);
+
+        if (supply.status !== SupplyOrderStatus.Pending) {
+            throw ERROR(400, "supply order is not pending");
+        }
+
         let warehouse = await supply.warehouse.getAsync();
         // update warehouse product 
-        let warehouseProductUpdates = await createSupplyProductsWarehouseUpdates(createdSupplyProducts, warehouse);
-
+        let supplyProducts = supply.supplyProducts();
+        let warehouseProductUpdates = await createSupplyProductsWarehouseUpdates(supplyProducts, warehouse);
         for (let { warehouseProduct, countDiff } of warehouseProductUpdates) {
             await warehouseProduct.updateExpectedCount(countDiff);
             await warehouseProduct.updatetotalCount(countDiff);
         }
 
-    });
+        // set supply status to deliver 
+        supply.status = SupplyOrderStatus.Delivered; 
+        supply.deliverDate = Date.now(); 
 
+        return supply.save();
+    }
+
+    Supply.cancel = async function(id){
+
+        
+        let supply = await Supply.app.models.supply.findById(id);
+
+        if (supply.status !== SupplyOrderStatus.Pending) {
+            throw ERROR(400, "supply order is not pending");
+        }
+        
+        // set supply status to cancel 
+        supply.status = SupplyOrderStatus.Canceled; 
+        supply.cancelDate = Date.now(); 
+        return supply.save();
+        
+    }
 
 
     Supply.edit = async function (id, ctx) {
@@ -116,9 +161,14 @@ module.exports = function (Supply) {
             throw (ERROR(403, 'User not login'))
 
         let supply = await Supply.app.models.supply.findById(id);
-        
+
         if (!supply)
             throw (ERROR(404, 'Supply order not found'));
+
+
+        if (supply.status !== SupplyOrderStatus.Pending)
+            throw ERROR(400, "supply order is not pending");
+
 
 
 
@@ -148,37 +198,20 @@ module.exports = function (Supply) {
         // calculate supply order total price 
         let totalPrice = calcSupplyProductsTotalPrice(supplyProducts);
         ctx.req.body.totalPrice = totalPrice;
-    
-        let oldSupplyProducts = [... await supply.supplyProducts()]; 
 
-    
+        let oldSupplyProducts = [... await supply.supplyProducts()];
+
+
         // updateAttributes
-        await supply.updateAttributes(ctx.req.body); 
+        await supply.updateAttributes(ctx.req.body);
         // remove old products 
-        await supply.supplyProducts.destroyAll(); 
-        // add new products 
-        // update warehouse products count for the new items 
+        await supply.supplyProducts.destroyAll();
+        // create new products 
+
         let createdSupplyProducts = await supply.supplyProducts.create(supplyProducts);
 
-        // @todo check if warehouse has changed the relation will have changed  
-        let warehouse = await supply.warehouse.getAsync();
-        // update warehouse product 
-        let warehouseProductUpdates = await createSupplyProductsWarehouseUpdates(createdSupplyProducts, warehouse);
 
-        for (let { warehouseProduct, countDiff } of warehouseProductUpdates) {
-            await warehouseProduct.updateExpectedCount(countDiff);
-            await warehouseProduct.updatetotalCount(countDiff);
-        }
-        // update warehouse products count for the deleted items 
-        let warehouseDeletedProductsUpdates = await createSupplyProductsWarehouseUpdates(oldSupplyProducts , warehouse); 
-       
-
-        for (let { warehouseProduct, countDiff } of warehouseDeletedProductsUpdates) {
-            await warehouseProduct.updateExpectedCount(-countDiff);
-            await warehouseProduct.updatetotalCount(-countDiff);
-        }
-
-        return supply ; 
+        return supply;
     }
 
 };
