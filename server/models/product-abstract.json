@@ -131,7 +131,17 @@
           "http": {
             "source": "res"
           }
-        }
+        }, 
+
+        {
+          "arg": "warehouseId",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "http": {
+            "source": "path"
+          }
+        }        
       ],
       "returns": [
         {
@@ -144,7 +154,7 @@
       "description": "get warehouse products which are close to runing out",
       "http": [
         {
-          "path": "/warnings",
+          "path": "/warnings/:warehouseId",
           "verb": "get"
         }
       ]

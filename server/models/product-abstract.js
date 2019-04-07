@@ -126,32 +126,14 @@ module.exports = function (Productabstract) {
       }, {
         $project: {
           id: '$_id',
+          "officialConsumerPrice": 1,
+          "officialMassMarketPrice": 1,          
           "nameAr": 1,
           "nameEn": 1,
           "media": 1,
-          "code": 1,
-          "sku": 1,
-          "pack": 1,
-          "description": 1,
-          "horecaPrice": 1,
-          "wholeSalePrice": 1,
-          "wholeSaleMarketPrice": 1,
-          "marketPrice": 1,
-          "horecaPriceDiscount": 1,
-          "wholeSalePriceDiscount": 1,
-          "marketOfficialPrice": 1,
-          "dockanBuyingPrice": 1,
-          "availableTo": 1,
-          "isFeatured": 1,
-          "status": 1,
-          "isOffer": 1,
-          "offerSource": 1,
-          "offerMaxQuantity": 1,
+         
           "categoryId": 1,
           "subCategoryId": 1,
-          "offersIds": 1,
-          "productsIds": 1,
-          "tagsIds": 1,
           "manufacturerId": 1,
           "category": {
             "$arrayElemAt": ["$category", 0]
@@ -193,16 +175,28 @@ module.exports = function (Productabstract) {
     await Productabstract.app.models.warehouseProducts.create(warehouseProducts);
   });
 
-  Productabstract.warnings = async function (context, res, next) {
+  Productabstract.warnings = async function (context, res, warehouseId, next) {
 
 
     let warehouseProducts = new Promise((resolve, recject) => {
 
 
+      let pipeLine = [];
+
+      if (warehouseId) {
+
+        pipeLine.push(
+          { $match: { "warehouseId": warehouseId } }
+        );
+      }
+
       Productabstract.getDataSource().connector.collection('warehouseProducts')
         .aggregate([
           // select warehouseProducts under warningThreshold 
           { $match: { $expr: { $lte: ["$expectedCount", "$warningThreshold"] } } },
+
+          ...pipeLine
+          ,
           // join product abstract 
           {
             $lookup:
@@ -212,13 +206,13 @@ module.exports = function (Productabstract) {
               foreignField: "_id",
               as: "productAbstract"
             }
-          },          
+          },
           {
-            $unwind : {
-              path : "$productAbstract", 
+            $unwind: {
+              path: "$productAbstract",
             }
           }
-          , 
+          ,
           {
             $lookup:
             {
@@ -227,10 +221,10 @@ module.exports = function (Productabstract) {
               foreignField: "_id",
               as: "manufacturer"
             }
-          },          
+          },
           {
-            $unwind : {
-              path : "$manufacturer", 
+            $unwind: {
+              path: "$manufacturer",
             }
           },
           {
@@ -241,10 +235,10 @@ module.exports = function (Productabstract) {
               foreignField: "_id",
               as: "category"
             }
-          },          
+          },
           {
-            $unwind : {
-              path : "$category", 
+            $unwind: {
+              path: "$category",
             }
           },
           {
@@ -255,15 +249,15 @@ module.exports = function (Productabstract) {
               foreignField: "_id",
               as: "subCategory"
             }
-          },          
+          },
           {
-            $unwind : {
-              path : "$subCategory", 
+            $unwind: {
+              path: "$subCategory",
             }
           },
 
 
-          
+
 
         ], (err, warehouseProducts) => {
           resolve(warehouseProducts);
