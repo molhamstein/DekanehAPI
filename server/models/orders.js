@@ -101,7 +101,7 @@ module.exports = function (Orders) {
 
       //order-product snapshot      
       let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId: product.productAbstractId } });
-      orderProduct.orderProductSnapshot = createOrderProductSnapshot(product, warehouseProduct);
+      orderProduct.productSnapshot = createOrderProductSnapshot(product, warehouseProduct);
     }
   }
 

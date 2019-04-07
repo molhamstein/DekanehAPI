@@ -89,14 +89,6 @@
     "dataSource": "mongoDb",
     "public": true
   },
-  "ordersFromSuppliers": {
-    "dataSource": "mongoDb",
-    "public": true
-  },
-  "suppliers": {
-    "dataSource": "mongoDb",
-    "public": true
-  },
   "coupons": {
     "dataSource": "mongoDb",
     "public": true
