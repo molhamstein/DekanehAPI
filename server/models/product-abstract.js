@@ -127,11 +127,11 @@ module.exports = function (Productabstract) {
         $project: {
           id: '$_id',
           "officialConsumerPrice": 1,
-          "officialMassMarketPrice": 1,          
+          "officialMassMarketPrice": 1,
           "nameAr": 1,
           "nameEn": 1,
           "media": 1,
-         
+
           "categoryId": 1,
           "subCategoryId": 1,
           "manufacturerId": 1,
@@ -268,4 +268,10 @@ module.exports = function (Productabstract) {
 
     return warehouseProducts;
   }
+
+
+  Productabstract.findByBarcode = async function (code) {
+    return Productabstract.app.models.productAbstract.find({ "where": { "barcode": code } });
+  };
+
 };

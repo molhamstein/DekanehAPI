@@ -21,6 +21,9 @@
     "nameAr": {
       "type": "string"
     },
+    "barcode" : {
+      "type" : "array"
+    },
     "officialConsumerPrice": {
       "type": "number"
     },
@@ -112,6 +115,32 @@
         "verb": "get",
         "path": "/search"
       }
+    } ,
+
+    "findByBarcode": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "code",
+          "type": "string",
+          "http": {
+            "source": "query"
+          }
+        }
+        
+      ],
+      "http": {
+        "verb": "get",
+        "path": "/barcode"
+      } ,
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ]
     }
     , 
     "warnings": {

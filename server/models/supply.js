@@ -47,7 +47,8 @@ module.exports = function (Supply) {
 
             let productAbstractId = supplyProduct.productAbstractId;
             let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
-
+            if(!warehouseProduct)
+                throw  ERROR(422, 'product has no warehouse product');
             warehouseProductUpdates.push({ warehouseProduct, countDiff: supplyProduct.count });
         }
         return warehouseProductUpdates;

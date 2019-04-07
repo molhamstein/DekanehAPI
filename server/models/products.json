@@ -95,6 +95,10 @@
       "required": true,
       "default": 0
     }
+    ,
+    "barcode" : {
+      "type" : "array"
+    }
   },
   "validations": [],
   "relations": {
@@ -300,6 +304,33 @@
         {
           "path": "/getOffers",
           "verb": "get"
+        }
+      ]
+    } , 
+    
+    
+    "findByBarcode": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "code",
+          "type": "string",
+          "http": {
+            "source": "query"
+          }
+        }
+        
+      ],
+      "http": {
+        "verb": "get",
+        "path": "/barcode"
+      } ,
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
         }
       ]
     }
