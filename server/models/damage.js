@@ -11,7 +11,7 @@ module.exports = function (Damage) {
     function assignDamageProductsSnapshot(damageProducts, abstractProducts) {
 
 
-        let propsToClone = ["nameEn", "nameAr", "officialConsumerPrice", "officialMassMarketPrice"];
+        let propsToClone = ["nameEn", "nameAr", "officialConsumerPrice", "officialMassMarketPrice" , "media" ,"id"];
 
 
         for (let damageProduct of damageProducts) {

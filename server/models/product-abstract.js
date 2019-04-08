@@ -184,7 +184,7 @@ module.exports = function (Productabstract) {
       let pipeLine = [];
 
       if (warehouseId) {
-
+        
         pipeLine.push(
           { $match: { "warehouseId": warehouseId } }
         );

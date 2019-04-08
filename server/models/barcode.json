@@ -1,0 +1,23 @@
+{
+  "name": "barcode",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "code": {
+      "type": "string"
+    }
+  },
+  "validations": [],
+  "relations": {
+    "products": {
+      "type": "belongsTo",
+      "model": "products",
+      "foreignKey": ""
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

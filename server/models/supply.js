@@ -25,7 +25,7 @@ module.exports = function (Supply) {
 
 
         //  supply order snapshot 
-        let propsToClone = ["nameEn", "nameAr", "officialConsumerPrice", "officialMassMarketPrice"];
+        let propsToClone = ["nameEn", "nameAr", "officialConsumerPrice", "officialMassMarketPrice" , "media" , "id"];
 
 
         for (let supplyProduct of supplyProducts) {

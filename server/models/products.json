@@ -11,7 +11,8 @@
       "subCategory",
       "manufacturer",
       "products",
-      "productAbstract"
+      "productAbstract", 
+      "barcodes"
     ]
   },
   "properties": {
@@ -90,9 +91,6 @@
       "type": "number",
       "required": true,
       "default": 0
-    },
-    "barcode": {
-      "type": "array"
     }
   },
   "validations": [],
@@ -147,6 +145,11 @@
       "options": {
         "nestRemoting": true
       }
+    },
+    "barcodes": {
+      "type": "hasMany",
+      "model": "barcode",
+      "foreignKey": ""
     }
   },
   "acls": [],
