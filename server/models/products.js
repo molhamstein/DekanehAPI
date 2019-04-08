@@ -1519,7 +1519,7 @@ module.exports = function (Products) {
 
   Products.findByBarcode = async function(code){
     return Products.app.models.products.find({ "where": { "barcode": code } });   
-   }
+  }
 };
 
 

@@ -174,7 +174,7 @@
     "public": true
   },
   "barcode": {
-    "dataSource": "db",
+    "dataSource": "mongoDb",
     "public": true
   }
 }

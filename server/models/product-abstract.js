@@ -268,10 +268,6 @@ module.exports = function (Productabstract) {
 
     return warehouseProducts;
   }
-
-
-  Productabstract.findByBarcode = async function (code) {
-    return Productabstract.app.models.productAbstract.find({ "where": { "barcode": code } });
-  };
+  
 
 };

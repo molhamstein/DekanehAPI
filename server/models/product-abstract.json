@@ -21,9 +21,6 @@
     "nameAr": {
       "type": "string"
     },
-    "barcode": {
-      "type": "array"
-    },
     "officialConsumerPrice": {
       "type": "number"
     },

@@ -10,10 +10,6 @@
     "allowExtendedOperators": true,
     "connector": "mongodb"
   },
-  "db": {
-    "name": "db",
-    "connector": "memory"
-  },
   "storage": {
     "name": "storage",
     "connector": "loopback-component-storage",
