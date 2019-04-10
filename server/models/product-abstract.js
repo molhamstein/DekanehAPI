@@ -124,6 +124,14 @@ module.exports = function (Productabstract) {
           as: 'subCategory'
         }
       }, {
+        $lookup: {
+          from: 'warehouseProducts',
+          localField: '_id',
+          foreignField: 'productAbstractId',
+          as: 'warehouseProducts'
+        }
+      }
+      , {
         $project: {
           id: '$_id',
           "officialConsumerPrice": 1,
@@ -135,6 +143,8 @@ module.exports = function (Productabstract) {
           "categoryId": 1,
           "subCategoryId": 1,
           "manufacturerId": 1,
+          "warehouseProducts" : 1, 
+          
           "category": {
             "$arrayElemAt": ["$category", 0]
           },
@@ -184,7 +194,7 @@ module.exports = function (Productabstract) {
       let pipeLine = [];
 
       if (warehouseId) {
-        
+
         pipeLine.push(
           { $match: { "warehouseId": warehouseId } }
         );
@@ -268,6 +278,6 @@ module.exports = function (Productabstract) {
 
     return warehouseProducts;
   }
-  
+
 
 };

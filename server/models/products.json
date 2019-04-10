@@ -11,8 +11,8 @@
       "subCategory",
       "manufacturer",
       "products",
-      "productAbstract", 
-      "barcodes"
+      "productAbstract" 
+    
     ]
   },
   "properties": {
@@ -149,7 +149,7 @@
     "barcodes": {
       "type": "hasMany",
       "model": "barcode",
-      "foreignKey": ""
+      "foreignKey": "productId"
     }
   },
   "acls": [],

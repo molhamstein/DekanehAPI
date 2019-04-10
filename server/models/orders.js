@@ -1065,6 +1065,7 @@ module.exports = function (Orders) {
    * @param {Function(Error, array)} callback
    */
 
+   // @todo delete 
   Orders.supplierOrders = function (callback) {
     var result;
     Orders.app.models.ordersFromSuppliers.findOne({

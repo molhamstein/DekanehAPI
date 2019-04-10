@@ -5,8 +5,10 @@
   "options": {
     "validateUpsert": true
   },
-  "scope" : {
-    "include" :  ["product"]
+  "scope": {
+    "include": [
+      "product"
+    ]
   },
   "properties": {
     "code": {
@@ -17,7 +19,8 @@
   "relations": {
     "product": {
       "type": "belongsTo",
-      "model": "products"
+      "model": "products",
+      "foreignKey": "productId"
     }
   },
   "acls": [],
