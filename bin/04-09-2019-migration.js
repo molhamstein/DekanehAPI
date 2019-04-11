@@ -19,8 +19,7 @@ let main = async () => {
   console.log("migrating");
 
   let connection = await MongoClient.connect(connectionString, { useNewUrlParser: true });
-  // let live = connection.db(dbs.live); 
-  //let dev = connection.db(dbs.dev); 
+  
   let target = connection.db(dbs.target);
   let admin = connection.db("admin");
   console.log("droping target database");
@@ -96,6 +95,9 @@ let main = async () => {
   console.log("migrating orders from suppliers");
   await target.collection('ordersFromSuppliers').drop();
   console.log("done orders from suppliers");
+
+
+  //todo insert roles 
 
 
 
