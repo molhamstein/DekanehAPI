@@ -643,7 +643,7 @@ module.exports = function (Orders) {
             return next(err);
           }
 
-          ctx.req.body.status = 'inWarehouse';
+          ctx.req.body.status = 'pending';
           ctx.req.body.clientType = user.clientType;
          
           
@@ -760,8 +760,8 @@ module.exports = function (Orders) {
       if (!user) {
         return cb(ERROR(404, 'user not found'));
       }
-      if (!user.hasPrivilege('userDelivery')) // @todo define role for warehouse  
-        return cb(ERROR(400, 'user not delivery'));
+      if (!user.hasPrivilege('warehouse_keeper')) // @todo define role for warehouse  
+        return cb(ERROR(400, 'user is not warehouse keeper'));
 
 
       Orders.findById(orderId, function (err, order) {
@@ -775,6 +775,7 @@ module.exports = function (Orders) {
           return cb(ERROR(400, 'order is not pending'));
 
 
+        order.warehouseKepperId = userId; 
         order.status = 'inWarehouse';
         order.warehouseDate = new Date();
         order.save((err) => {
