@@ -16,12 +16,12 @@ module.exports = function (Warehouseproducts) {
     }
     //Statistics about warehouse products state 
     Warehouseproducts.statistics = async function(req){
-
         let collection =  Warehouseproducts.app.models.warehouseProducts;        
-        let warning = await collection.count({ and : [ {$expr: { lte: [ "$expectedCount" , "$warningThreshold" ] }} , { $expr : { gt: [ "$expectedCount" , "$threshold" ] }  } ] });
-        let total = await collection.count({}); 
-        let stockOut =   await collection.count({$expr: { lte: [ "$expectedCount" , "$threshold" ] }}); 
-
+        let warning =  collection.count({ and : [ {$expr: { lte: [ "$expectedCount" , "$warningThreshold" ] }} , { $expr : { gt: [ "$expectedCount" , "$threshold" ] }  } ] });
+        let total =  collection.count({}); 
+        let stockOut =    collection.count({$expr: { lte: [ "$expectedCount" , "$threshold" ] }}); 
+        [warning , total , stockOut] = await Promise.all([warning , total , stockOut]); 
+        
         return {total , warning , stockOut}; 
     }
 

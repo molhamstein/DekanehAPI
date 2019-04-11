@@ -91,7 +91,7 @@
           "description": ""
         }
       ],
-      "description": "",
+      "description": "Statistics about warehouse products state ",
       "http": [
         {
           "path": "/statistics",
