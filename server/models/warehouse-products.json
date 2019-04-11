@@ -72,5 +72,32 @@
     }
   },
   "acls": [],
-  "methods": {}
+  "methods": {
+    "statistics": {
+      "isStatic": true,
+      "accepts": [        
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/statistics",
+          "verb": "get"
+        }
+      ]
+    }
+  }
 }

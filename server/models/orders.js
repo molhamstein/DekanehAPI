@@ -1150,6 +1150,26 @@ module.exports = function (Orders) {
     })
   };
 
+  Orders.list = async function(req){
+
+      let collection = Orders.app.models.orders ; 
+
+      // orders which are in the last 24 hours 
+      let begin = new Date(); 
+      let end = new Date(); 
+      begin.setHours(begin.getHours() - 24);       
+      let betweenObj = { between : [begin , end]  }; 
+      let  pending = collection.find({ where : { orderDate : betweenObj  , status : 'pending'} } ); 
+      let warehouse = collection.find({ where : { orderDate : betweenObj  , status : {inq :['inWarehouse' , 'packed' ]} } } );     
+      let delivery  = collection.find({ where : { orderDate : betweenObj  , status : 'inDelivery' } } ); 
+      let done = collection.find({ where : { orderDate : betweenObj  , status : {inq :['delivered' , 'canceled' ]} } } ); 
+
+      [pending , warehouse , delivery , done] = await Promise.all([pending , warehouse , delivery , done]); 
+      return {pending , warehouse , delivery , done }; 
+      
+
+  }
+
   function _toArray(data, cb) {
     var result = [];
 

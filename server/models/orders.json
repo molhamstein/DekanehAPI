@@ -10,6 +10,8 @@
       "client",
       "deliveryMember",
       "orderProducts",
+      "warehouseKeeper",
+      "packagerMember",
       "warehouse"
     ]
   },
@@ -58,6 +60,10 @@
   "validations": [],
   "relations": {
     "client": {
+      "type": "belongsTo",
+      "model": "user"
+    },    
+    "warehouseKeeper": {
       "type": "belongsTo",
       "model": "user"
     },
@@ -189,6 +195,32 @@
       "http": [
         {
           "path": "/:id/printInvoice",
+          "verb": "get"
+        }
+      ]
+    },
+    "list": {
+      "isStatic": true,
+      "accepts": [        
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "List order according to its status",
+      "http": [
+        {
+          "path": "/list",
           "verb": "get"
         }
       ]
