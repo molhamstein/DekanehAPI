@@ -5,6 +5,7 @@
   "options": {
     "validateUpsert": true
   },
+  "scope" : {} , 
   "properties": {
     "nameAr": {
       "type": "string"

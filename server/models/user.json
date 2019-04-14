@@ -279,6 +279,40 @@
           "verb": "post"
         }
       ]
+    },
+    "getByType": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "type",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "source": "path"
+        },
+        {
+          "arg": "name",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "source": "path"
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/type",
+          "verb": "get"
+        }
+      ]
     }
   }
 }
