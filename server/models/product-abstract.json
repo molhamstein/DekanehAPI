@@ -113,7 +113,7 @@
         "path": "/search"
       }
     },
-    "warnings": {
+    "under": {
       "isStatic": true,
       "accepts": [
         {
@@ -130,6 +130,12 @@
           "http": {
             "source": "res"
           }
+        },
+        {
+          "arg": "threshold",
+          "type": "string",
+          "required": true,
+          "description": ""
         },
         {
           "arg": "warehouseId",
@@ -149,7 +155,7 @@
       "description": "get warehouse products which are close to runing out",
       "http": [
         {
-          "path": "/warnings/",
+          "path": "/under/",
           "verb": "get"
         }
       ]

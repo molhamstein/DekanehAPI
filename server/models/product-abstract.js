@@ -13,7 +13,7 @@ module.exports = function (Productabstract) {
     var stringArray = []
     if (string != undefined)
       stringArray = string.split(" ");
-    console.log(stringArray);
+
     var nameArMatch = {
       nameAr: {
         $regex: ".*(?i)" + string + ".*"
@@ -143,8 +143,8 @@ module.exports = function (Productabstract) {
           "categoryId": 1,
           "subCategoryId": 1,
           "manufacturerId": 1,
-          "warehouseProducts" : 1, 
-          
+          "warehouseProducts": 1,
+
           "category": {
             "$arrayElemAt": ["$category", 0]
           },
@@ -185,98 +185,34 @@ module.exports = function (Productabstract) {
     await Productabstract.app.models.warehouseProducts.create(warehouseProducts);
   });
 
-  Productabstract.warnings = async function (context, res, warehouseId, next) {
+  Productabstract.under = async function (context, res, threshold, warehouseId, next) {
 
+    let and = [];
+    if (warehouseId) {
+      and.push({ warehouseId });
+    }
+    if (threshold == 'threshold') {
+      // expectedCount <= threshold
+      and.push({ $expr: { lte: ["$expectedCount", "$threshold"] } });
 
-    let warehouseProducts = new Promise((resolve, recject) => {
+    } else if (threshold == 'warning') {
+      // expectedCount <= threshold
+      and.push({ $expr: { lte: ["$expectedCount", "$warningThreshold"] } });
 
+    } else if (threshold == 'only-warning') {
+      // expectedCount <= warningThreshold  &&  expectedCount > threshold
+      and.push({ $expr: { and: [{ $lte: ["$expectedCount", "$warningThreshold"] }, { $gt: ["$expectedCount", "$threshold"] }] } });
+    } else {
 
-      let pipeLine = [];
+      throw new Error("unvalid threshold value");
+    }
 
-      if (warehouseId) {
+    return Productabstract.app.models.warehouseProducts.find(
+      {
+        where: { and },
+        include: ['productAbstract']
+      });
 
-        pipeLine.push(
-          { $match: { "warehouseId": warehouseId } }
-        );
-      }
-
-      Productabstract.getDataSource().connector.collection('warehouseProducts')
-        .aggregate([
-          // select warehouseProducts under warningThreshold 
-          { $match: { $expr: { $lte: ["$expectedCount", "$warningThreshold"] } } },
-
-          ...pipeLine
-          ,
-          // join product abstract 
-          {
-            $lookup:
-            {
-              from: "productAbstract",
-              localField: "productAbstractId",
-              foreignField: "_id",
-              as: "productAbstract"
-            }
-          },
-          {
-            $unwind: {
-              path: "$productAbstract",
-            }
-          }
-          ,
-          {
-            $lookup:
-            {
-              from: "manufacturers",
-              localField: "productAbstract.manufacturerId",
-              foreignField: "_id",
-              as: "manufacturer"
-            }
-          },
-          {
-            $unwind: {
-              path: "$manufacturer",
-            }
-          },
-          {
-            $lookup:
-            {
-              from: "categories",
-              localField: "productAbstract.categoryId",
-              foreignField: "_id",
-              as: "category"
-            }
-          },
-          {
-            $unwind: {
-              path: "$category",
-            }
-          },
-          {
-            $lookup:
-            {
-              from: "categories",
-              localField: "productAbstract.subCategoryId",
-              foreignField: "_id",
-              as: "subCategory"
-            }
-          },
-          {
-            $unwind: {
-              path: "$subCategory",
-            }
-          },
-
-
-
-
-        ], (err, warehouseProducts) => {
-          resolve(warehouseProducts);
-        });
-
-    });
-
-
-    return warehouseProducts;
   }
 
 

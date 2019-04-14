@@ -8,21 +8,17 @@ module.exports = function(Warehouse) {
         
 
         if(!warehouse) 
-            throw "warehouse not found"; 
-
+            throw ERROR(404,"warehouse not found"); 
             
         let warehouseProducts = await warehouse.warehouseProducts.getAsync(); 
 
-
         let warehouseProcutsHistory = warehouseProducts.map( (warehouseProduct) => { 
 
-            let {avgPrice ,totalCount , expectedCount , accumulatedCountOverTime} = warehouseProduct ; 
-            return {avgPrice ,totalCount , expectedCount , accumulatedCountOverTime , 
+            let { id , warehouse  , ...rest } = warehouseProduct.__data ; 
+            return { ...rest ,
                  date: Date.now() , shift , warehouseProductId : id }; 
         }); 
 
-
         return await Warehouse.app.models.warehouseProductHistory.create(warehouseProcutsHistory); 
-
     }
 };

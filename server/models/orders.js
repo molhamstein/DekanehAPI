@@ -643,7 +643,7 @@ module.exports = function (Orders) {
             return next(err);
           }
 
-          ctx.req.body.status = 'inWarehouse';
+          ctx.req.body.status = 'pending';
           ctx.req.body.clientType = user.clientType;
          
           
