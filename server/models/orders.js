@@ -778,7 +778,7 @@ module.exports = function (Orders) {
           return cb(ERROR(400, 'order is not pending'));
 
 
-        order.warehouseKepperId = userId;
+        order.warehouseKeeperId = userId;
         order.status = 'inWarehouse';
         order.warehouseDate = new Date();
         order.save((err) => {

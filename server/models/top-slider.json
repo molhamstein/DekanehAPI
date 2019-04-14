@@ -29,6 +29,10 @@
     "creationDate": {
       "type": "date",
       "default": "$now"
+    } , 
+    "userType" : {
+      "type" : "string" ,       
+      "default": "default"
     }
   },
   "validations": [],
