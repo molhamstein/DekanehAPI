@@ -375,21 +375,21 @@ module.exports = function (User) {
   User.remoteMethod('staffLogin', {
     description: 'staff user login',
     accepts: [{
-        arg: 'email',
-        type: 'string',
-        required: true,
-        http: {
-          source: 'form'
-        }
-      },
-      {
-        arg: 'password',
-        type: 'string',
-        required: true,
-        http: {
-          source: 'form'
-        }
-      },
+      arg: 'email',
+      type: 'string',
+      required: true,
+      http: {
+        source: 'form'
+      }
+    },
+    {
+      arg: 'password',
+      type: 'string',
+      required: true,
+      http: {
+        source: 'form'
+      }
+    },
     ],
     returns: {
       arg: 'body',
@@ -424,23 +424,25 @@ module.exports = function (User) {
   };
 
 
-  User.getByType = async function(type , name ){ 
+  User.getByType = async function (type, name) {
 
 
 
 
-    let role = await User.app.models.role.findOne( {where: {nameEn : type }}); 
-    if(!role){
-      throw ERROR(404 , "type not found"); 
+
+    let role = await User.app.models.role.findOne({ where: { nameEn: type } });
+    
+    if (!role) {
+      throw ERROR(404, "type not found");
     }
 
-    return User.app.models.user.find( {
-      where :
-      { 
-       ownerName : {like : name },
-       roleIds : role.id 
+    return User.app.models.user.find({
+      where:
+      {
+        ownerName: { like: name },
+        roleIds: role.id
       }
-      }); 
+    });
 
   }
 

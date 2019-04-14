@@ -44,7 +44,10 @@ module.exports = function (Orders) {
       let total = warehouseProduct.expectedCount - orderProduct.count * product.parentCount;
 
       if (total < warehouseProduct.threshold) {
-        unvalidWarehouseProducts.push(product);
+        orderProduct.count = (warehouseProduct.expectedCount - warehouseProduct.threshold) / product.parentCount;
+        orderProduct.count = Math.floor(orderProduct.count);
+        orderProduct.count = Math.max(orderProduct.count, 0);
+        unvalidWarehouseProducts.push(orderProduct);
       }
       warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount) })
     }
@@ -111,7 +114,7 @@ module.exports = function (Orders) {
   * @param {Product[]} products Array of source product to query the price 
   * @param {User} user Order owner to query clientType 
   */
-  function assignOrderProductsSellingPrice(orderProducts, products , user) {
+  function assignOrderProductsSellingPrice(orderProducts, products, user) {
 
     for (let orderProduct of orderProducts) {
 
@@ -137,10 +140,10 @@ module.exports = function (Orders) {
    * @param {OrderProducts[]} orderProducts orderProduct to calculate total price for 
    * @returns number | total price of the order 
    */
-  function calcOrderProductsTotalPrice(orderProducts){
+  function calcOrderProductsTotalPrice(orderProducts) {
 
-    return orderProducts.reduce((accumelator, { count, sellingPrice }) => accumelator  +  Number(count) * Number(sellingPrice), 0); 
-    
+    return orderProducts.reduce((accumelator, { count, sellingPrice }) => accumelator + Number(count) * Number(sellingPrice), 0);
+
   }
 
 
@@ -392,9 +395,9 @@ module.exports = function (Orders) {
 
             data.clientType = user.clientType;
 
-          
+
             try {
-              assignOrderProductsSellingPrice(orderProducts, productsFromDb , user);
+              assignOrderProductsSellingPrice(orderProducts, productsFromDb, user);
               await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
             } catch (err) {
               return next(err);
@@ -402,7 +405,7 @@ module.exports = function (Orders) {
 
             let tempProduct = orderProducts;
             // calc total price 
-            let totalPrice = calcOrderProductsTotalPrice(orderProducts); 
+            let totalPrice = calcOrderProductsTotalPrice(orderProducts);
 
             if (isAdmin == false && totalPrice < 20000)
               return callback(ERROR(602, 'total price is low'));
@@ -645,17 +648,17 @@ module.exports = function (Orders) {
 
           ctx.req.body.status = 'pending';
           ctx.req.body.clientType = user.clientType;
-         
-          
+
+
           try {
-            assignOrderProductsSellingPrice(orderProducts, productsFromDb , user);
+            assignOrderProductsSellingPrice(orderProducts, productsFromDb, user);
             await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
           } catch (err) {
             return next(err);
           }
-          
+
           // calc total price 
-          let totalPrice = calcOrderProductsTotalPrice(orderProducts); 
+          let totalPrice = calcOrderProductsTotalPrice(orderProducts);
 
 
           if (isAdmin == false && totalPrice < 20000)
@@ -775,7 +778,7 @@ module.exports = function (Orders) {
           return cb(ERROR(400, 'order is not pending'));
 
 
-        order.warehouseKepperId = userId; 
+        order.warehouseKepperId = userId;
         order.status = 'inWarehouse';
         order.warehouseDate = new Date();
         order.save((err) => {
@@ -1066,7 +1069,7 @@ module.exports = function (Orders) {
    * @param {Function(Error, array)} callback
    */
 
-   // @todo delete 
+  // @todo delete 
   Orders.supplierOrders = function (callback) {
     var result;
     Orders.app.models.ordersFromSuppliers.findOne({
@@ -1150,23 +1153,23 @@ module.exports = function (Orders) {
     })
   };
 
-  Orders.list = async function(req){
+  Orders.list = async function (req) {
 
-      let collection = Orders.app.models.orders ; 
+    let collection = Orders.app.models.orders;
 
-      // orders which are in the last 24 hours 
-      let begin = new Date(); 
-      let end = new Date(); 
-      begin.setHours(begin.getHours() - 24);       
-      let betweenObj = { between : [begin , end]  }; 
-      let  pending = collection.find({ where : { orderDate : betweenObj  , status : 'pending'} } ); 
-      let warehouse = collection.find({ where : { orderDate : betweenObj  , status : {inq :['inWarehouse' , 'packed' ]} } } );     
-      let delivery  = collection.find({ where : { orderDate : betweenObj  , status : 'inDelivery' } } ); 
-      let done = collection.find({ where : { orderDate : betweenObj  , status : {inq :['delivered' , 'canceled' ]} } } ); 
+    // orders which are in the last 24 hours 
+    let begin = new Date();
+    let end = new Date();
+    begin.setHours(begin.getHours() - 24);
+    let betweenObj = { between: [begin, end] };
+    let pending = collection.find({ where: { orderDate: betweenObj, status: 'pending' } });
+    let warehouse = collection.find({ where: { orderDate: betweenObj, status: { inq: ['inWarehouse', 'packed'] } } });
+    let delivery = collection.find({ where: { orderDate: betweenObj, status: 'inDelivery' } });
+    let done = collection.find({ where: { orderDate: betweenObj, status: { inq: ['delivered', 'canceled'] } } });
 
-      [pending , warehouse , delivery , done] = await Promise.all([pending , warehouse , delivery , done]); 
-      return {pending , warehouse , delivery , done }; 
-      
+    [pending, warehouse, delivery, done] = await Promise.all([pending, warehouse, delivery, done]);
+    return { pending, warehouse, delivery, done };
+
 
   }
 
