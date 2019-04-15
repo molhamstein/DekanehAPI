@@ -10,8 +10,7 @@
       "client",
       "deliveryMember",
       "orderProducts",
-      "warehouseKeeper",
-      "packagerMember",
+      "warehouseKeeper",      
       "warehouse"
     ]
   },
@@ -70,11 +69,7 @@
     "deliveryMember": {
       "type": "belongsTo",
       "model": "user"
-    },
-    "packagerMember": {
-      "type": "belongsTo",
-      "model": "user"
-    },
+    },    
     "coupon": {
       "type": "belongsTo",
       "model": "coupons"

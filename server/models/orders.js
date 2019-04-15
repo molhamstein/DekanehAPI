@@ -811,17 +811,7 @@ module.exports = function (Orders) {
   });
 
 
-  Orders.assignOrderToPack = function (orderId, userId, cb) {
-
-    Orders.app.models.user.findById(userId, function (err, user) {
-      if (err)
-        return cb(err);
-      if (!user) {
-        return cb(ERROR(404, 'user not found'));
-      }
-      if (!user.hasPrivilege('packageOrder'))
-        return cb(ERROR(400, 'user not packageOrder'));
-
+  Orders.assignOrderToPack = function (orderId, cb) {
 
       Orders.findById(orderId, function (err, order) {
         if (err)
@@ -836,22 +826,17 @@ module.exports = function (Orders) {
 
         order.status = 'packed';
         order.packDate = new Date();
-        order.packagerMemberId = userId;
+        
         order.save((err) => {
           // TODO : send Notification to delivery user   
           return cb(null, 'order is packed');
         })
       });
-    });
   };
 
   Orders.remoteMethod('assignOrderToPack', {
     accepts: [{
       arg: 'orderId',
-      type: 'string',
-      required: true
-    }, {
-      arg: 'userId',
       type: 'string',
       required: true
     }],
@@ -875,8 +860,6 @@ module.exports = function (Orders) {
       }
       if (!user.hasPrivilege('userDelivery'))
         return cb(ERROR(400, 'user not delivery'));
-
-
 
       Orders.findById(orderId, async function (err, order) {
         if (err)
@@ -911,6 +894,8 @@ module.exports = function (Orders) {
 
         order.save((err) => {
           // TODO : send Notification to user delivery 
+          notifications.orderInDelievery(order);
+
           return cb(null, 'order is assigned');
         })
 

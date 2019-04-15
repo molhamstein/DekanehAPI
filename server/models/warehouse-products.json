@@ -19,7 +19,6 @@
   "scope": {
     "include": [
       "warehouse"
-      
     ]
   },
   "properties": {
