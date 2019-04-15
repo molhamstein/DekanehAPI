@@ -1016,7 +1016,7 @@ module.exports = function (Orders) {
       // if(order.deliveryMemberId != req.user.id.toString())
       // 	return cb(ERROR (500,'not privilege to this order'));
 
-      order.status = 'delivered';
+      order.status = 'delivered ';
       order.deliveredDate = new Date();
       order.save((err) => {
         // TODO : send Notification to client for rate this order 

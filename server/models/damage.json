@@ -8,7 +8,7 @@
   "scope": {
     "include": [
       "warehouse",
-      "supplyProducts"
+      "damageProducts"
     ]
   },
   "properties": {
@@ -38,5 +38,51 @@
     }
   },
   "acls": [],
-  "methods": {}
+  "methods": {
+    "daily": {
+      "isStatic": true,
+      "accepts": [    
+        {
+          "arg" : "res" , 
+          "http" : {
+            "source" :"res"
+          }
+        }
+        ,
+        {
+          "arg": "from",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "http": {
+            "source": "path"
+          }
+        },
+        {
+          "arg": "to",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "http": {
+            "source": "path"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "Get daily report of warehouse product stock",
+      "http": [
+        {
+          "path": "/daily",
+          "verb": "get"
+        }
+      ]
+    }
+  }
 }

@@ -11,7 +11,7 @@ module.exports = function (Damage) {
     function assignDamageProductsSnapshot(damageProducts, abstractProducts) {
 
 
-        let propsToClone = ["nameEn", "nameAr", "officialConsumerPrice", "officialMassMarketPrice" , "media" ,"id"];
+        let propsToClone = ["nameEn", "nameAr", "officialConsumerPrice", "officialMassMarketPrice", "media", "id"];
 
 
         for (let damageProduct of damageProducts) {
@@ -81,7 +81,7 @@ module.exports = function (Damage) {
         let { damageProducts } = ctx;
 
         let createdDamageProducts = await damage.damageProducts.create(damageProducts);
-        
+
         let warehouse = await damage.warehouse.getAsync();
         // update warehouse product 
         let warehouseProductUpdates = await createDamageProductsWarehouseUpdates(createdDamageProducts, warehouse);
@@ -91,5 +91,40 @@ module.exports = function (Damage) {
         }
 
     });
+
+    Damage.daily = function (res, from, to, cb) {
+
+
+        let stages =
+            [
+                {
+                    $lookup: {
+                        from: 'damageProduct',
+                        localField: '_id',
+                        foreignField: 'damageId',
+                        as: 'damageProduct'
+                    }
+                },
+                {
+                    $unwind: "$damageProduct"
+                },
+                {
+                    $group: {
+                        _id: {  month: { $month: "$date" }, day: { $dayOfMonth: "$date" }, year: { $year: "$date" } },
+                        count: { $sum: "$damageProduct.count" }, 
+                        cost : { $sum : {$multiply : [ "$damageProduct.count" , "$damageProduct.productAbstractSnapshot.officialMassMarketPrice"] }}
+                    }
+                }
+            ];
+            //productAbstractId: "$damageProduct.productAbstractId",
+        Damage.getDataSource().connector.connect((err, db) => {
+            let collection = db.collection("damage");
+            collection.aggregate(stages, (err, result) => {
+                res.json(result);
+            });
+        });
+
+
+    }
 
 };
