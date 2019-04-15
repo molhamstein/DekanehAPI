@@ -99,9 +99,21 @@ module.exports = function (Damage) {
 
     Damage.daily = function (res, from, to, cb) {
 
+        
+        let and = []; 
+        if(from)
+            and.push({ date : { $gte : from  } }); 
+        
+        if(to)
+            and.push({ date : { $lte : to }}); 
+        
+        if(and.length)
+            and = [ {$match : { $and : and  } }]; 
 
+      
         let stages =
             [
+                ...and , 
                 {
                     $lookup: {
                         from: 'damageProduct',

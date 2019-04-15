@@ -54,21 +54,15 @@
         ,
         {
           "arg": "from",
-          "type": "string",
+          "type": "date",
           "required": false,
-          "description": "",
-          "http": {
-            "source": "path"
-          }
+          "description": ""
         },
         {
           "arg": "to",
-          "type": "string",
+          "type": "date",
           "required": false,
-          "description": "",
-          "http": {
-            "source": "path"
-          }
+          "description": ""
         }
       ],
       "returns": [

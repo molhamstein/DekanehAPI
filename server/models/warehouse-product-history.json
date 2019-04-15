@@ -46,19 +46,13 @@
           "arg": "from",
           "type": "date",
           "required": false,
-          "description": "",
-          "http": {
-            "source": "path"
-          }
+          "description": ""
         },
         {
           "arg": "to",
           "type": "date",
           "required": false,
-          "description": "",
-          "http": {
-            "source": "path"
-          }
+          "description": ""
         }
       ],
       "returns": [
