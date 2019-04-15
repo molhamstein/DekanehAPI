@@ -3,6 +3,11 @@
 module.exports = function (Damage) {
 
 
+
+    Damage.validatesInclusionOf('reason', {
+        in: ['expired' , 'damaged' , 'other']
+    });
+
     /**
     * 
     * @param {DamageProducts[]} damageProducts Array of DamageProducts to create snapshot 

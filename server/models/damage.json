@@ -17,8 +17,11 @@
       "default": "$now"
     },
     "note": {
-      "type": "string",
-      "required": "string"
+      "type": "string" 
+    }, 
+    "reason" : {
+      "type" : "string" , 
+      "required" : "true"
     }
   },
   "validations": [],

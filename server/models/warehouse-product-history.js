@@ -8,13 +8,28 @@ module.exports = function(Warehouseproducthistory) {
         in: [1,2,3]
     });
 
-    Warehouseproducthistory.daily = async function(fromDate , toDate){
+    Warehouseproducthistory.daily =  function(res , fromDate , toDate){
 
-        return "test"; 
 
-        return Warehouseproducthistory.getDataSource().connector.collection('warehouseProductHistory')
-        .find({}); 
-   
+
+
+        let stages = 
+
+        [
+            {
+                $group: {
+                    _id: { warehouseProductId : "$warehouseProductId"  },
+                    warehouseProduct: { $push: "$$ROOT" },                     
+                }
+            }
+        ];
+        Warehouseproducthistory.getDataSource().connector.connect((err, db) => {
+            let collection = db.collection("warehouseProductHistory");
+            collection.aggregate(stages, (err, result) => {
+                res.json(result);
+            });
+        });
+
 
     }
             
