@@ -9,17 +9,23 @@ module.exports = function(Warehouseproducthistory) {
     });
 
     Warehouseproducthistory.daily =  function(res , fromDate , toDate){
-
-
-
-
         let stages = 
-
         [
+            //{ $sort: { date: -1 } },
             {
                 $group: {
-                    _id: { warehouseProductId : "$warehouseProductId"  },
-                    warehouseProduct: { $push: "$$ROOT" },                     
+                    _id: { warehouseProductId : "$warehouseProductId" ,  month: { $month: "$date" }, day: { $dayOfMonth: "$date" }, year: { $year: "$date" }  },
+                    grouped: { $first: "$$ROOT" },                     
+                }  
+                
+            },
+            {
+                $replaceRoot: { newRoot: "$grouped" }
+            } , 
+            {
+                $group: {
+                _id: { warehouseProductId : "$warehouseProductId" } , 
+                dates : { $push : "$$ROOT"}
                 }
             }
         ];
