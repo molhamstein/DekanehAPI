@@ -1520,6 +1520,23 @@ module.exports = function (Products) {
   Products.findByBarcode = async function(code){
     return Products.app.models.products.find({ "where": { "barcode": code } });   
   }
+  
+  
+  let mapProduct = (product) => {
+    product.wholeSaleMarketPrice = 0;
+    product.marketOfficialPrice = 0;
+    product.dockanBuyingPrice = 0;
+    return product;
+  }
+  Products.afterRemote('findById' , async function(ctx){
+    ctx.result = mapProduct(ctx.result); 
+  });
+  Products.afterRemote('find', async function (ctx) {
+    // convert to the old shape 
+    ctx.result = ctx.result.map(mapProduct);
+
+  });
+  
 };
 
 

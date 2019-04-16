@@ -1049,6 +1049,32 @@ module.exports = function (Orders) {
     },
   });
 
+  let mapOrder =  (order) => {
+
+    order = order.__data; 
+    order.orderProducts = order.orderProducts.map((orderProduct) => {
+      orderProduct = orderProduct.__data; 
+      let { productSnapshot, ...rest } = orderProduct;      
+      productSnapshot = productSnapshot.__data;
+      productSnapshot.wholeSaleMarketPrice = 0;
+      productSnapshot.marketOfficialPrice = 0;
+      productSnapshot.dockanBuyingPrice = 0;
+      return { ...rest, ...productSnapshot };
+    });
+
+    return order;
+  };
+  Orders.afterRemote('findById', async function (ctx) {
+    ctx.result =  mapOrder(ctx.result);
+  });
+  Orders.afterRemote('find', async function (ctx) {
+    ctx.result = ctx.result.map(mapOrder);
+    console.log("FUUUUUUCK"); 
+  });
+  
+  
+  
+
   /**
    *
    * @param {Function(Error, array)} callback
