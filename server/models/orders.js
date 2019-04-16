@@ -1059,6 +1059,7 @@ module.exports = function (Orders) {
       productSnapshot.wholeSaleMarketPrice = 0;
       productSnapshot.marketOfficialPrice = 0;
       productSnapshot.dockanBuyingPrice = 0;
+      rest.price = rest.sellingPrice ; 
       return { ...rest, ...productSnapshot };
     });
 
