@@ -34,6 +34,7 @@ module.exports = function (Orders) {
     for (let product of products) {
 
       let productAbstractId = product.productAbstract().id;
+      
       let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
       // warehouse doesn't have  the product 
       if (!warehouseProduct) {

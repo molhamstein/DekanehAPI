@@ -46,7 +46,7 @@ let main = async () => {
 
     // new props 
     targetProduct.parentCount = 0;
-    targetProduct.productAbstract = null;
+    targetProduct.productAbstractId = null;
     target.collection('products').replaceOne({ _id: targetProduct._id }, targetProduct);
   }
   console.log("done migrating products");
