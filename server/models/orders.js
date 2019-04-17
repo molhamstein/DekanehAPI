@@ -23,7 +23,7 @@ module.exports = function (Orders) {
   Orders.validatesInclusionOf('status', {
     in: ['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered', 'canceled']
   });
-  Orders.validatesPresenceOf('warehouseId');
+ // Orders.validatesPresenceOf('warehouseId');
 
   async function validateWarehouseProductsAvailability(warehouse, orderProducts, products) {
 
@@ -75,17 +75,7 @@ module.exports = function (Orders) {
     productProps.forEach((val, index) => {
       snapshot[val] = product[val];
     });
-    // product-abstract                          
-    let productAbstractProps = ["officialConsumerPrice", "officialMassMarketPrice"];
-    let productAbstract = product.productAbstract();
-    productAbstractProps.forEach((val, index) => {
-      snapshot[val] = productAbstract[val];
-    });
-
-    // warehouse-product 
-
-    snapshot["warehouseAvgBuyingPrice"] = warehouseProduct.avgBuyingPrice;
-
+   
     return snapshot;
   };
 
@@ -104,8 +94,7 @@ module.exports = function (Orders) {
         throw (ERROR(404, "Product not found in db"));
 
       //order-product snapshot      
-      let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId: product.productAbstractId } });
-      orderProduct.productSnapshot = createOrderProductSnapshot(product, warehouseProduct);
+      orderProduct.productSnapshot = createOrderProductSnapshot(product, null);
     }
   }
 
@@ -569,10 +558,7 @@ module.exports = function (Orders) {
 
 
 
-    //assign first warehouse in database as warehouse for the order
-    Orders.app.models.warehouse.findOne({}, (err, warehouse) => {
-      ctx.req.body.warehouseId = warehouse.id;
-
+   
 
       var orderProducts = ctx.req.body.orderProducts;
 
@@ -581,6 +567,7 @@ module.exports = function (Orders) {
         isAdmin = true
         delete ctx.req.body.isAdmin;
       }
+      ctx.req.body.dirty = true ; 
 
       var productsIds = []
       _.each(orderProducts, product => {
@@ -632,20 +619,7 @@ module.exports = function (Orders) {
             });
           }
 
-          try {
-            //validate order product availability in warehouse product 
-            let { unvalidWarehouseProducts, warehouseProductCountUpdates } = await validateWarehouseProductsAvailability(warehouse, orderProducts, productsFromDb);
-            if (unvalidWarehouseProducts.length != 0) {
-              return next({
-                "statusCode": 612, // unavailble in warehouse 
-                "data": unvalidWarehouseProducts
-              });
-            }
-            ctx.warehouseProductCountUpdates = warehouseProductCountUpdates;
-          } catch (err) {
-            // data format error e.g product doesn't belong to productAbstract 
-            return next(err);
-          }
+          
 
           ctx.req.body.status = 'pending';
           ctx.req.body.clientType = user.clientType;
@@ -653,7 +627,7 @@ module.exports = function (Orders) {
 
           try {
             assignOrderProductsSellingPrice(orderProducts, productsFromDb, user);
-            await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
+            await assignOrderProductsSnapshot(orderProducts, productsFromDb, null);
           } catch (err) {
             return next(err);
           }
@@ -711,7 +685,7 @@ module.exports = function (Orders) {
             });
           });
         });
-      });
+    
 
     });
   });
@@ -731,17 +705,6 @@ module.exports = function (Orders) {
       if (err)
         return next(err)
 
-      // update warehouse products expected count 
-      let warehouseProductCountUpdates = ctx.warehouseProductCountUpdates;
-
-      // @todo bulk update in case of performance issues 
-      for (let { warehouseProduct, countDiff } of warehouseProductCountUpdates) {
-        try {
-          await warehouseProduct.updateExpectedCount(countDiff);
-        } catch (err) {
-          return next(err);
-        }
-      }
 
       Orders.app.models.notification.create({
         "type": "order",
@@ -869,8 +832,8 @@ module.exports = function (Orders) {
           return cb(ERROR(404, 'order not found'));
 
 
-        if (order.status !== 'packed')
-          return cb(ERROR(400, 'order is not ready to deilivery or order is already in delivery'));
+       // if (order.status !== 'packed')
+        //  return cb(ERROR(400, 'order is not ready to deilivery or order is already in delivery'));
 
         order.status = 'inDelivery';
         order.deliveryMemberId = userId;
