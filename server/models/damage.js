@@ -1,11 +1,12 @@
 'use strict';
+let ObjectId = require("mongodb").ObjectId;
 
 module.exports = function (Damage) {
 
 
 
     Damage.validatesInclusionOf('reason', {
-        in: ['expired' , 'damaged' , 'other']
+        in: ['expired', 'damaged', 'other']
     });
 
     /**
@@ -97,23 +98,28 @@ module.exports = function (Damage) {
 
     });
 
-    Damage.daily = function (res, from, to, cb) {
+    Damage.daily = function (res, from, to, productAbstractId, cb) {
 
-        
-        let and = []; 
-        if(from)
-            and.push({ date : { $gte : from  } }); 
-        
-        if(to)
-            and.push({ date : { $lte : to }}); 
-        
-        if(and.length)
-            and = [ {$match : { $and : and  } }]; 
+        let and = [];
+        if (from)
+            and.push({ date: { $gte: from } });
 
-      
+        if (to)
+            and.push({ date: { $lte: to } });
+
+
+        if (and.length)
+            and = [{ $match: { $and: and } }];
+
+        let matchProductAbstractId = [];
+
+        if (productAbstractId) {
+            matchProductAbstractId.push({ $match: { "damageProduct.productAbstractId": ObjectId(productAbstractId) } });
+        }
+
         let stages =
             [
-                ...and , 
+                ...and,
                 {
                     $lookup: {
                         from: 'damageProduct',
@@ -125,22 +131,53 @@ module.exports = function (Damage) {
                 {
                     $unwind: "$damageProduct"
                 },
+                ...matchProductAbstractId
+                ,
                 {
                     $group: {
-                        _id: {  month: { $month: "$date" }, day: { $dayOfMonth: "$date" }, year: { $year: "$date" } },
-                        count: { $sum: "$damageProduct.count" }, 
-                        cost : { $sum : {$multiply : [ "$damageProduct.count" , "$damageProduct.productAbstractSnapshot.officialMassMarketPrice"] }}
+                        _id: { month: { $month: "$date" }, day: { $dayOfMonth: "$date" }, year: { $year: "$date" } },
+                        count: { $sum: "$damageProduct.count" },
+                        cost: { $sum: { $multiply: ["$damageProduct.count", "$damageProduct.productAbstractSnapshot.officialMassMarketPrice"] } }
                     }
                 }
             ];
-            //productAbstractId: "$damageProduct.productAbstractId",
+        //productAbstractId: "$damageProduct.productAbstractId",
+
+        let productsStages = [
+            ...and,
+            {
+                $lookup: {
+                    from: 'damageProduct',
+                    localField: '_id',
+                    foreignField: 'damageId',
+                    as: 'damageProduct'
+                }
+            },
+            {
+                $unwind: "$damageProduct"
+            },
+            ...matchProductAbstractId
+            ,
+            {
+                $group: {
+                    _id: { productAbstractId: "$damageProduct.productAbstractId" },
+                    count: { $sum: "$damageProduct.count" },
+                    cost: { $sum: { $multiply: ["$damageProduct.count", "$damageProduct.productAbstractSnapshot.officialMassMarketPrice"] } }
+                }
+            }
+        ];
+
+
         Damage.getDataSource().connector.connect((err, db) => {
             let collection = db.collection("damage");
             collection.aggregate(stages, (err, result) => {
-                res.json(result);
+
+                collection.aggregate(productsStages, (err, productsResult) => {
+                    res.json({ result, products: productsResult });
+                });
+
             });
         });
-
 
     }
 

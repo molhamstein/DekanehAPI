@@ -32,44 +32,5 @@
   "acls": [],
   "methods": {
 
-    "daily": {
-      "isStatic": true,
-      "accepts": [        
-        {
-          "arg" : "res" , 
-          "http" : {
-            "source" :"res"
-          }
-        }
-        ,
-        {
-          "arg": "from",
-          "type": "date",
-          "required": false,
-          "description": ""
-        },
-        {
-          "arg": "to",
-          "type": "date",
-          "required": false,
-          "description": ""
-        }
-      ],
-      "returns": [
-        {
-          "arg": "result",
-          "type": "array",
-          "root": true,
-          "description": ""
-        }
-      ],
-      "description": "Get daily report of warehouse product stock",
-      "http": [
-        {
-          "path": "/daily",
-          "verb": "get"
-        }
-      ]
-    }
   }
 }

@@ -63,6 +63,13 @@
           "type": "date",
           "required": false,
           "description": ""
+        },
+        
+        {
+          "arg": "productAbstractId",
+          "type": "string",
+          "required": false,
+          "description": ""
         }
       ],
       "returns": [
