@@ -1526,10 +1526,18 @@ module.exports = function (Products) {
     product.wholeSaleMarketPrice = 0;
    // product.marketOfficialPrice = 0;
     product.dockanBuyingPrice = 0;
+
+    if(product.productAbstract())
+      product.marketOfficialPrice = product.productAbstract().officialConsumerPrice; 
+    
     return product;
   }
   Products.afterRemote('findById' , async function(ctx){
-    ctx.result = mapProduct(ctx.result); 
+
+  if(ctx.result)
+   ctx.result = mapProduct(ctx.result); 
+
+  
   });
   Products.afterRemote('find', async function (ctx) {
     // convert to the old shape 

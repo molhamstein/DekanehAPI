@@ -1067,6 +1067,7 @@ module.exports = function (Orders) {
     return order;
   };
   Orders.afterRemote('findById', async function (ctx) {
+    if(ctx.result)
     ctx.result =  mapOrder(ctx.result);
   });
   Orders.afterRemote('find', async function (ctx) {
