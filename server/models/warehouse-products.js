@@ -36,7 +36,7 @@ module.exports = function (Warehouseproducts) {
         if (to)
             and.push({ date: { $lte: to } });
 
-        if(productAbstractId)
+        if(productAbstractId)   
             and.push({productAbstractId : ObjectId( productAbstractId ) } ); 
 
 
