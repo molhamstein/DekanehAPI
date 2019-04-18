@@ -439,7 +439,7 @@ module.exports = function (User) {
     return User.app.models.user.find({
       where:
       {
-        ownerName: { like: name },
+        or : [ { ownerName: { like: name } } ,  { username: { like: name } } ], 
         roleIds: role.id
       }
     });
