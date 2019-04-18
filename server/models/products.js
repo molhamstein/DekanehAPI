@@ -609,7 +609,7 @@ module.exports = function (Products) {
   //      db.collection('products').createIndex({ titleAr: "text", titleEn: "text" }, function(err) {
   //      });
   //    })
-  Products.search = function (string, isOffer, clientType = "", limit = 10, skip = 0, res, cb) {
+  Products.search = function (string, isOffer, clientType = "", limit = 10, skip = 0, isOrder = "false",  res, cb) {
     var stages = []
     if (isOffer != undefined)
       stages.push({
@@ -617,6 +617,11 @@ module.exports = function (Products) {
           isOffer: isOffer.toLowerCase() == 'true' ? true : false
         }
       });
+
+
+    if(isOrder.toLowerCase() == 'true'){
+      stages.push({$match : { productAbstractId : {$ne : null}}}); 
+    }
     var stringArray = []
     if (string != undefined)
       stringArray = string.split(" ");
@@ -814,6 +819,13 @@ module.exports = function (Products) {
       {
         arg: 'skip',
         type: 'number',
+        'http': {
+          source: 'query'
+        }
+      },      
+      {
+        arg: 'isOrder',
+        type: 'string',
         'http': {
           source: 'query'
         }
