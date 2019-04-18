@@ -322,23 +322,22 @@ module.exports = function (Orders) {
             if (err)
               return callback(err);
 
+              let order = await Orders.app.models.orders.findById(id);
+              if (!order)
+                return callback(ERROR(404, "order not found"));
+  
+
+              /*
             let warehouseProductCountUpdates = [];
 
-            let order = await Orders.app.models.orders.findById(id);
-            if (!order)
-              return callback(ERROR(404, "order not found"));
 
             let warehouse = order.warehouse();
-
-
 
             try {
               //validate new order products availability in warehouse product 
               let unvalidWarehouseProducts = [];
-
               let warehouse = order.warehouse();
               let temp = await validateWarehouseProductsAvailability(warehouse, orderProducts, newProducts);
-
               unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
               warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
 
@@ -382,13 +381,13 @@ module.exports = function (Orders) {
             }
 
 
-
+            */
             data.clientType = user.clientType;
 
 
             try {
               assignOrderProductsSellingPrice(orderProducts, productsFromDb, user);
-              await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
+              await assignOrderProductsSnapshot(orderProducts, productsFromDb, null);
             } catch (err) {
               return next(err);
             }
@@ -410,7 +409,7 @@ module.exports = function (Orders) {
               data.priceBeforeCoupon = data.totalPrice;
 
               if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
-                changeOrderProduct(order, tempProduct, warehouseProductCountUpdates, function (err) {
+                changeOrderProduct(order, tempProduct, null, function (err) {
 
                   if (err)
                     return callback(err)
@@ -527,19 +526,6 @@ module.exports = function (Orders) {
           if (err)
             return callback(err)
 
-          for (let { warehouseProduct, countDiff } of warehouseProductCountUpdates) {
-
-
-            try {
-              // update warehouse products count 
-              await warehouseProduct.updateExpectedCount(countDiff);
-              if (['inDelivery', 'delivered'].includes(order.status))
-                await warehouseProduct.updatetotalCount(countDiff);
-            } catch (err) {
-              return callback(err);
-            }
-
-          }
 
           callback()
         })
@@ -839,26 +825,11 @@ module.exports = function (Orders) {
         order.deliveryMemberId = userId;
         order.assignedDate = new Date();
 
-        for (let orderProduct of order.orderProducts()) {
-
-          let product = orderProduct.product();
-
-
-          let productAbstractId = product.productAbstract().id;
-          let warehouse = order.warehouse();
-          let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
-
-
-
-          warehouseProduct = warehouseProduct[0];
-          // update warehouse total count 
-          await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount);
-
-        }
+       
 
         order.save((err) => {
           // TODO : send Notification to user delivery 
-          notifications.orderInDelievery(order);
+//          notifications.orderInDelievery(order);
 
           return cb(null, 'order is assigned');
         })
@@ -902,26 +873,7 @@ module.exports = function (Orders) {
         return cb(ERROR(400, 'order already in canceled'));
 
 
-      // @todo in case of performance issues use bulk updates 
-      for (let orderProduct of order.orderProducts()) {
-
-        let product = orderProduct.product();
-        let productAbstractId = product.productAbstract().id;
-        let warehouse = order.warehouse();
-        let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
-        warehouseProduct = warehouseProduct[0];
-
-        // in: ['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered', 'canceled']        
-        // restore warehouse expected count           
-        if (['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered'].includes(order.status)) {
-          await warehouseProduct.updateExpectedCount(orderProduct.count * product.parentCount);
-        }
-
-        // restore warehouse total count 
-        if (['inDelivery'].includes(order.status)) {
-          await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount);
-        }
-      }
+   
 
 
 
@@ -980,7 +932,7 @@ module.exports = function (Orders) {
       // if(order.deliveryMemberId != req.user.id.toString())
       // 	return cb(ERROR (500,'not privilege to this order'));
 
-      order.status = 'delivered ';
+      order.status = 'delivered';
       order.deliveredDate = new Date();
       order.save((err) => {
         // TODO : send Notification to client for rate this order 
