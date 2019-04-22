@@ -1523,9 +1523,9 @@ module.exports = function (Products) {
   
   
   let mapProduct = (product) => {
-    product.wholeSaleMarketPrice = 0;
+   // product.wholeSaleMarketPrice = 0;
    // product.marketOfficialPrice = 0;
-    product.dockanBuyingPrice = 0;
+   // product.dockanBuyingPrice = 0;
 
     if(product.productAbstract())
       product.marketOfficialPrice = product.productAbstract().officialConsumerPrice; 
