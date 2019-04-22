@@ -1,10 +1,7 @@
 'use strict';
 module.exports = async function (app) {
-
     // roles seed 
-
     console.log("seeding") ;
-
     let roles = [
 
         {

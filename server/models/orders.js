@@ -958,9 +958,7 @@ module.exports = function (Orders) {
           await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount);
         }
       }
-
-
-
+      
       order.status = 'canceled';
       order.canceledDate = new Date();
       order.save((err) => {

@@ -162,9 +162,11 @@ module.exports = function (Damage) {
                 $group: {
                     _id: { productAbstractId: "$damageProduct.productAbstractId" },
                     count: { $sum: "$damageProduct.count" },
-                    cost: { $sum: { $multiply: ["$damageProduct.count", "$damageProduct.productAbstractSnapshot.officialMassMarketPrice"] } }
+                    cost: { $sum: { $multiply: ["$damageProduct.count", "$damageProduct.productAbstractSnapshot.officialMassMarketPrice"] } } , 
+                    productAbstractSnapshot : { $first : "$damageProduct.productAbstractSnapshot"}
                 }
-            }
+            },
+            
         ];
 
 

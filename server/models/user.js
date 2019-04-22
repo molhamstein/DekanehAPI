@@ -423,11 +423,7 @@ module.exports = function (User) {
     // TODO
   };
 
-
   User.getByType = async function (type, name) {
-
-
-
 
 
     let role = await User.app.models.role.findOne({ where: { nameEn: type } });

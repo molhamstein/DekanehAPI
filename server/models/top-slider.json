@@ -30,9 +30,9 @@
       "type": "date",
       "default": "$now"
     } , 
-    "userType" : {
+    "clientType" : {
       "type" : "string" ,       
-      "default": "default"
+      "default": "all"
     }
   },
   "validations": [],
