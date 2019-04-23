@@ -72,6 +72,7 @@ module.exports = function (Orders) {
       "offerSource", "isOffer", "media"];
 
     productProps.forEach((val, index) => {
+      if(product[val])
       snapshot[val] = product[val];
     });
     // product-abstract                          

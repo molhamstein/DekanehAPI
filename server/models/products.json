@@ -11,8 +11,7 @@
       "subCategory",
       "manufacturer",
       "products",
-      "productAbstract" 
-    
+      "productAbstract"
     ]
   },
   "properties": {
@@ -152,7 +151,9 @@
       "foreignKey": "productId"
     }
   },
-  "acls": [],
+  "acls": [
+    
+  ],
   "methods": {
     "findByBarcode": {
       "isStatic": true,

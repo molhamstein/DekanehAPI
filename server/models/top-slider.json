@@ -29,9 +29,9 @@
     "creationDate": {
       "type": "date",
       "default": "$now"
-    } , 
-    "clientType" : {
-      "type" : "string" ,       
+    },
+    "clientType": {
+      "type": "string",
       "default": "all"
     }
   },

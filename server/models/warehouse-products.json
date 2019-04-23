@@ -73,43 +73,15 @@
   },
   "acls": [],
   "methods": {
-    "statistics": {
-      "isStatic": true,
-      "accepts": [        
-        {
-          "arg": "req",
-          "http": {
-            "source": "req"
-          }
-        }
-      ],
-      "returns": [
-        {
-          "arg": "result",
-          "type": "array",
-          "root": true,
-          "description": ""
-        }
-      ],
-      "description": "Statistics about warehouse products state ",
-      "http": [
-        {
-          "path": "/statistics",
-          "verb": "get"
-        }
-      ]
-    }
-    ,
     "daily": {
       "isStatic": true,
-      "accepts": [        
+      "accepts": [
         {
-          "arg" : "res" , 
-          "http" : {
-            "source" :"res"
+          "arg": "res",
+          "http": {
+            "source": "res"
           }
-        }
-        ,
+        },
         {
           "arg": "from",
           "type": "date",
@@ -141,6 +113,32 @@
       "http": [
         {
           "path": "/daily",
+          "verb": "get"
+        }
+      ]
+    },
+    "statistics": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "Statistics about warehouse products state ",
+      "http": [
+        {
+          "path": "/statistics",
           "verb": "get"
         }
       ]

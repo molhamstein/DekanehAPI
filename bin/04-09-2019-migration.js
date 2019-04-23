@@ -40,9 +40,9 @@ let main = async () => {
     let targetProduct = product;
 
     // deleted props 
-    delete targetProduct.wholeSaleMarketPrice;
-    delete targetProduct.marketOfficialPrice;
-    delete targetProduct.dockanBuyingPrice;
+    //delete targetProduct.wholeSaleMarketPrice;
+   // delete targetProduct.marketOfficialPrice;
+    //delete targetProduct.dockanBuyingPrice;
 
     // new props 
     targetProduct.parentCount = 0;
@@ -71,9 +71,9 @@ let main = async () => {
 
     orderProduct.sellingPrice = orderProduct.price ;
     // deleted props 
-    delete orderProduct.wholeSaleMarketPrice;
-    delete orderProduct.marketOfficialPrice;
-    delete orderProduct.dockanBuyingPrice;
+    //delete orderProduct.wholeSaleMarketPrice;
+  //  delete orderProduct.marketOfficialPrice;
+   // delete orderProduct.dockanBuyingPrice;
     delete orderProduct.price ; 
 
 

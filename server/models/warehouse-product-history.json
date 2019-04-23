@@ -26,11 +26,7 @@
     }
   },
   "validations": [],
-  "relations": {
-    
-  },
+  "relations": {},
   "acls": [],
-  "methods": {
-
-  }
+  "methods": {}
 }

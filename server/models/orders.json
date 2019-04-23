@@ -10,7 +10,7 @@
       "client",
       "deliveryMember",
       "orderProducts",
-      "warehouseKeeper",      
+      "warehouseKeeper",
       "warehouse"
     ]
   },
@@ -61,7 +61,7 @@
     "client": {
       "type": "belongsTo",
       "model": "user"
-    },    
+    },
     "warehouseKeeper": {
       "type": "belongsTo",
       "model": "user"
@@ -69,7 +69,7 @@
     "deliveryMember": {
       "type": "belongsTo",
       "model": "user"
-    },    
+    },
     "coupon": {
       "type": "belongsTo",
       "model": "coupons"
@@ -196,7 +196,7 @@
     },
     "list": {
       "isStatic": true,
-      "accepts": [        
+      "accepts": [
         {
           "arg": "req",
           "http": {

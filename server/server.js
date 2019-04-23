@@ -4,6 +4,24 @@ var loopback = require('loopback');
 var boot = require('loopback-boot');
 
 global.app = module.exports = loopback();
+
+
+var rfs = require('rotating-file-stream');
+var path = require('path');
+// create a rotating write stream
+var accessLogStream = rfs('access.log', {
+  interval: '1d', // rotate daily
+  path: path.join(__dirname, '../../' , 'log')
+})
+
+// setup the logger
+
+var morganBody = require('morgan-body'); 
+
+
+morganBody(app , { stream: accessLogStream , maxBodyLength : -1 , noColors:true });
+
+
 app.start = function () {
   // start the web server
   return app.listen(function () {
