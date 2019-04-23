@@ -70,9 +70,10 @@ module.exports = function (Orders) {
     // product 
     let productProps = ["nameAr", "nameEn", "horecaPrice", "horecaPriceDiscount", "wholeSalePrice",
       "wholeSalePriceDiscount", "pack", "description",
-      "offerSource", "isOffer", "media"];
+      "offerSource", "isOffer", "media" , "marketOfficialPrice" , "dockanBuyingPrice" , "wholeSaleMarketPrice"];
 
     productProps.forEach((val, index) => {
+      if(product[val])
       snapshot[val] = product[val];
     });
    
@@ -162,21 +163,23 @@ module.exports = function (Orders) {
       // console.log("products")
       for (let index = 0; index < orderProducts.length; index++) {
         const element = orderProducts[index];
+      
+      
         if (index < 18)
-          firstMainProduct.push({
-            "index": index + 1,
-            "price": element.price,
-            "nameAr": element.nameAr,
-            "count": element.count,
-            "marketOfficialPrice": element.marketOfficialPrice
-          })
+        firstMainProduct.push({
+          "index": index + 1,
+          "price": element.sellingPrice,
+          "nameAr": element.productSnapshot.nameAr,
+          "count": element.count,
+          "marketOfficialPrice": element.marketOfficialPrice ? element.marketOfficialPrice :  element.productSnapshot.marketOfficialPrice
+        })
         else {
           secondeMainProduct.push({
             "index": index + 1,
-            "price": element.price,
-            "nameAr": element.nameAr,
+            "price": element.sellingPrice,
+            "nameAr": element.productSnapshot.nameAr,
             "count": element.count,
-            "marketOfficialPrice": element.marketOfficialPrice
+            "marketOfficialPrice": element.marketOfficialPrice ? element.marketOfficialPrice :  element.productSnapshot.marketOfficialPrice
           })
         }
       }
