@@ -31,7 +31,13 @@ module.exports = async function (app) {
             "privilegeIds": [
                 "userDelivery"
             ]
-        }
+        }, 
+        {
+            "nameAr": "sales",
+            "nameEn": "sales",
+            "privilegeIds": [
+            ]
+        }     
     ];
 
     for (let role of roles) {
