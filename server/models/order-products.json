@@ -41,7 +41,7 @@
       "model": "productSnapshot",
       "property": "productSnapshot",
       "options": {
-        "validate": true,
+        "validate": false,
         "forceId": false
       }
     }

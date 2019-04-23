@@ -3,7 +3,7 @@
   "base": "Model",
   "idInjection": true,
   "options": {
-    "validateUpsert": true
+    "validateUpsert": false
   },
   "properties": {
     "nameAr": {
@@ -38,6 +38,19 @@
       "type": "number",
       "default": 0
     },
+
+    "wholeSaleMarketPrice" : {
+      "type": "number",
+      "default": 0
+    },
+    "marketOfficialPrice" :{
+      "type": "number",
+      "default": 0
+    } ,
+    "dockanBuyingPrice" : {
+      "type": "number",
+      "default": 0
+    } ,
     "pack": {
       "type": "string"
     },
@@ -52,8 +65,7 @@
       "type": "boolean"
     },
     "media": {
-      "type": "object",
-      "required": true
+      "type": "object"      
     }
   },
   "validations": [],

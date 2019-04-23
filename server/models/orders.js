@@ -73,8 +73,7 @@ module.exports = function (Orders) {
       "offerSource", "isOffer", "media" , "marketOfficialPrice" , "dockanBuyingPrice" , "wholeSaleMarketPrice"];
 
     productProps.forEach((val, index) => {
-      if(product[val])
-      snapshot[val] = product[val];
+        snapshot[val] = product[val];
     });
    
     return snapshot;
