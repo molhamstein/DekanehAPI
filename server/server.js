@@ -7,7 +7,6 @@ global.app = module.exports = loopback();
 
 
 var rfs = require('rotating-file-stream');
-var morgan = require('morgan');
 var path = require('path');
 // create a rotating write stream
 var accessLogStream = rfs('access.log', {
@@ -16,7 +15,11 @@ var accessLogStream = rfs('access.log', {
 })
 
 // setup the logger
-app.use(morgan('combined', { stream: accessLogStream }))
+
+var morganBody = require('morgan-body'); 
+
+
+morganBody(app , { stream: accessLogStream , maxBodyLength : -1 , noColors:true });
 
 app.start = function () {
   // start the web server
