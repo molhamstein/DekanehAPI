@@ -29,7 +29,7 @@ module.exports = async function (app) {
             "nameAr": "deliverer",
             "nameEn": "deliverer",
             "privilegeIds": [
-                "userDelivery"
+                "deliverPackage"
             ]
         }, 
         {

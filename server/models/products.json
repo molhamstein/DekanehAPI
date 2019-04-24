@@ -28,6 +28,14 @@
     "description": {
       "type": "string"
     },
+    "consumerPrice" : {
+      "type" :"number" , 
+      "required": true
+    },
+    "consumerPriceDiscount" : {
+      "type" :"number" , 
+      "required": true
+    },
     "horecaPrice": {
       "type": "number",
       "required": true

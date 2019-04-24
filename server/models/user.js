@@ -37,7 +37,7 @@ module.exports = function (User) {
     in: ['pending', 'activated', 'deactivated']
   });
   User.validatesInclusionOf('clientType', {
-    in: ['wholesale', 'horeca']
+    in: ['wholesale', 'horeca' , 'consumer']
   });
 
   User.prototype.hasPrivilege = function (privilegeName) {

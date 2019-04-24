@@ -21,7 +21,7 @@ var options = {
 var notifications = require('../notifications');
 module.exports = function (Orders) {
   Orders.validatesInclusionOf('status', {
-    in: ['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered', 'canceled']
+    in: ['pending', 'inWarehouse', 'packed', 'pendingDelivery', 'inDelivery', 'delivered', 'canceled']
   });
   Orders.validatesPresenceOf('warehouseId');
 
@@ -67,13 +67,12 @@ module.exports = function (Orders) {
 
     let snapshot = {};
     // product 
-    let productProps = ["nameAr", "nameEn", "horecaPrice", "horecaPriceDiscount", "wholeSalePrice",
+    let productProps = ["nameAr", "nameEn", "consumerPriceDiscount" , "consumerPrice" , "horecaPrice", "horecaPriceDiscount", "wholeSalePrice",
       "wholeSalePriceDiscount", "pack", "description",
       "offerSource", "isOffer", "media"];
 
     productProps.forEach((val, index) => {
-      if(product[val])
-      snapshot[val] = product[val];
+        snapshot[val] = product[val];
     });
     // product-abstract                          
     let productAbstractProps = ["officialConsumerPrice", "officialMassMarketPrice"];
@@ -83,7 +82,6 @@ module.exports = function (Orders) {
     });
 
     // warehouse-product 
-
     snapshot["warehouseAvgBuyingPrice"] = warehouseProduct.avgBuyingPrice;
 
     return snapshot;
@@ -129,8 +127,10 @@ module.exports = function (Orders) {
       }
       if (user.clientType == 'wholesale') {
         orderProduct.sellingPrice = product.wholeSalePriceDiscount == 0 ? product.wholeSalePrice : product.wholeSalePriceDiscount;
-      } else {
+      } else if(user.clientType == 'horeca') {
         orderProduct.sellingPrice = product.horecaPriceDiscount == 0 ? product.horecaPrice : product.horecaPriceDiscount;
+      }else if(user.clientType == 'consumer'){
+        orderProduct.sellingPrice = product.consumerPriceDiscount == 0 ? product.consumerPriceDiscount : product.consumerPrice;
       }
     }
 
@@ -150,6 +150,9 @@ module.exports = function (Orders) {
 
 
   Orders.printInvoice = function (id, callback) {
+
+    //@todo check if user has permission to edit the order 
+
     Orders.findById(id, function (err, data) {
       if (err)
         callback(err)
@@ -756,6 +759,63 @@ module.exports = function (Orders) {
     });
   });
 
+
+
+
+  Orders.assignOrderDeliverer = function (orderId, userId, cb) {
+    Orders.app.models.user.findById(userId, function (err, user) {
+      if (err)
+        return cb(err);
+      if (!user) {
+        return cb(ERROR(404, 'user not found'));
+      }
+      if (!user.hasPrivilege('deliverPackage'))
+        return cb(ERROR(400, 'user not deliverer'));
+
+      Orders.findById(orderId, async function (err, order) {
+        if (err)
+          return cb(err);
+        if (!order)
+          return cb(ERROR(404, 'order not found'));
+
+        // prevent adming from changing the deliverer id 
+        if (['inDelivery', 'delivered', 'canceled'].includes(order.status))
+          return cb(ERROR(400, 'order is not ready to deilivery or order is already in delivery'));
+        if (order.deliveryMemberId) {
+          // if the order already has a deliverer 
+        }
+        order.deliveryMemberId = userId;
+        order.save((err) => {
+          return cb(null, 'order deliveryMember is assigned');
+        })
+
+      });
+
+    });
+  }
+
+  Orders.remoteMethod('assignOrderDeliverer', {
+    accepts: [{
+      arg: 'orderId',
+      type: 'string',
+      required: true
+    }, {
+      arg: 'userId',
+      type: 'string',
+      required: true
+    }],
+    returns: {
+      arg: 'message',
+      type: 'string'
+    },
+    http: {
+      verb: 'post',
+      path: '/:orderId/assignOrderDeliverer'
+    },
+  });
+
+  // assign order states 
+
   Orders.assignOrderToWarehouse = function (orderId, userId, cb) {
 
     Orders.app.models.user.findById(userId, function (err, user) {
@@ -814,25 +874,32 @@ module.exports = function (Orders) {
 
   Orders.assignOrderToPack = function (orderId, cb) {
 
-      Orders.findById(orderId, function (err, order) {
-        if (err)
-          return cb(err);
-        if (!order)
-          return cb(ERROR(404, 'order not found'));
+    Orders.findById(orderId, function (err, order) {
+      if (err)
+        return cb(err);
+      if (!order)
+        return cb(ERROR(404, 'order not found'));
 
 
-        if (order.status !== 'inWarehouse')
-          return cb(ERROR(400, 'order is not in warehouse'));
+      if (order.status !== 'inWarehouse')
+        return cb(ERROR(400, 'order is not in warehouse'));
 
 
-        order.status = 'packed';
-        order.packDate = new Date();
-        
-        order.save((err) => {
-          // TODO : send Notification to delivery user   
-          return cb(null, 'order is packed');
-        })
-      });
+      order.status = 'packed';
+      order.packDate = new Date();
+
+
+      if (order.deliveryMemberId) {
+        // if the order already has a deliverer move order state directly to pendingDeliverer
+        order.status = 'pendingDelivery';
+      }
+
+
+      order.save((err) => {
+        // TODO : send Notification to delivery user   
+        return cb(null, 'order is packed');
+      })
+    });
   };
 
   Orders.remoteMethod('assignOrderToPack', {
@@ -851,16 +918,15 @@ module.exports = function (Orders) {
     },
   });
 
-
-  Orders.assignOrderToDelivery = function (orderId, userId, cb) {
+  Orders.assignOrderPendingDelivery = function (orderId, userId, cb) {
     Orders.app.models.user.findById(userId, function (err, user) {
       if (err)
         return cb(err);
       if (!user) {
         return cb(ERROR(404, 'user not found'));
       }
-      if (!user.hasPrivilege('userDelivery'))
-        return cb(ERROR(400, 'user not delivery'));
+      if (!user.hasPrivilege('deliverPackage'))
+        return cb(ERROR(400, 'user not deliverer'));
 
       Orders.findById(orderId, async function (err, order) {
         if (err)
@@ -868,35 +934,12 @@ module.exports = function (Orders) {
         if (!order)
           return cb(ERROR(404, 'order not found'));
 
-
         if (order.status !== 'packed')
           return cb(ERROR(400, 'order is not ready to deilivery or order is already in delivery'));
 
-        order.status = 'inDelivery';
+        order.status = 'pendingDelivery';
         order.deliveryMemberId = userId;
-        order.assignedDate = new Date();
-
-        for (let orderProduct of order.orderProducts()) {
-
-          let product = orderProduct.product();
-
-
-          let productAbstractId = product.productAbstract().id;
-          let warehouse = order.warehouse();
-          let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
-
-
-
-          warehouseProduct = warehouseProduct[0];
-          // update warehouse total count 
-          await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount);
-
-        }
-
         order.save((err) => {
-          // TODO : send Notification to user delivery 
-          notifications.orderInDelievery(order);
-
           return cb(null, 'order is assigned');
         })
 
@@ -905,16 +948,65 @@ module.exports = function (Orders) {
     });
   }
 
-
-
-
-  Orders.remoteMethod('assignOrderToDelivery', {
+  Orders.remoteMethod('assignOrderPendingDelivery', {
     accepts: [{
       arg: 'orderId',
       type: 'string',
       required: true
     }, {
       arg: 'userId',
+      type: 'string',
+      required: true
+    }],
+    returns: {
+      arg: 'message',
+      type: 'string'
+    },
+    http: {
+      verb: 'post',
+      path: '/:orderId/assignPendingDelivery'
+    },
+  });
+
+  Orders.assignOrderToDelivery = function (orderId, cb) {
+
+    //@todo check if the user has the order as deliveryId  
+    Orders.findById(orderId, async function (err, order) {
+      if (err)
+        return cb(err);
+      if (!order)
+        return cb(ERROR(404, 'order not found'));
+
+
+      if (order.status !== 'pendingDelivery')
+        return cb(ERROR(400, 'order is not ready to deilivery or order is already in delivery'));
+
+      order.status = 'inDelivery';
+      order.deliveryReceptionDate = new Date();
+
+      for (let orderProduct of order.orderProducts()) {
+
+        let product = orderProduct.product();
+        let productAbstractId = product.productAbstract().id;
+        let warehouse = order.warehouse();
+        let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
+        warehouseProduct = warehouseProduct[0];
+        // update warehouse total count 
+        await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount);
+
+      }
+      order.save((err) => {
+        // TODO : send Notification to user delivery 
+        notifications.orderInDelievery(order);
+        return cb(null, 'order is assigned');
+      })
+
+    });
+  }
+
+  Orders.remoteMethod('assignOrderToDelivery', {
+    accepts: [{
+      arg: 'orderId',
       type: 'string',
       required: true
     }],
@@ -959,7 +1051,7 @@ module.exports = function (Orders) {
           await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount);
         }
       }
-      
+
       order.status = 'canceled';
       order.canceledDate = new Date();
       order.save((err) => {
@@ -999,9 +1091,10 @@ module.exports = function (Orders) {
   };
 
   Orders.changeStatusOrderToDeliverd = function (req, orderId, cb) {
+    
     if (!req.user)
       return cb(ERROR(403, 'user not login'));
-
+     
     Orders.findById(orderId, function (err, order) {
       if (err)
         return cb(err);
@@ -1019,8 +1112,9 @@ module.exports = function (Orders) {
       order.deliveredDate = new Date();
       order.save((err) => {
         // TODO : send Notification to client for rate this order 
-        cb(null, 'order is delivered');
         notifications.afterOrderDelivered(order);
+        cb(null, 'order is delivered');
+      
       })
 
     });
