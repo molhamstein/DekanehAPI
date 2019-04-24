@@ -453,7 +453,7 @@ module.exports = function (Orders) {
                   if (coupon.numberOfUsed == coupon.numberOfTimes)
                     coupon.status = 'used';
                   coupon.save()
-                  changeOrderProduct(order, tempProduct, warehouseProductCountUpdates, function (err) {
+                  changeOrderProduct(order, tempProduct, null, function (err) {
                     if (err)
                       return callback(err)
 
@@ -488,7 +488,7 @@ module.exports = function (Orders) {
                     data.totalPrice -= ((data.totalPrice * coupon.value) / 100)
                   }
 
-                  changeOrderProduct(order, tempProduct, warehouseProductCountUpdates, function (err) {
+                  changeOrderProduct(order, tempProduct, null, function (err) {
                     if (err)
                       return callback(err)
 
