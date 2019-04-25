@@ -760,7 +760,7 @@ module.exports = function (Orders) {
   });
 
 
-  Orders.assignOrderDeliverer = function (orderId, userId) {
+  Orders.assignOrderDeliverer = async function (orderId, userId) {
 
     let user = await Orders.app.models.user.findById(userId);
 
@@ -777,7 +777,7 @@ module.exports = function (Orders) {
 
     // prevent adming from changing the deliverer id 
     if (['inDelivery', 'delivered', 'canceled'].includes(order.status))
-        throw ERROR(400, 'order is not ready to deilivery or order is already in delivery'); 
+      throw ERROR(400, 'order is not ready to deilivery or order is already in delivery');
     if (order.deliveryMemberId) {
       // if the order already has a deliverer 
     }
@@ -935,7 +935,7 @@ module.exports = function (Orders) {
   }
 
 
-  Orders.assignOrderToCancel = async function (orderId, cb) {
+  Orders.assignOrderToCancel = async function (orderId) {
 
     let order = await Orders.findById(orderId);
 
