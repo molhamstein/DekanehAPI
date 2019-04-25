@@ -49,7 +49,7 @@ module.exports = function (Orders) {
         orderProduct.count = Math.max(orderProduct.count, 0);
         unvalidWarehouseProducts.push(orderProduct);
       }
-      warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount) })
+      warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount) , sellingPrice : orderProduct.sellingPrice })
     }
 
     return { unvalidWarehouseProducts, warehouseProductCountUpdates };
@@ -385,7 +385,7 @@ module.exports = function (Orders) {
                   throw new Error("warehouse doesn't have a product");
                 }
                 // warehouse doesn't have enough amount of the product 
-                warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (orderProduct.count * product.parentCount) })
+                warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (orderProduct.count * product.parentCount) , sellingPrice:orderProduct.sellingPrice })
               }
 
 
@@ -541,14 +541,14 @@ module.exports = function (Orders) {
           if (err)
             return callback(err)
 
-          for (let { warehouseProduct, countDiff } of warehouseProductCountUpdates) {
+          for (let { warehouseProduct, countDiff , sellingPrice} of warehouseProductCountUpdates) {
 
 
             try {
               // update warehouse products count 
               await warehouseProduct.updateExpectedCount(countDiff);
               if (['inDelivery', 'delivered'].includes(order.status))
-                await warehouseProduct.updatetotalCount(countDiff);
+                await warehouseProduct.updatetotalCount(countDiff , {sellingPrice});
             } catch (err) {
               return callback(err);
             }
@@ -895,7 +895,7 @@ module.exports = function (Orders) {
       let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
       warehouseProduct = warehouseProduct[0];
       // update warehouse total count 
-      await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount);
+      await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount , {sellingPrice : orderProduct.sellingPrice});
 
     }
     await order.save();
@@ -961,7 +961,7 @@ module.exports = function (Orders) {
 
       // restore warehouse total count 
       if (['inDelivery'].includes(order.status)) {
-        await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount);
+        await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount , {sellingPrice:orderProduct.sellingPrice});
       }
     }
 

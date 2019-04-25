@@ -13,7 +13,7 @@ module.exports = async function (app) {
         compress: true,
         interval: '1d', // rotate daily
         path: path.join(__dirname, '../../../', 'log'),
-        maxSize: '12M',
+        maxSize: '1G',
         size: '10M'
     })
 

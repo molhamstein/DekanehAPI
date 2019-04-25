@@ -25,7 +25,7 @@ module.exports = function (Supply) {
 
 
         //  supply order snapshot 
-        let propsToClone = ["nameEn", "nameAr", "officialConsumerPrice", "officialMassMarketPrice" , "media" , "id"];
+        let propsToClone = ["nameEn", "nameAr", "officialConsumerPrice", "officialMassMarketPrice", "media", "id"];
 
 
         for (let supplyProduct of supplyProducts) {
@@ -62,15 +62,26 @@ module.exports = function (Supply) {
             let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
             if (!warehouseProduct)
                 throw ERROR(422, 'product has no warehouse product');
-            warehouseProductUpdates.push({ warehouseProduct, countDiff: supplyProduct.count });
+            warehouseProductUpdates.push({ warehouseProduct, countDiff: supplyProduct.count, buyingPrice: supplyProduct.buyingPrice });
         }
         return warehouseProductUpdates;
     }
     Supply.beforeRemote('create', async (ctx, modelInstance, next) => {
 
+        let supplierId = ctx.req.body.supplierId; 
+        if(!supplierId){
+            throw (ERROR(403, 'supplierId is required'));             
+        }
+        let supplyer = await Supply.app.models.supplier.findById(supplierId); 
+
+        //validate supplyer
+        if(!supplyer){
+            throw (ERROR(404, 'Supplier not found')); 
+        }
+
         // validate user 
         if (!ctx.req.accessToken || !ctx.req.accessToken.userId)
-            throw (ERROR(403, 'User not login'))
+            throw (ERROR(403, 'User not login')); 
 
         let supplyProducts = ctx.req.body.products;
 
@@ -111,9 +122,6 @@ module.exports = function (Supply) {
 
         let createdSupplyProducts = await supply.supplyProducts.create(supplyProducts);
 
-
-
-
     });
 
     Supply.deliver = async function (id) {
@@ -128,9 +136,9 @@ module.exports = function (Supply) {
         // update warehouse product 
         let supplyProducts = supply.supplyProducts();
         let warehouseProductUpdates = await createSupplyProductsWarehouseUpdates(supplyProducts, warehouse);
-        for (let { warehouseProduct, countDiff } of warehouseProductUpdates) {
+        for (let { warehouseProduct, countDiff, buyingPrice } of warehouseProductUpdates) {
             await warehouseProduct.updateExpectedCount(countDiff);
-            await warehouseProduct.updatetotalCount(countDiff);
+            await warehouseProduct.updatetotalCount(countDiff, { buyingPrice });
         }
 
         // set supply status to deliver 

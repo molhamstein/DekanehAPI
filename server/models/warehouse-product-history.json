@@ -12,21 +12,66 @@
     "shift": {
       "type": "number"
     },
-    "avgBuyingPrice": {
-      "type": "number"
-    },
     "totalCount": {
       "type": "number"
     },
     "expectedCount": {
       "type": "number"
     },
-    "accumulatedCountOverTime": {
-      "type": "number"
+    "accumulatedBuyingCountOverTime": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "avgBuyingPrice": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "accumulatedSellingCountOverTime": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "avgSellingPrice": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "required": true,
+      "default": "available"
+    },
+    "threshold": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "warningThreshold": {
+      "type": "number",
+      "required": true,
+      "default": 0
     }
   },
   "validations": [],
-  "relations": {},
+  "relations": {
+    "warehouse": {
+      "type": "belongsTo",
+      "model": "warehouse",
+      "foreignKey": "warehouseId"
+    },
+    "productAbstract": {
+      "type": "belongsTo",
+      "model": "productAbstract",
+      "foreignKey": "productAbstractId"
+    },
+    "warehouseProduct": {
+      "type": "belongsTo",
+      "model": "warehouseProducts",
+      "foreignKey": "warehouseProductId"
+    }
+  },
   "acls": [],
   "methods": {}
 }

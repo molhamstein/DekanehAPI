@@ -1,5 +1,18 @@
 'use strict';
 let ObjectId = require('mongodb').ObjectId ; 
+
+
+
+/**
+ * 
+ * @param {Number} currentAvg 
+ * @param {Number} currentCount 
+ * @param {Number} nextCount 
+ * @param {Number} diff 
+ */
+function calcNextAvg(currentAvg , currentCount , nextCount , diff){
+    return (currentAvg * currentCount + diff)  / nextCount; 
+}
 module.exports = function (Warehouseproducts) {
 
     Warehouseproducts.validatesInclusionOf('status', {
@@ -10,8 +23,22 @@ module.exports = function (Warehouseproducts) {
         this.expectedCount = this.expectedCount + expectedCountDiff;
         return this.save();
     }
-    Warehouseproducts.prototype.updatetotalCount = function (totalCountDiff) {
+    Warehouseproducts.prototype.updatetotalCount = function (totalCountDiff , {buyingPrice , sellingPrice}) {
+        
         this.totalCount = this.totalCount + totalCountDiff;
+        if(typeof buyingPrice !== 'undefined'){
+
+            this.avgBuyingPrice = calcNextAvg(this.avgBuyingPrice , this.accumulatedBuyingCountOverTime , this.accumulatedBuyingCountOverTime  + totalCountDiff , totalCountDiff * buyingPrice);
+            this.accumulatedBuyingCountOverTime += totalCountDiff ; 
+
+        }
+        if(typeof sellingPrice !== 'undefined'){
+
+            totalCountDiff = -totalCountDiff; 
+            this.avgSellingPrice = calcNextAvg(this.avgSellingPrice , this.accumulatedSellingCountOverTime , this.accumulatedSellingCountOverTime  + totalCountDiff , totalCountDiff * sellingPrice);
+            this.accumulatedSellingCountOverTime += totalCountDiff ; 
+
+        }
         return this.save();
     }
     //Statistics about warehouse products state 
