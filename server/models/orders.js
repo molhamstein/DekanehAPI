@@ -760,244 +760,216 @@ module.exports = function (Orders) {
   });
 
 
-  Orders.assignOrderDeliverer = function (orderId, userId, cb) {
-    Orders.app.models.user.findById(userId, function (err, user) {
-      if (err)
-        return cb(err);
-      if (!user) {
-        return cb(ERROR(404, 'user not found'));
-      }
-      if (!user.hasPrivilege('deliverPackage'))
-        return cb(ERROR(400, 'user not deliverer'));
+  Orders.assignOrderDeliverer = function (orderId, userId) {
 
-      Orders.findById(orderId, async function (err, order) {
-        if (err)
-          return cb(err);
-        if (!order)
-          return cb(ERROR(404, 'order not found'));
+    let user = await Orders.app.models.user.findById(userId);
 
-        // prevent adming from changing the deliverer id 
-        if (['inDelivery', 'delivered', 'canceled'].includes(order.status))
-          return cb(ERROR(400, 'order is not ready to deilivery or order is already in delivery'));
-        if (order.deliveryMemberId) {
-          // if the order already has a deliverer 
-        }
-        order.deliveryMemberId = userId;
-        order.save((err) => {
-          return cb(null, 'order deliveryMember is assigned');
-        })
+    if (!user) {
+      throw ERROR(404, 'user not found');
+    }
+    if (!user.hasPrivilege('deliverPackage'))
+      throw ERROR(400, 'user not deliverer');
 
-      });
+    let order = await Orders.findById(orderId);
 
-    });
+    if (!order)
+      throw ERROR(404, 'order not found');
+
+    // prevent adming from changing the deliverer id 
+    if (['inDelivery', 'delivered', 'canceled'].includes(order.status))
+        throw ERROR(400, 'order is not ready to deilivery or order is already in delivery'); 
+    if (order.deliveryMemberId) {
+      // if the order already has a deliverer 
+    }
+    order.deliveryMemberId = userId;
+    await order.save();
+    return 'order deliveryMember is assigned';
+
+
   }
 
   // assign order states 
 
-  Orders.assignOrderToWarehouse = function (orderId, userId, cb) {
+  Orders.assignOrderToWarehouse = async function (orderId, userId) {
 
-    Orders.app.models.user.findById(userId, function (err, user) {
-      if (err)
-        return cb(err);
-      if (!user) {
-        return cb(ERROR(404, 'user not found'));
-      }
-      if (!user.hasPrivilege('warehouse_keeper')) // @todo define role for warehouse  
-        return cb(ERROR(400, 'user is not warehouse keeper'));
+    let user = await Orders.app.models.user.findById(userId);
 
+    if (!user) {
+      throw ERROR(404, 'user not found');
+    }
 
-      Orders.findById(orderId, function (err, order) {
-        if (err)
-          return cb(err);
-        if (!order)
-          return cb(ERROR(404, 'order not found'));
+    if (!user.hasPrivilege('warehouse_keeper'))
+      throw ERROR(400, 'user is not warehouse keeper');
+
+    let order = await Orders.findById(orderId);
+
+    if (!order)
+      throw ERROR(404, 'order not found');
 
 
-        if (order.status !== 'pending')
-          return cb(ERROR(400, 'order is not pending'));
+    if (order.status !== 'pending')
+      throw ERROR(400, 'order is not pending');
 
 
-        order.warehouseKeeperId = userId;
-        order.status = 'inWarehouse';
-        order.warehouseDate = new Date();
-        order.save((err) => {
-          if (err) return cb(err);
-          // TODO : send Notification to warehouse user  
-          return cb(null, 'order is in warehouse');
-        })
-      });
-    });
+    order.warehouseKeeperId = userId;
+    order.status = 'inWarehouse';
+    order.warehouseDate = new Date();
+    await order.save();
+
+    return 'order is in warehouse';
   };
 
 
-  Orders.assignOrderToPack = function (orderId, cb) {
+  Orders.assignOrderToPack = async function (orderId) {
 
-    Orders.findById(orderId, function (err, order) {
-      if (err)
-        return cb(err);
-      if (!order)
-        return cb(ERROR(404, 'order not found'));
+    let order = await Orders.findById(orderId);
 
+    if (!order)
+      throw ERROR(404, 'order not found');
 
-      if (order.status !== 'inWarehouse')
-        return cb(ERROR(400, 'order is not in warehouse'));
+    if (order.status !== 'inWarehouse')
+      throw ERROR(400, 'order is not in warehouse');
 
 
-      order.status = 'packed';
-      order.packDate = new Date();
+    order.status = 'packed';
+    order.packDate = new Date();
 
 
-      if (order.deliveryMemberId) {
-        // if the order already has a deliverer move order state directly to pendingDeliverer
-        order.status = 'pendingDelivery';
-      }
+    if (order.deliveryMemberId) {
+      // if the order already has a deliverer move order state directly to pendingDeliverer
+      order.status = 'pendingDelivery';
+    }
 
+    await order.save();
 
-      order.save((err) => {
-        // TODO : send Notification to delivery user   
-        return cb(null, 'order is packed');
-      })
-    });
+    return 'order is packed';
   };
 
 
-  Orders.assignOrderPendingDelivery = function (orderId, userId, cb) {
-    Orders.app.models.user.findById(userId, function (err, user) {
-      if (err)
-        return cb(err);
-      if (!user) {
-        return cb(ERROR(404, 'user not found'));
-      }
-      if (!user.hasPrivilege('deliverPackage'))
-        return cb(ERROR(400, 'user not deliverer'));
+  Orders.assignOrderPendingDelivery = async function (orderId, userId) {
 
-      Orders.findById(orderId, async function (err, order) {
-        if (err)
-          return cb(err);
-        if (!order)
-          return cb(ERROR(404, 'order not found'));
+    let user = await Orders.app.models.user.findById(userId);
 
-        if (order.status !== 'packed')
-          return cb(ERROR(400, 'order is not ready to deilivery or order is already in delivery'));
+    if (!user) {
+      throw ERROR(404, 'user not found');
+    }
+    if (!user.hasPrivilege('deliverPackage'))
+      throw ERROR(400, 'user not deliverer');
 
-        order.status = 'pendingDelivery';
-        order.deliveryMemberId = userId;
-        order.save((err) => {
-          return cb(null, 'order is assigned');
-        })
+    let order = await Orders.findById(orderId);
 
-      });
+    if (!order)
+      throw ERROR(404, 'order not found');
 
-    });
+    if (order.status !== 'packed')
+      throw ERROR(400, 'order is not ready to deilivery or order is already in delivery');
+
+    order.status = 'pendingDelivery';
+    order.deliveryMemberId = userId;
+    await order.save();
+
+    return 'order is assigned';
   }
 
 
-  Orders.assignOrderToDelivery = function (orderId, cb) {
+  Orders.assignOrderToDelivery = async function (orderId) {
 
     //@todo check if the user has the order as deliveryId  
-    Orders.findById(orderId, async function (err, order) {
-      if (err)
-        return cb(err);
-      if (!order)
-        return cb(ERROR(404, 'order not found'));
+    let order = await Orders.findById(orderId);
 
 
-      if (order.status !== 'pendingDelivery')
-        return cb(ERROR(400, 'order is not ready to deilivery or order is already in delivery'));
+    if (!order)
+      throw ERROR(404, 'order not found');
 
-      order.status = 'inDelivery';
-      order.deliveryReceptionDate = new Date();
+    if (order.status !== 'pendingDelivery')
+      throw ERROR(400, 'order is not ready to deilivery or order is already in delivery');
 
-      for (let orderProduct of order.orderProducts()) {
+    order.status = 'inDelivery';
+    order.deliveryReceptionDate = new Date();
 
-        let product = orderProduct.product();
-        let productAbstractId = product.productAbstract().id;
-        let warehouse = order.warehouse();
-        let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
-        warehouseProduct = warehouseProduct[0];
-        // update warehouse total count 
-        await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount);
+    for (let orderProduct of order.orderProducts()) {
 
-      }
-      order.save((err) => {
-        // TODO : send Notification to user delivery 
-        notifications.orderInDelievery(order);
-        return cb(null, 'order is assigned');
-      })
+      let product = orderProduct.product();
+      let productAbstractId = product.productAbstract().id;
+      let warehouse = order.warehouse();
+      let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
+      warehouseProduct = warehouseProduct[0];
+      // update warehouse total count 
+      await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount);
 
-    });
+    }
+    await order.save();
+    // TODO : send Notification to user delivery 
+    notifications.orderInDelievery(order);
+    return 'order is assigned';
+
+
   }
-  Orders.assignOrderDeliverd = function (req, orderId, cb) {
+
+  Orders.assignOrderDeliverd = async function (req, orderId) {
 
     if (!req.user)
-      return cb(ERROR(403, 'user not login'));
+      throw ERROR(403, 'user not login');
 
-    Orders.findById(orderId, function (err, order) {
-      if (err)
-        return cb(err);
-      if (!order)
-        return cb(ERROR(404, 'order not found'));
 
-      if (order.status != 'inDelivery')
-        return cb(ERROR(400, 'order not in delivery'));
+    let order = await Orders.findById(orderId);
 
-      // TODO : or admin can edit order status to delivered
-      // if(order.deliveryMemberId != req.user.id.toString())
-      // 	return cb(ERROR (500,'not privilege to this order'));
+    if (!order)
+      throw ERROR(404, 'order not found');
 
-      order.status = 'delivered';
-      order.deliveredDate = new Date();
-      order.save((err) => {
-        // TODO : send Notification to client for rate this order 
-        notifications.afterOrderDelivered(order);
-        cb(null, 'order is delivered');
 
-      })
+    if (order.status != 'inDelivery')
+      throw ERROR(400, 'order not in delivery');
 
-    });
+    // TODO : or admin can edit order status to delivered
+    // if(order.deliveryMemberId != req.user.id.toString())
+    // 	return cb(ERROR (500,'not privilege to this order'));
+
+    order.status = 'delivered';
+    order.deliveredDate = new Date();
+    await order.save();
+    // TODO : send Notification to client for rate this order 
+    notifications.afterOrderDelivered(order);
+    return 'order is delivered';
 
   }
 
 
-  Orders.assignOrderToCancel = function (orderId, cb) {
+  Orders.assignOrderToCancel = async function (orderId, cb) {
 
-    Orders.findById(orderId, async function (err, order) {
-      if (err)
-        return cb(err);
-      if (!order)
-        return cb(ERROR(404, 'order not found'));
-      if (order.status == 'canceled' || order.status === 'delivered')
-        return cb(ERROR(400, 'order already in canceled'));
+    let order = await Orders.findById(orderId);
 
+    if (!order)
+      throw ERROR(404, 'order not found');
 
-      // @todo in case of performance issues use bulk updates 
-      for (let orderProduct of order.orderProducts()) {
+    if (order.status == 'canceled' || order.status === 'delivered')
+      throw ERROR(400, 'order already in canceled');
 
-        let product = orderProduct.product();
-        let productAbstractId = product.productAbstract().id;
-        let warehouse = order.warehouse();
-        let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
-        warehouseProduct = warehouseProduct[0];
+    for (let orderProduct of order.orderProducts()) {
 
-        // in: ['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered', 'canceled']        
-        // restore warehouse expected count           
-        if (['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered'].includes(order.status)) {
-          await warehouseProduct.updateExpectedCount(orderProduct.count * product.parentCount);
-        }
+      let product = orderProduct.product();
+      let productAbstractId = product.productAbstract().id;
+      let warehouse = order.warehouse();
+      let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
+      warehouseProduct = warehouseProduct[0];
 
-        // restore warehouse total count 
-        if (['inDelivery'].includes(order.status)) {
-          await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount);
-        }
+      // in: ['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered', 'canceled']        
+      // restore warehouse expected count           
+      if (['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered'].includes(order.status)) {
+        await warehouseProduct.updateExpectedCount(orderProduct.count * product.parentCount);
       }
 
-      order.status = 'canceled';
-      order.canceledDate = new Date();
-      order.save((err) => {
-        return cb(null, 'order is assigned');
-      })
+      // restore warehouse total count 
+      if (['inDelivery'].includes(order.status)) {
+        await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount);
+      }
+    }
 
-    });
+    order.status = 'canceled';
+    order.canceledDate = new Date();
+    await order.save();
+
+    return 'order is assigned';
   }
 
 
