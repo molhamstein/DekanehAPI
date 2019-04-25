@@ -325,7 +325,7 @@
       },
       "http": {
         "verb": "post",
-        "path": "/:orderId/assignDelivery"
+        "path": "/:orderId/assignInDelivery"
       },
       "isStatic": true
     },
@@ -367,7 +367,7 @@
       },
       "http": {
         "verb": "post",
-        "path": "/:orderId/delivered"
+        "path": "/:orderId/assignDelivered"
       },
       "isStatic": true
     }
