@@ -67,12 +67,12 @@ module.exports = function (Orders) {
 
     let snapshot = {};
     // product 
-    let productProps = ["nameAr", "nameEn", "consumerPriceDiscount" , "consumerPrice" , "horecaPrice", "horecaPriceDiscount", "wholeSalePrice",
+    let productProps = ["nameAr", "nameEn", "consumerPriceDiscount", "consumerPrice", "horecaPrice", "horecaPriceDiscount", "wholeSalePrice",
       "wholeSalePriceDiscount", "pack", "description",
       "offerSource", "isOffer", "media"];
 
     productProps.forEach((val, index) => {
-        snapshot[val] = product[val];
+      snapshot[val] = product[val];
     });
     // product-abstract                          
     let productAbstractProps = ["officialConsumerPrice", "officialMassMarketPrice"];
@@ -127,9 +127,9 @@ module.exports = function (Orders) {
       }
       if (user.clientType == 'wholesale') {
         orderProduct.sellingPrice = product.wholeSalePriceDiscount == 0 ? product.wholeSalePrice : product.wholeSalePriceDiscount;
-      } else if(user.clientType == 'horeca') {
+      } else if (user.clientType == 'horeca') {
         orderProduct.sellingPrice = product.horecaPriceDiscount == 0 ? product.horecaPrice : product.horecaPriceDiscount;
-      }else if(user.clientType == 'consumer'){
+      } else if (user.clientType == 'consumer') {
         orderProduct.sellingPrice = product.consumerPriceDiscount == 0 ? product.consumerPriceDiscount : product.consumerPrice;
       }
     }
@@ -760,8 +760,6 @@ module.exports = function (Orders) {
   });
 
 
-
-
   Orders.assignOrderDeliverer = function (orderId, userId, cb) {
     Orders.app.models.user.findById(userId, function (err, user) {
       if (err)
@@ -793,26 +791,6 @@ module.exports = function (Orders) {
 
     });
   }
-
-  Orders.remoteMethod('assignOrderDeliverer', {
-    accepts: [{
-      arg: 'orderId',
-      type: 'string',
-      required: true
-    }, {
-      arg: 'userId',
-      type: 'string',
-      required: true
-    }],
-    returns: {
-      arg: 'message',
-      type: 'string'
-    },
-    http: {
-      verb: 'post',
-      path: '/:orderId/assignOrderDeliverer'
-    },
-  });
 
   // assign order states 
 
@@ -851,26 +829,6 @@ module.exports = function (Orders) {
     });
   };
 
-  Orders.remoteMethod('assignOrderToWarehouse', {
-    accepts: [{
-      arg: 'orderId',
-      type: 'string',
-      required: true
-    }, {
-      arg: 'userId',
-      type: 'string',
-      required: true
-    }],
-    returns: {
-      arg: 'message',
-      type: 'string'
-    },
-    http: {
-      verb: 'post',
-      path: '/:orderId/assignWarehouse'
-    },
-  });
-
 
   Orders.assignOrderToPack = function (orderId, cb) {
 
@@ -902,21 +860,6 @@ module.exports = function (Orders) {
     });
   };
 
-  Orders.remoteMethod('assignOrderToPack', {
-    accepts: [{
-      arg: 'orderId',
-      type: 'string',
-      required: true
-    }],
-    returns: {
-      arg: 'message',
-      type: 'string'
-    },
-    http: {
-      verb: 'post',
-      path: '/:orderId/assignPack'
-    },
-  });
 
   Orders.assignOrderPendingDelivery = function (orderId, userId, cb) {
     Orders.app.models.user.findById(userId, function (err, user) {
@@ -948,25 +891,6 @@ module.exports = function (Orders) {
     });
   }
 
-  Orders.remoteMethod('assignOrderPendingDelivery', {
-    accepts: [{
-      arg: 'orderId',
-      type: 'string',
-      required: true
-    }, {
-      arg: 'userId',
-      type: 'string',
-      required: true
-    }],
-    returns: {
-      arg: 'message',
-      type: 'string'
-    },
-    http: {
-      verb: 'post',
-      path: '/:orderId/assignPendingDelivery'
-    },
-  });
 
   Orders.assignOrderToDelivery = function (orderId, cb) {
 
@@ -1003,22 +927,37 @@ module.exports = function (Orders) {
 
     });
   }
+  Orders.assignOrderDeliverd = function (req, orderId, cb) {
 
-  Orders.remoteMethod('assignOrderToDelivery', {
-    accepts: [{
-      arg: 'orderId',
-      type: 'string',
-      required: true
-    }],
-    returns: {
-      arg: 'message',
-      type: 'string'
-    },
-    http: {
-      verb: 'post',
-      path: '/:orderId/assignDelivery'
-    },
-  });
+    if (!req.user)
+      return cb(ERROR(403, 'user not login'));
+
+    Orders.findById(orderId, function (err, order) {
+      if (err)
+        return cb(err);
+      if (!order)
+        return cb(ERROR(404, 'order not found'));
+
+      if (order.status != 'inDelivery')
+        return cb(ERROR(400, 'order not in delivery'));
+
+      // TODO : or admin can edit order status to delivered
+      // if(order.deliveryMemberId != req.user.id.toString())
+      // 	return cb(ERROR (500,'not privilege to this order'));
+
+      order.status = 'delivered';
+      order.deliveredDate = new Date();
+      order.save((err) => {
+        // TODO : send Notification to client for rate this order 
+        notifications.afterOrderDelivered(order);
+        cb(null, 'order is delivered');
+
+      })
+
+    });
+
+  }
+
 
   Orders.assignOrderToCancel = function (orderId, cb) {
 
@@ -1061,175 +1000,8 @@ module.exports = function (Orders) {
     });
   }
 
-  Orders.remoteMethod('assignOrderToCancel', {
-    accepts: [{
-      arg: 'orderId',
-      type: 'string',
-      required: true
-    }],
-    returns: {
-      arg: 'message',
-      type: 'string'
-    },
-    http: {
-      verb: 'post',
-      path: '/:orderId/assignCancel'
-    },
-  });
 
 
-  /**
-   *
-   * @param {string} result
-   * @param {Function(Error, array)} callback
-   */
-
-  Orders.supplierOrders = function (result, callback) {
-    var result;
-    // TODO
-    callback(null, result);
-  };
-
-  Orders.changeStatusOrderToDeliverd = function (req, orderId, cb) {
-    
-    if (!req.user)
-      return cb(ERROR(403, 'user not login'));
-     
-    Orders.findById(orderId, function (err, order) {
-      if (err)
-        return cb(err);
-      if (!order)
-        return cb(ERROR(404, 'order not found'));
-
-      if (order.status != 'inDelivery')
-        return cb(ERROR(400, 'order not in delivery'));
-
-      // TODO : or admin can edit order status to delivered
-      // if(order.deliveryMemberId != req.user.id.toString())
-      // 	return cb(ERROR (500,'not privilege to this order'));
-
-      order.status = 'delivered';
-      order.deliveredDate = new Date();
-      order.save((err) => {
-        // TODO : send Notification to client for rate this order 
-        notifications.afterOrderDelivered(order);
-        cb(null, 'order is delivered');
-      
-      })
-
-    });
-
-  }
-
-  Orders.remoteMethod('changeStatusOrderToDeliverd', {
-    accepts: [{
-      arg: 'req',
-      http: {
-        source: 'req'
-      }
-    }, {
-      arg: 'orderId',
-      type: 'string',
-      required: true
-    }],
-    returns: {
-      arg: 'message',
-      type: 'string'
-    },
-    http: {
-      verb: 'post',
-      path: '/:orderId/delivered'
-    },
-  });
-
-  /**
-   *
-   * @param {Function(Error, array)} callback
-   */
-
-  // @todo delete 
-  Orders.supplierOrders = function (callback) {
-    var result;
-    Orders.app.models.ordersFromSuppliers.findOne({
-      "order": "creationDate DESC"
-    }, function (err, oneOrderFromSupplier) {
-      if (err)
-        return callback(err, null)
-      var newDate = new Date();
-      var andObject = [{
-        status: "pending"
-      }];
-      if (oneOrderFromSupplier != null)
-        andObject.push({
-          orderDate: {
-            "gt": oneOrderFromSupplier.creationDate
-          }
-        })
-      newDate.setHours(0);
-      Orders.find({
-        where: {
-          and: andObject
-        }
-      }, function (err, data) {
-        // return callback(err, data);
-        var products = {};
-        var total = 0;
-        if (data.length == 0)
-          return callback(null, {
-            total: total,
-            data: []
-          });
-        data.forEach(function (elementOrder, indexOrd) {
-          elementOrder.orderProducts(function (err, orderdata) {
-            if (orderdata.length != 0) {
-              orderdata.forEach(function (element, indexProd) {
-
-                if (products[element.productId] == null) {
-                  products[element.productId] = {
-                    count: 0,
-                    price: 0,
-                    product: {
-                      media: element.media,
-                      nameEn: element.nameEn,
-                      nameAr: element.nameAr,
-                      pack: element.pack,
-                      description: element.description,
-                      marketOfficialPrice: element.marketOfficialPrice,
-                      dockanBuyingPrice: element.dockanBuyingPrice,
-                      wholeSaleMarketPrice: element.wholeSaleMarketPrice,
-                      horecaPriceDiscount: element.horecaPriceDiscount,
-                      wholeSalePriceDiscount: element.wholeSalePriceDiscount,
-                      horecaPrice: element.horecaPrice,
-                      wholeSalePrice: element.wholeSalePrice,
-                      id: element.id
-                    }
-                  };
-                }
-                total += parseFloat(element.dockanBuyingPrice) * parseFloat(element.count);
-                products[element.productId].count += parseFloat(element.count);
-                products[element.productId].price += parseFloat(element.dockanBuyingPrice) * parseFloat(element.count);
-                if (indexOrd == data.length - 1 && indexProd == orderdata.length - 1) {
-                  _toArray(products, function (arrayData) {
-                    return callback(null, {
-                      total: total,
-                      data: arrayData
-                    });
-                  })
-                }
-              }, this);
-            } else if (indexOrd == data.length - 1) {
-              _toArray(products, function (arrayData) {
-                return callback(null, {
-                  total: total,
-                  data: arrayData
-                });
-              })
-            }
-          })
-        }, this);
-      })
-    })
-  };
 
   Orders.list = async function (req) {
 
@@ -1251,13 +1023,5 @@ module.exports = function (Orders) {
 
   }
 
-  function _toArray(data, cb) {
-    var result = [];
 
-    for (var key in data) {
-
-      result.push(data[key]);
-    }
-    cb(result);
-  }
 };

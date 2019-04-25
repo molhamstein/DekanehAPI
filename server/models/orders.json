@@ -15,9 +15,9 @@
     ]
   },
   "properties": {
-    "printable" : {
+    "printable": {
       "type": "boolean",
-      "default" : false 
+      "default": false
     },
     "code": {
       "type": "string"
@@ -223,6 +223,153 @@
           "verb": "get"
         }
       ]
+    },
+    "assignOrderToWarehouse": {
+      "accepts": [
+        {
+          "arg": "orderId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "arg": "userId",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "returns": {
+        "arg": "message",
+        "type": "string"
+      },
+      "http": {
+        "verb": "post",
+        "path": "/:orderId/assignWarehouse"
+      },
+      "isStatic": true
+    },
+    "assignOrderDeliverer": {
+      "accepts": [
+        {
+          "arg": "orderId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "arg": "userId",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "returns": {
+        "arg": "message",
+        "type": "string"
+      },
+      "http": {
+        "verb": "post",
+        "path": "/:orderId/assignOrderDeliverer"
+      },
+      "isStatic": true
+    },
+    "assignOrderToPack": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "orderId",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "returns": {
+        "arg": "message",
+        "type": "string"
+      },
+      "http": {
+        "verb": "post",
+        "path": "/:orderId/assignPack"
+      }
+    },
+    "assignOrderPendingDelivery": {
+      "accepts": [
+        {
+          "arg": "orderId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "arg": "userId",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "returns": {
+        "arg": "message",
+        "type": "string"
+      },
+      "http": {
+        "verb": "post",
+        "path": "/:orderId/assignPendingDelivery"
+      },
+      "isStatic": true
+    },
+    "assignOrderToDelivery": {
+      "accepts": [
+        {
+          "arg": "orderId",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "returns": {
+        "arg": "message",
+        "type": "string"
+      },
+      "http": {
+        "verb": "post",
+        "path": "/:orderId/assignDelivery"
+      },
+      "isStatic": true
+    },
+    "assignOrderToCancel": {
+      "accepts": [
+        {
+          "arg": "orderId",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "returns": {
+        "arg": "message",
+        "type": "string"
+      },
+      "http": {
+        "verb": "post",
+        "path": "/:orderId/assignCancel"
+      },
+      "isStatic": true
+    },
+    "assignOrderDeliverd": {
+      "accepts": [
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        },
+        {
+          "arg": "orderId",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "returns": {
+        "arg": "message",
+        "type": "string"
+      },
+      "http": {
+        "verb": "post",
+        "path": "/:orderId/delivered"
+      },
+      "isStatic": true
     }
   }
 }
