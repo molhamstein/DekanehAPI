@@ -370,7 +370,7 @@ module.exports = function (Orders) {
 
               if (unvalidWarehouseProducts.length != 0) {
                 return callback({
-                  "statusCode": 612, // unavailble in warehouse 
+                  "statusCode": 612, // unavailable in warehouse 
                   "data": unvalidWarehouseProducts
                 });
               }

@@ -226,4 +226,91 @@ module.exports = function (Supply) {
         return supply;
     }
 
+
+    Supply.daily = function (res, from, to, productAbstractId, cb) {
+
+        let and = [];
+        if (from)
+            and.push({ createDate: { $gte: from } });
+
+        if (to)
+            and.push({ createDate: { $lte: to } });
+
+
+        if (and.length)
+            and = [{ $match: { $and: and } }];
+
+        let matchProductAbstractId = [];
+
+        if (productAbstractId) {
+            matchProductAbstractId.push({ $match: { "supplyProduct.productAbstractId": ObjectId(productAbstractId) } });
+        }
+
+        let stages =
+            [
+                ...and,
+                {
+                    $lookup: {
+                        from: 'supplyProduct',
+                        localField: '_id',
+                        foreignField: 'supplyId',
+                        as: 'supplyProduct'
+                    }
+                },
+                {
+                    $unwind: "$supplyProduct"
+                },
+                ...matchProductAbstractId
+                ,
+                {
+                    $group: {
+                        _id: { month: { $month: "$createDate" }, day: { $dayOfMonth: "$createDate" }, year: { $year: "$createDate" } },
+                        count: { $sum: "$supplyProduct.count" },
+                        cost: { $sum: { $multiply: ["$supplyProduct.count", "$supplyProduct.buyingPrice"] } }
+                    }
+                }
+            ];
+
+        let productsStages = [
+            ...and,
+            {
+                $lookup: {
+                    from: 'supplyProduct',
+                    localField: '_id',
+                    foreignField: 'supplyId',
+                    as: 'supplyProduct'
+                }
+            },
+            {
+                $unwind: "$supplyProduct"
+            },
+            ...matchProductAbstractId
+            ,
+            {
+                $group: {
+                    _id: { productAbstractId: "$supplyProduct.productAbstractId" },
+                    count: { $sum: "$supplyProduct.count" },
+                    cost: { $sum: { $multiply: ["$supplyProduct.count", "$supplyProduct.buyingPrice"] } } , 
+                    productAbstractSnapshot : { $first : "$supplyProduct.productAbstractSnapshot"}
+                }
+            },
+            
+        ];
+
+
+        Supply.getDataSource().connector.connect((err, db) => {
+            let collection = db.collection("supply");
+            collection.aggregate(stages, (err, result) => {
+
+                collection.aggregate(productsStages, (err, productsResult) => {
+                    res.json({ result, products: productsResult });
+                });
+
+            });
+        });
+
+    }
+
+    
+
 };
