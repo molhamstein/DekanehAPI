@@ -54,6 +54,12 @@
     "media": {
       "type": "object",
       "required": true
+    }, 
+    "productAbstractSnapshot" : {
+      "type" : "object"
+    }, 
+    "warehouseProductSnapshot" : {
+      "type" : "object"
     }
   },
   "validations": [],

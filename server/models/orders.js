@@ -49,7 +49,7 @@ module.exports = function (Orders) {
         orderProduct.count = Math.max(orderProduct.count, 0);
         unvalidWarehouseProducts.push(orderProduct);
       }
-      warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount) , sellingPrice : orderProduct.sellingPrice })
+      warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount), sellingPrice: orderProduct.sellingPrice })
     }
 
     return { unvalidWarehouseProducts, warehouseProductCountUpdates };
@@ -68,21 +68,28 @@ module.exports = function (Orders) {
     let snapshot = {};
     // product 
     let productProps = ["nameAr", "nameEn", "consumerPriceDiscount", "consumerPrice", "horecaPrice", "horecaPriceDiscount", "wholeSalePrice",
-      "wholeSalePriceDiscount", "pack", "description",
-      "offerSource", "isOffer", "media"];
+      "wholeSalePriceDiscount", "pack", "description", "isFeatured" , "status" , "availableTo" , 
+      "isFavorite", "offerMaxQuantity" ,"code" , "sku", "creationDate", 
+      "offerSource", "isOffer", "media" , "productAbstractId" , "parentCount"];
 
     productProps.forEach((val, index) => {
       snapshot[val] = product[val];
     });
     // product-abstract                          
-    let productAbstractProps = ["officialConsumerPrice", "officialMassMarketPrice"];
+    snapshot["productAbstractSnapshot"] = {}; 
+    let productAbstractProps = ["officialConsumerPrice", "officialMassMarketPrice" , "nameEn", "nameAr" , "id"];
     let productAbstract = product.productAbstract();
     productAbstractProps.forEach((val, index) => {
-      snapshot[val] = productAbstract[val];
+      snapshot["productAbstractSnapshot"][val] = productAbstract[val];
     });
 
     // warehouse-product 
-    snapshot["warehouseAvgBuyingPrice"] = warehouseProduct.avgBuyingPrice;
+
+    let warehouseProductProps = ["avgBuyingPrice" , "avgSellingPrice" ];
+    snapshot["warehouseProductSnapshot"] = {}; 
+    warehouseProductProps.forEach((val, index) => {
+      snapshot["warehouseProductSnapshot"][val] = warehouseProduct[val];
+    });
 
     return snapshot;
   };
@@ -385,7 +392,7 @@ module.exports = function (Orders) {
                   throw new Error("warehouse doesn't have a product");
                 }
                 // warehouse doesn't have enough amount of the product 
-                warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (orderProduct.count * product.parentCount) , sellingPrice:orderProduct.sellingPrice })
+                warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (orderProduct.count * product.parentCount), sellingPrice: orderProduct.sellingPrice })
               }
 
 
@@ -541,14 +548,14 @@ module.exports = function (Orders) {
           if (err)
             return callback(err)
 
-          for (let { warehouseProduct, countDiff , sellingPrice} of warehouseProductCountUpdates) {
+          for (let { warehouseProduct, countDiff, sellingPrice } of warehouseProductCountUpdates) {
 
 
             try {
               // update warehouse products count 
               await warehouseProduct.updateExpectedCount(countDiff);
               if (['inDelivery', 'delivered'].includes(order.status))
-                await warehouseProduct.updatetotalCount(countDiff , {sellingPrice});
+                await warehouseProduct.updatetotalCount(countDiff, { sellingPrice });
             } catch (err) {
               return callback(err);
             }
@@ -895,7 +902,7 @@ module.exports = function (Orders) {
       let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
       warehouseProduct = warehouseProduct[0];
       // update warehouse total count 
-      await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount , {sellingPrice : orderProduct.sellingPrice});
+      await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount, { sellingPrice: orderProduct.sellingPrice });
 
     }
     await order.save();
@@ -961,7 +968,7 @@ module.exports = function (Orders) {
 
       // restore warehouse total count 
       if (['inDelivery'].includes(order.status)) {
-        await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount , {sellingPrice:orderProduct.sellingPrice});
+        await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount, { sellingPrice: orderProduct.sellingPrice });
       }
     }
 
@@ -992,8 +999,104 @@ module.exports = function (Orders) {
     [pending, warehouse, delivery, done] = await Promise.all([pending, warehouse, delivery, done]);
     return { pending, warehouse, delivery, done };
 
+ 
+  }
+
+
+  Orders.daily = function (res, from, to, productAbstractId, cb) {
+
+
+    let and = [];
+    if (from)
+      and.push({ orderDate: { $gte: from } });
+
+    if (to)
+      and.push({ orderDate: { $lte: to } });
+
+
+    if (and.length)
+      and = [{ $match: { $and: and } }];
+
+    let matchProductAbstractId = [
+
+      {
+        $match : {
+          "orderProduct.productSnapshot.productAbstractId" :{
+            $ne : null 
+          }
+        }
+      }
+    ];
+
+    if (productAbstractId) {
+      matchProductAbstractId.push({ $match: { "orderProduct.productSnapshot.productAbstractId": ObjectId(productAbstractId) } });
+    }
+
+    let stages =
+      [
+        ...and,
+        {
+          $lookup: {
+            from: 'orderProducts',
+            localField: '_id',
+            foreignField: 'orderId',
+            as: 'orderProduct'
+          }
+        },
+        {
+          $unwind: "$orderProduct"
+        },
+        ...matchProductAbstractId
+        ,
+        {
+          $group: {
+            _id: { month: { $month: "$orderDate" }, day: { $dayOfMonth: "$orderDate" }, year: { $year: "$orderDate" } },
+            count: { $sum:  {  $multiply : ["$orderProduct.count" , "$orderProduct.productSnapshot.parentCount"] } },
+            cost: { $sum: { $multiply: ["$orderProduct.count", "$orderProduct.buyingPrice"] } },
+          }
+        }
+      ];
+
+    let productsStages = [
+      ...and,
+      {
+        $lookup: {
+          from: 'orderProducts',
+          localField: '_id',
+          foreignField: 'orderId',
+          as: 'orderProduct'
+        }
+      },
+      {
+        $unwind: "$orderProduct"
+      },
+      ...matchProductAbstractId
+      ,
+      {
+        $group: {
+          _id: { productAbstractId: "$orderProduct.productSnapshot.productAbstractId" },
+          count: { $sum:  {  $multiply : ["$orderProduct.count" , "$orderProduct.productSnapshot.parentCount"] } },
+          cost: { $sum: { $multiply: ["$orderProduct.count", "$orderProduct.buyingPrice"] } },
+          productSnapshot: { $first: "$orderProduct.productSnapshot" }
+        }
+      },
+
+    ];
+
+
+    Orders.getDataSource().connector.connect((err, db) => {
+      let collection = db.collection("orders");
+      collection.aggregate(stages, (err, result) => {
+
+        collection.aggregate(productsStages, (err, productsResult) => {
+          res.json({ result, products: productsResult });
+        });
+
+      });
+    });
 
   }
+
 
 
 };
