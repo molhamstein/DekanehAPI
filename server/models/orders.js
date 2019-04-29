@@ -410,6 +410,16 @@ module.exports = function (Orders) {
             try {
               assignOrderProductsSellingPrice(orderProducts, productsFromDb, user);
               await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
+              // restore the price of old products 
+              orderProducts = orderProducts.map(orderProduct => {
+
+                let oldOrderPoroduct = oldOrderProducts.find(oldOrderProduct => oldOrderProduct.productId == orderProduct.productId);
+                if (!oldOrderPoroduct) return orderProduct;
+                orderProduct.productSnapshot = oldOrderPoroduct.productSnapshot;
+                orderProduct.sellingPrice = oldOrderPoroduct.sellingPrice;
+                return orderProduct;
+              });
+              
             } catch (err) {
               return next(err);
             }
@@ -1105,19 +1115,19 @@ module.exports = function (Orders) {
     if (!user)
       throw callback(ERROR(403, 'User not login'));
 
-    let where = {}; 
-    where.status =  { inq : ['inWarehouse', 'packed'] } ; 
+    let where = {};
+    where.status = { inq: ['inWarehouse', 'packed'] };
 
     where.warehouseKeeperId = user.id;
 
-    if(status) 
-      where.status = status ; 
+    if (status)
+      where.status = status;
 
-    if(from)
-      where.orderDate = { gte : from} ; 
+    if (from)
+      where.orderDate = { gte: from };
 
 
-    return  Orders.app.models.orders.find({where}); 
+    return Orders.app.models.orders.find({ where });
 
   }
 
