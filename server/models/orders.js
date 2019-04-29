@@ -68,16 +68,16 @@ module.exports = function (Orders) {
     let snapshot = {};
     // product 
     let productProps = ["nameAr", "nameEn", "consumerPriceDiscount", "consumerPrice", "horecaPrice", "horecaPriceDiscount", "wholeSalePrice",
-      "wholeSalePriceDiscount", "pack", "description", "isFeatured" , "status" , "availableTo" , 
-      "isFavorite", "offerMaxQuantity" ,"code" , "sku", "creationDate", 
-      "offerSource", "isOffer", "media" , "productAbstractId" , "parentCount"];
+      "wholeSalePriceDiscount", "pack", "description", "isFeatured", "status", "availableTo",
+      "isFavorite", "offerMaxQuantity", "code", "sku", "creationDate",
+      "offerSource", "isOffer", "media", "productAbstractId", "parentCount"];
 
     productProps.forEach((val, index) => {
       snapshot[val] = product[val];
     });
     // product-abstract                          
-    snapshot["productAbstractSnapshot"] = {}; 
-    let productAbstractProps = ["officialConsumerPrice", "officialMassMarketPrice" , "nameEn", "nameAr" , "id"];
+    snapshot["productAbstractSnapshot"] = {};
+    let productAbstractProps = ["officialConsumerPrice", "officialMassMarketPrice", "nameEn", "nameAr", "id"];
     let productAbstract = product.productAbstract();
     productAbstractProps.forEach((val, index) => {
       snapshot["productAbstractSnapshot"][val] = productAbstract[val];
@@ -85,8 +85,8 @@ module.exports = function (Orders) {
 
     // warehouse-product 
 
-    let warehouseProductProps = ["avgBuyingPrice" , "avgSellingPrice" ];
-    snapshot["warehouseProductSnapshot"] = {}; 
+    let warehouseProductProps = ["avgBuyingPrice", "avgSellingPrice"];
+    snapshot["warehouseProductSnapshot"] = {};
     warehouseProductProps.forEach((val, index) => {
       snapshot["warehouseProductSnapshot"][val] = warehouseProduct[val];
     });
@@ -999,7 +999,7 @@ module.exports = function (Orders) {
     [pending, warehouse, delivery, done] = await Promise.all([pending, warehouse, delivery, done]);
     return { pending, warehouse, delivery, done };
 
- 
+
   }
 
 
@@ -1020,9 +1020,9 @@ module.exports = function (Orders) {
     let matchProductAbstractId = [
 
       {
-        $match : {
-          "orderProduct.productSnapshot.productAbstractId" :{
-            $ne : null 
+        $match: {
+          "orderProduct.productSnapshot.productAbstractId": {
+            $ne: null
           }
         }
       }
@@ -1051,7 +1051,7 @@ module.exports = function (Orders) {
         {
           $group: {
             _id: { month: { $month: "$orderDate" }, day: { $dayOfMonth: "$orderDate" }, year: { $year: "$orderDate" } },
-            count: { $sum:  {  $multiply : ["$orderProduct.count" , "$orderProduct.productSnapshot.parentCount"] } },
+            count: { $sum: { $multiply: ["$orderProduct.count", "$orderProduct.productSnapshot.parentCount"] } },
             cost: { $sum: { $multiply: ["$orderProduct.count", "$orderProduct.buyingPrice"] } },
           }
         }
@@ -1075,7 +1075,7 @@ module.exports = function (Orders) {
       {
         $group: {
           _id: { productAbstractId: "$orderProduct.productSnapshot.productAbstractId" },
-          count: { $sum:  {  $multiply : ["$orderProduct.count" , "$orderProduct.productSnapshot.parentCount"] } },
+          count: { $sum: { $multiply: ["$orderProduct.count", "$orderProduct.productSnapshot.parentCount"] } },
           cost: { $sum: { $multiply: ["$orderProduct.count", "$orderProduct.buyingPrice"] } },
           productSnapshot: { $first: "$orderProduct.productSnapshot" }
         }
@@ -1098,5 +1098,27 @@ module.exports = function (Orders) {
   }
 
 
+
+  Orders.warehoueKeeperOrders = async function (req, from, status) {
+    let { user } = req;
+
+    if (!user)
+      throw callback(ERROR(403, 'User not login'));
+
+    let where = {}; 
+    where.status =  { inq : ['inWarehouse', 'packed'] } ; 
+
+    where.warehouseKeeperId = user.id;
+
+    if(status) 
+      where.status = status ; 
+
+    if(from)
+      where.orderDate = { gte : from} ; 
+
+
+    return  Orders.app.models.orders.find({where}); 
+
+  }
 
 };
