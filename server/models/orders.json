@@ -410,7 +410,7 @@
       "description": "Get daily report of supply products",
       "http": [
         {
-          "path": "/daily",
+        "path": "/dailyOrder",
           "verb": "get"
         }
       ]
