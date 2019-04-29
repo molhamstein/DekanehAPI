@@ -390,6 +390,16 @@ module.exports = function (Orders) {
             try {
               assignOrderProductsSellingPrice(orderProducts, productsFromDb, user);
               await assignOrderProductsSnapshot(orderProducts, productsFromDb, null);
+              
+               // restore the price of old products 
+               orderProducts = orderProducts.map(orderProduct => {
+
+                let oldOrderPoroduct = oldOrderProducts.find(oldOrderProduct => oldOrderProduct.productId == orderProduct.productId);
+                if (!oldOrderPoroduct) return orderProduct;
+                orderProduct.productSnapshot = oldOrderPoroduct.productSnapshot;
+                orderProduct.sellingPrice = oldOrderPoroduct.sellingPrice;
+                return orderProduct;
+              });
             } catch (err) {
               return next(err);
             }
