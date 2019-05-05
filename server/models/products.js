@@ -736,6 +736,14 @@ module.exports = function (Products) {
         foreignField: '_id',
         as: 'subCategory'
       }
+    },
+    {
+      $lookup: {
+        from: 'productAbstract',
+        localField: 'productAbstractId',
+        foreignField: '_id',
+        as: 'productAbstract'
+      }
     }, {
       $project: {
         id: '$_id',
@@ -774,6 +782,9 @@ module.exports = function (Products) {
         },
         "manufacturer": {
           "$arrayElemAt": ["$manufacturer", 0]
+        } , 
+        "productAbstract" : {
+          "$arrayElemAt": ["$productAbstract", 0]
         }
       }
     });

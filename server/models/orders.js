@@ -419,7 +419,7 @@ module.exports = function (Orders) {
                 orderProduct.sellingPrice = oldOrderPoroduct.sellingPrice;
                 return orderProduct;
               });
-              
+
             } catch (err) {
               return next(err);
             }
@@ -909,7 +909,7 @@ module.exports = function (Orders) {
       let product = orderProduct.product();
       let productAbstractId = product.productAbstract().id;
       let warehouse = order.warehouse();
-      let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
+      let warehouseProduct = await warehouse.warehouseProducts({ where : { productAbstractId } });
       warehouseProduct = warehouseProduct[0];
       // update warehouse total count 
       await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount, { sellingPrice: orderProduct.sellingPrice });
@@ -967,17 +967,17 @@ module.exports = function (Orders) {
       let product = orderProduct.product();
       let productAbstractId = product.productAbstract().id;
       let warehouse = order.warehouse();
-      let warehouseProduct = await warehouse.warehouseProducts({ productAbstractId });
+      let warehouseProduct = await warehouse.warehouseProducts({ where : { productAbstractId } });
       warehouseProduct = warehouseProduct[0];
 
-      // in: ['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered', 'canceled']        
-      // restore warehouse expected count           
-      if (['pending', 'inWarehouse', 'packed', 'inDelivery', 'delivered'].includes(order.status)) {
+      // in: ['pending', 'inWarehouse', 'packed', 'pendingDelivery', 'inDelivery', 'delivered', 'canceled'] 
+      
+      if (['pending', 'inWarehouse', 'packed', 'inDelivery' , 'pendingDelivery' , 'delivered'].includes(order.status)) {
         await warehouseProduct.updateExpectedCount(orderProduct.count * product.parentCount);
       }
 
       // restore warehouse total count 
-      if (['inDelivery'].includes(order.status)) {
+      if (['inDelivery' , 'delivered'].includes(order.status)) {
         await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount, { sellingPrice: orderProduct.sellingPrice });
       }
     }
@@ -990,7 +990,7 @@ module.exports = function (Orders) {
   }
 
 
-
+ 
 
   Orders.list = async function (req) {
 
@@ -1109,25 +1109,29 @@ module.exports = function (Orders) {
 
 
 
-  Orders.warehoueKeeperOrders = async function (req, from, status) {
+  Orders.warehoueKeeperOrders = async function (req, from, to, status) {
     let { user } = req;
 
     if (!user)
-      throw callback(ERROR(403, 'User not login'));
+      throw ERROR(403, 'User not login');
 
-    let where = {};
-    where.status = { inq: ['inWarehouse', 'packed'] };
+    let and = [];
 
-    where.warehouseKeeperId = user.id;
+    and.push({ warehouseKeeperId: user.id });
 
     if (status)
-      where.status = status;
+      and.push({ status });
+    else
+      and.push({ status: { inq: ['inWarehouse', 'packed' , 'pendingDelivery'] } });
+
 
     if (from)
-      where.orderDate = { gte: from };
+      and.push({ orderDate: { gte: from } });
+    if (to)
+      and.push({ orderDate: { lte: to } });
 
 
-    return Orders.app.models.orders.find({ where });
+    return Orders.app.models.orders.find({ where: { and } });
 
   }
 

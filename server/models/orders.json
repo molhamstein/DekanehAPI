@@ -387,6 +387,12 @@
           "description": ""
         },
         {
+          "arg": "to",
+          "type": "date",
+          "required": false,
+          "description": ""
+        },
+        {
           "arg": "status",
           "type": "string",
           "required": false
