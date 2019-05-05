@@ -959,8 +959,8 @@ module.exports = function (Orders) {
     if (!order)
       throw ERROR(404, 'order not found');
 
-    if (order.status == 'canceled' || order.status === 'delivered')
-      throw ERROR(400, 'order already in canceled');
+    if (order.status == 'canceled' )
+      throw ERROR(400, 'the order has been canceled already');
 
     for (let orderProduct of order.orderProducts()) {
 
