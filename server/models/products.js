@@ -91,123 +91,123 @@ module.exports = function (Products) {
       var clientType = oneUser.clientType;
 
       Products.getDataSource().connector.collection('products')
-          .aggregate([{
-            $match: {
-              isOffer: false,
-              status: "available",
-              $or: [{
-                availableTo: "both"
-              }, {
-                availableTo: clientType
-              }]
+        .aggregate([{
+          $match: {
+            isOffer: false,
+            status: "available",
+            $or: [{
+              availableTo: "both"
+            }, {
+              availableTo: clientType
+            }]
+          }
+        },
+        { $match: { productAbstractId: { $ne: null } } },
+        {
+          $sort: {
+            categoryId: +1,
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryId',
+            foreignField: '_id',
+            as: 'category'
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'subCategoryId',
+            foreignField: '_id',
+            as: 'subCategory'
+          }
+        },
+        {
+          $lookup: {
+            from: 'manufacturers',
+            localField: 'manufacturerId',
+            foreignField: '_id',
+            as: 'manufacturer'
+          }
+        },
+        {
+          $project: {
+            "nameAr": 1,
+            "nameEn": 1,
+            "media": 1,
+            "code": 1,
+            "sku": 1,
+            "pack": 1,
+            "description": 1,
+            "horecaPrice": 1,
+            "wholeSalePrice": 1,
+            "wholeSaleMarketPrice": 1,
+            "marketPrice": 1,
+            "horecaPriceDiscount": 1,
+            "wholeSalePriceDiscount": 1,
+            "marketOfficialPrice": 1,
+            "dockanBuyingPrice": 1,
+            "availableTo": 1,
+            "isFeatured": 1,
+            "status": 1,
+            "isOffer": 1,
+            "offerSource": 1,
+            "offerMaxQuantity": 1,
+            "categoryId": 1,
+            "subCategoryId": 1,
+            "offersIds": 1,
+            "id": 1,
+            "productsIds": 1,
+            "tagsIds": 1,
+            "manufacturerId": 1,
+            "category": {
+              "$arrayElemAt": ["$category", 0]
+            },
+            "subCategory": {
+              "$arrayElemAt": ["$subCategory", 0]
+            },
+            "manufacturer": {
+              "$arrayElemAt": ["$manufacturer", 0]
             }
-          },
-          { $match: { productAbstractId: { $ne: null } } },
-          {
-            $sort: {
-              categoryId: +1,
+          }
+        },
+        {
+          $match: {
+            "category.status": "active",
+            "subCategory.status": "active",
+          }
+        },
+        {
+          $group: {
+            _id: '$categoryId',
+            info: {
+              $first: "$category"
+            },
+            products: {
+              $push: '$$ROOT',
             }
-          },
-          {
-            $lookup: {
-              from: 'categories',
-              localField: 'categoryId',
-              foreignField: '_id',
-              as: 'category'
-            }
-          },
-          {
-            $lookup: {
-              from: 'categories',
-              localField: 'subCategoryId',
-              foreignField: '_id',
-              as: 'subCategory'
-            }
-          },
-          {
-            $lookup: {
-              from: 'manufacturers',
-              localField: 'manufacturerId',
-              foreignField: '_id',
-              as: 'manufacturer'
-            }
-          },
-          {
-            $project: {
-              "nameAr": 1,
-              "nameEn": 1,
-              "media": 1,
-              "code": 1,
-              "sku": 1,
-              "pack": 1,
-              "description": 1,
-              "horecaPrice": 1,
-              "wholeSalePrice": 1,
-              "wholeSaleMarketPrice": 1,
-              "marketPrice": 1,
-              "horecaPriceDiscount": 1,
-              "wholeSalePriceDiscount": 1,
-              "marketOfficialPrice": 1,
-              "dockanBuyingPrice": 1,
-              "availableTo": 1,
-              "isFeatured": 1,
-              "status": 1,
-              "isOffer": 1,
-              "offerSource": 1,
-              "offerMaxQuantity": 1,
-              "categoryId": 1,
-              "subCategoryId": 1,
-              "offersIds": 1,
-              "id": 1,
-              "productsIds": 1,
-              "tagsIds": 1,
-              "manufacturerId": 1,
-              "category": {
-                "$arrayElemAt": ["$category", 0]
-              },
-              "subCategory": {
-                "$arrayElemAt": ["$subCategory", 0]
-              },
-              "manufacturer": {
-                "$arrayElemAt": ["$manufacturer", 0]
-              }
-            }
-          },
-          {
-            $match: {
-              "category.status": "active",
-              "subCategory.status": "active",
-            }
-          },
-          {
-            $group: {
-              _id: '$categoryId',
-              info: {
-                $first: "$category"
-              },
-              products: {
-                $push: '$$ROOT',
-              }
-            }
-          },
-          {
-            $project: {
-              titleEn: '$info.titleEn',
-              titleAr: '$info.titleAr',
-              id: '$info._id',
-              products: "$products",
-              priority: "$info.priority"
-              // products: {
-              //   $slice: ["$products", 0, limitPerCategory]
-              // }
-            }
-          },
-          {
-            $sort: {
-              priority: -1,
-            }
-          },
-          ], function (err, data) {
+          }
+        },
+        {
+          $project: {
+            titleEn: '$info.titleEn',
+            titleAr: '$info.titleAr',
+            id: '$info._id',
+            products: "$products",
+            priority: "$info.priority"
+            // products: {
+            //   $slice: ["$products", 0, limitPerCategory]
+            // }
+          }
+        },
+        {
+          $sort: {
+            priority: -1,
+          }
+        },
+        ], function (err, data) {
           console.log("dataaaaaaaaaaaaaaaa");
           console.log(data);
           _.each(data, function (d) {
@@ -885,7 +885,7 @@ module.exports = function (Products) {
       console.log(oneUser.clientType);
       var clientType = oneUser.clientType;
 
-      var stages = []; 
+      var stages = [];
 
 
       stages.push({ $match: { productAbstractId: { $ne: null } } });
@@ -1434,31 +1434,105 @@ module.exports = function (Products) {
       console.log(oneUser.clientType);
       var clientType = oneUser.clientType;
 
-      Products.find({
-        "where": {
-          "and": [{
-            "isOffer": "false"
-          },
-          {
-            "isFeatured": "true"
-          },
-          {
-            "status": "available",
-          },
-          {
-            "or": [{
-              "availableTo": "both"
+      // { $match: { productAbstractId: { $ne: null } } }, 
+      // 
+
+      let stages = [];
+
+      stages.push(
+        {
+          $match: {
+
+            isOffer: false,
+            status: "available",
+            $or: [{
+              availableTo: "both"
             }, {
-              "availableTo": clientType
-            }]
+              availableTo: clientType
+            }],
+            isFeatured: true
           }
-          ]
+        },
+        { $match: { productAbstractId: { $ne: null } } },
+        {
+          $lookup: {
+            from: 'manufacturers',
+            localField: 'manufacturerId',
+            foreignField: '_id',
+            as: 'manufacturer'
+          }
+        }, {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryId',
+            foreignField: '_id',
+            as: 'category'
+          }
+        }, {
+          $lookup: {
+            from: 'categories',
+            localField: 'subCategoryId',
+            foreignField: '_id',
+            as: 'subCategory'
+          }
+        }, {
+          $project: {
+            id: '$_id',
+            "nameAr": 1,
+            "nameEn": 1,
+            "media": 1,
+            "code": 1,
+            "sku": 1,
+            "pack": 1,
+            "description": 1,
+            "horecaPrice": 1,
+            "wholeSalePrice": 1,
+            "wholeSaleMarketPrice": 1,
+            "marketPrice": 1,
+            "horecaPriceDiscount": 1,
+            "wholeSalePriceDiscount": 1,
+            "marketOfficialPrice": 1,
+            "dockanBuyingPrice": 1,
+            "availableTo": 1,
+            "isFeatured": 1,
+            "status": 1,
+            "isOffer": 1,
+            "offerSource": 1,
+            "offerMaxQuantity": 1,
+            "categoryId": 1,
+            "subCategoryId": 1,
+            "offersIds": 1,
+            "productsIds": 1,
+            "tagsIds": 1,
+            "manufacturerId": 1,
+            "category": {
+              "$arrayElemAt": ["$category", 0]
+            },
+            "subCategory": {
+              "$arrayElemAt": ["$subCategory", 0]
+            },
+            "manufacturer": {
+              "$arrayElemAt": ["$manufacturer", 0]
+            }
+          }
+        },
+        {
+          $match: {
+            "category.status": "active",
+            "subCategory.status": "active",
+          }
         }
-      }, function (err, data) {
-        if (err)
-          return callback(err, null);
-        callback(null, data);
-      })
+      );
+
+
+      Products.getDataSource().connector.collection('products')
+        .aggregate(stages, function (err, products) {
+          if (err)
+            return callback(err);
+          callback(null, products);
+        });
+
+
 
 
     })
