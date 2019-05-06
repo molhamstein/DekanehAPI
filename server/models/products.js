@@ -19,10 +19,10 @@ module.exports = function (Products) {
       p.id = index++;
     });
     async.parallel([
-        _fn('categories', ctx.req.body.categoryId),
-        _fn('categories', ctx.req.body.subCategoryId),
-        _fn('manufacturers', ctx.req.body.manufacturerId),
-      ],
+      _fn('categories', ctx.req.body.categoryId),
+      _fn('categories', ctx.req.body.subCategoryId),
+      _fn('manufacturers', ctx.req.body.manufacturerId),
+    ],
       function (err, results) {
         if (err)
           return next(err);
@@ -57,14 +57,14 @@ module.exports = function (Products) {
         in: result.productsIds
       }
     }, {
-      $push: {
-        offersIds: offerId
-      }
-    }, function (err, info) {
-      if (err)
-        console.log(err);
-      return next()
-    });
+        $push: {
+          offersIds: offerId
+        }
+      }, function (err, info) {
+        if (err)
+          console.log(err);
+        return next()
+      });
 
   });
 
@@ -92,114 +92,120 @@ module.exports = function (Products) {
 
       Products.getDataSource().connector.collection('products')
         .aggregate([{
-            $match: {
-              isOffer: false,
-              status: "available",
-              $or: [{
-                availableTo: "both"
-              }, {
-                availableTo: clientType
-              }]
+          $match: {
+            isOffer: false,
+            status: "available",
+            $or: [{
+              availableTo: "both"
+            }, {
+              availableTo: clientType
+            }]
+          }
+        },
+        {
+          $sort: {
+            categoryId: +1,
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryId',
+            foreignField: '_id',
+            as: 'category'
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'subCategoryId',
+            foreignField: '_id',
+            as: 'subCategory'
+          }
+        },
+        {
+          $lookup: {
+            from: 'manufacturers',
+            localField: 'manufacturerId',
+            foreignField: '_id',
+            as: 'manufacturer'
+          }
+        },
+        {
+          $project: {
+            "nameAr": 1,
+            "nameEn": 1,
+            "media": 1,
+            "code": 1,
+            "sku": 1,
+            "pack": 1,
+            "description": 1,
+            "horecaPrice": 1,
+            "wholeSalePrice": 1,
+            "wholeSaleMarketPrice": 1,
+            "marketPrice": 1,
+            "horecaPriceDiscount": 1,
+            "wholeSalePriceDiscount": 1,
+            "marketOfficialPrice": 1,
+            "dockanBuyingPrice": 1,
+            "availableTo": 1,
+            "isFeatured": 1,
+            "status": 1,
+            "isOffer": 1,
+            "offerSource": 1,
+            "offerMaxQuantity": 1,
+            "categoryId": 1,
+            "subCategoryId": 1,
+            "offersIds": 1,
+            "id": 1,
+            "productsIds": 1,
+            "tagsIds": 1,
+            "manufacturerId": 1,
+            "category": {
+              "$arrayElemAt": ["$category", 0]
+            },
+            "subCategory": {
+              "$arrayElemAt": ["$subCategory", 0]
+            },
+            "manufacturer": {
+              "$arrayElemAt": ["$manufacturer", 0]
             }
-          },
-          {
-            $sort: {
-              categoryId: +1,
+          }
+        },
+        {
+          $match: {
+            "category.status": "active",
+            "subCategory.status": "active",
+          }
+        },
+        {
+          $group: {
+            _id: '$categoryId',
+            info: {
+              $first: "$category"
+            },
+            products: {
+              $push: '$$ROOT',
             }
-          },
-          {
-            $lookup: {
-              from: 'categories',
-              localField: 'categoryId',
-              foreignField: '_id',
-              as: 'category'
-            }
-          },
-          {
-            $lookup: {
-              from: 'categories',
-              localField: 'subCategoryId',
-              foreignField: '_id',
-              as: 'subCategory'
-            }
-          },
-          {
-            $lookup: {
-              from: 'manufacturers',
-              localField: 'manufacturerId',
-              foreignField: '_id',
-              as: 'manufacturer'
-            }
-          },
-          {
-            $project: {
-              "nameAr": 1,
-              "nameEn": 1,
-              "media": 1,
-              "code": 1,
-              "sku": 1,
-              "pack": 1,
-              "description": 1,
-              "horecaPrice": 1,
-              "wholeSalePrice": 1,
-              "wholeSaleMarketPrice": 1,
-              "marketPrice": 1,
-              "horecaPriceDiscount": 1,
-              "wholeSalePriceDiscount": 1,
-              "marketOfficialPrice": 1,
-              "dockanBuyingPrice": 1,
-              "availableTo": 1,
-              "isFeatured": 1,
-              "status": 1,
-              "isOffer": 1,
-              "offerSource": 1,
-              "offerMaxQuantity": 1,
-              "categoryId": 1,
-              "subCategoryId": 1,
-              "offersIds": 1,
-              "id": 1,
-              "productsIds": 1,
-              "tagsIds": 1,
-              "manufacturerId": 1,
-              "category": {
-                "$arrayElemAt": ["$category", 0]
-              },
-              "subCategory": {
-                "$arrayElemAt": ["$subCategory", 0]
-              },
-              "manufacturer": {
-                "$arrayElemAt": ["$manufacturer", 0]
-              }
-            }
-          },
-          {
-            $group: {
-              _id: '$categoryId',
-              info: {
-                $first: "$category"
-              },
-              products: {
-                $push: '$$ROOT',
-              }
-            }
-          },
-          {
-            $project: {
-              titleEn: '$info.titleEn',
-              titleAr: '$info.titleAr',
-              id: '$info._id',
-              products: "$products",
-              priority: "$info.priority"
-              // products: {
-              //   $slice: ["$products", 0, limitPerCategory]
-              // }
-            }
-          },
-          {
-            $sort: {
-              priority: -1,
-            }
-          },
+          }
+        },
+        {
+          $project: {
+            titleEn: '$info.titleEn',
+            titleAr: '$info.titleAr',
+            id: '$info._id',
+            products: "$products",
+            priority: "$info.priority"
+            // products: {
+            //   $slice: ["$products", 0, limitPerCategory]
+            // }
+          }
+        },
+        {
+          $sort: {
+            priority: -1,
+          }
+        },
         ], function (err, data) {
           console.log("dataaaaaaaaaaaaaaaa");
           console.log(data);
@@ -217,18 +223,18 @@ module.exports = function (Products) {
   Products.remoteMethod('getCategoriesWithProducts', {
     description: 'get products grouped by categories   == 10 product in each category',
     accepts: [{
-        arg: 'limit',
-        type: 'number',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'req',
-        http: {
-          source: 'req'
-        }
+      arg: 'limit',
+      type: 'number',
+      'http': {
+        source: 'query'
       }
+    },
+    {
+      arg: 'req',
+      http: {
+        source: 'req'
+      }
+    }
     ],
     returns: {
       arg: 'body',
@@ -265,7 +271,239 @@ module.exports = function (Products) {
       console.log(where);
       Products.getDataSource().connector.collection('products')
         .aggregate([{
-            $match: where
+          $match: where
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryId',
+            foreignField: '_id',
+            as: 'category'
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'subCategoryId',
+            foreignField: '_id',
+            as: 'subCategory'
+          }
+        },
+        {
+          $lookup: {
+            from: 'manufacturers',
+            localField: 'manufacturerId',
+            foreignField: '_id',
+            as: 'manufacturer'
+          }
+        },
+        {
+          $project: {
+            "nameAr": 1,
+            "nameEn": 1,
+            "media": 1,
+            "code": 1,
+            "sku": 1,
+            "pack": 1,
+            "description": 1,
+            "horecaPrice": 1,
+            "wholeSalePrice": 1,
+            "wholeSaleMarketPrice": 1,
+            "marketPrice": 1,
+            "horecaPriceDiscount": 1,
+            "wholeSalePriceDiscount": 1,
+            "marketOfficialPrice": 1,
+            "dockanBuyingPrice": 1,
+            "availableTo": 1,
+            "isFeatured": 1,
+            "status": 1,
+            "isOffer": 1,
+            "offerSource": 1,
+            "offerMaxQuantity": 1,
+            "categoryId": 1,
+            "subCategoryId": 1,
+            "offersIds": 1,
+            "productsIds": 1,
+            "tagsIds": 1,
+            "manufacturerId": 1,
+            "category": {
+              "$arrayElemAt": ["$category", 0]
+            },
+            "subCategory": {
+              "$arrayElemAt": ["$subCategory", 0]
+            },
+            "manufacturer": {
+              "$arrayElemAt": ["$manufacturer", 0]
+            }
+          }
+        },
+        {
+          $match: {
+            "category.status": "active",
+            "subCategory.status": "active",
+          }
+        },
+        {
+          $group: {
+            _id: '$manufacturerId',
+            info: {
+              $first: "$manufacturer"
+            },
+            products: {
+              $push: '$$ROOT'
+            }
+          }
+        },
+        {
+          $project: {
+            nameEn: '$info.nameEn',
+            nameAr: '$info.nameAr',
+            id: '$info._id',
+            products: {
+              $slice: ["$products", limitPerManufacturer]
+            }
+          }
+        }
+        ], function (err, data) {
+
+          // _.each(data, function (d) {
+          // //   d.id = d._id
+          //   _.each(d.products, function (p) {
+          //     p.id = p._id
+          //   });
+          // });
+          var sortedArray = data.sort((n1, n2) => {
+            if (n1.products.length < n2.products.length) {
+              return 1;
+            }
+
+            if (n1.products.length > n2.products.length) {
+              return -1;
+            }
+            return 0;
+          });
+          return cb(err, sortedArray);
+        });
+    })
+  }
+
+
+
+  Products.remoteMethod('getManufacturersWithProducts', {
+    description: 'get products grouped by manufacturer   == 10 product in each manufacturer',
+    accepts: [{
+      arg: 'categoryId',
+      type: 'string',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'subCategoryId',
+      type: 'string',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'limit',
+      type: 'number',
+      'http': {
+        source: 'query'
+      }
+    }, {
+      arg: 'req',
+      http: {
+        source: 'req'
+      }
+    }
+    ],
+    returns: {
+      arg: 'body',
+      type: 'body',
+      root: true
+    },
+    http: {
+      verb: 'get',
+      path: '/groupedByManufacturers'
+    },
+  });
+
+
+
+  Products.similarProduct = function (productId, limit = 10, req, res, cb) {
+    console.log(req.accessToken.userId);
+    Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
+      if (err)
+        return cb(err);
+      console.log(oneUser.clientType);
+      var clientType = oneUser.clientType;
+      Products.findById(productId, function (err, product) {
+        if (err)
+          return cb(err);
+        if (!product)
+          return cb(ERROR(404, 'product not found'));
+
+        Products.getDataSource().connector.collection('products')
+          .aggregate([{
+            $match: {
+              _id: {
+                $ne: product.id
+              },
+              tagsIds: {
+                $in: product.tagsIds
+              },
+              status: "available",
+              $or: [{
+                availableTo: "both"
+              }, {
+                availableTo: clientType
+              }]
+            }
+          },
+          {
+            $project: {
+              tagsIds: 1,
+              rank: {
+                $size: {
+                  $setIntersection: ["$tagsIds", product.tagsIds]
+                }
+              },
+              _id: 0,
+              id: "$_id",
+              "nameAr": 1,
+              "nameEn": 1,
+              "media": 1,
+              "code": 1,
+              "sku": 1,
+              "pack": 1,
+              "description": 1,
+              "horecaPrice": 1,
+              "wholeSalePrice": 1,
+              "wholeSaleMarketPrice": 1,
+              "marketPrice": 1,
+              "horecaPriceDiscount": 1,
+              "wholeSalePriceDiscount": 1,
+              "marketOfficialPrice": 1,
+              "dockanBuyingPrice": 1,
+              "availableTo": 1,
+              "isFeatured": 1,
+              "status": 1,
+              "isOffer": 1,
+              "offerSource": 1,
+              "offerMaxQuantity": 1,
+              "categoryId": 1,
+              "subCategoryId": 1,
+              "offersIds": 1,
+              "productsIds": 1,
+              "tagsIds": 1,
+              "manufacturerId": 1
+            }
+          },
+          {
+            $sort: {
+              rank: -1
+            }
           },
           {
             $lookup: {
@@ -293,6 +531,7 @@ module.exports = function (Products) {
           },
           {
             $project: {
+              id: 1,
               "nameAr": 1,
               "nameEn": 1,
               "media": 1,
@@ -332,235 +571,14 @@ module.exports = function (Products) {
             }
           },
           {
-            $group: {
-              _id: '$manufacturerId',
-              info: {
-                $first: "$manufacturer"
-              },
-              products: {
-                $push: '$$ROOT'
-              }
+            $match: {
+              "category.status": "active",
+              "subCategory.status": "active",
             }
           },
           {
-            $project: {
-              nameEn: '$info.nameEn',
-              nameAr: '$info.nameAr',
-              id: '$info._id',
-              products: {
-                $slice: ["$products", limitPerManufacturer]
-              }
-            }
-          }
-        ], function (err, data) {
-
-          // _.each(data, function (d) {
-          // //   d.id = d._id
-          //   _.each(d.products, function (p) {
-          //     p.id = p._id
-          //   });
-          // });
-          var sortedArray = data.sort((n1, n2) => {
-            if (n1.products.length < n2.products.length) {
-              return 1;
-            }
-
-            if (n1.products.length > n2.products.length) {
-              return -1;
-            }
-            return 0;
-          });
-          return cb(err, sortedArray);
-        });
-    })
-  }
-
-
-
-  Products.remoteMethod('getManufacturersWithProducts', {
-    description: 'get products grouped by manufacturer   == 10 product in each manufacturer',
-    accepts: [{
-        arg: 'categoryId',
-        type: 'string',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'subCategoryId',
-        type: 'string',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'limit',
-        type: 'number',
-        'http': {
-          source: 'query'
-        }
-      }, {
-        arg: 'req',
-        http: {
-          source: 'req'
-        }
-      }
-    ],
-    returns: {
-      arg: 'body',
-      type: 'body',
-      root: true
-    },
-    http: {
-      verb: 'get',
-      path: '/groupedByManufacturers'
-    },
-  });
-
-
-
-  Products.similarProduct = function (productId, limit = 10, req, res, cb) {
-    console.log(req.accessToken.userId);
-    Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
-      if (err)
-        return cb(err);
-      console.log(oneUser.clientType);
-      var clientType = oneUser.clientType;
-      Products.findById(productId, function (err, product) {
-        if (err)
-          return cb(err);
-        if (!product)
-          return cb(ERROR(404, 'product not found'));
-
-        Products.getDataSource().connector.collection('products')
-          .aggregate([{
-              $match: {
-                _id: {
-                  $ne: product.id
-                },
-                tagsIds: {
-                  $in: product.tagsIds
-                },
-                status: "available",
-                $or: [{
-                  availableTo: "both"
-                }, {
-                  availableTo: clientType
-                }]
-              }
-            },
-            {
-              $project: {
-                tagsIds: 1,
-                rank: {
-                  $size: {
-                    $setIntersection: ["$tagsIds", product.tagsIds]
-                  }
-                },
-                _id: 0,
-                id: "$_id",
-                "nameAr": 1,
-                "nameEn": 1,
-                "media": 1,
-                "code": 1,
-                "sku": 1,
-                "pack": 1,
-                "description": 1,
-                "horecaPrice": 1,
-                "wholeSalePrice": 1,
-                "wholeSaleMarketPrice": 1,
-                "marketPrice": 1,
-                "horecaPriceDiscount": 1,
-                "wholeSalePriceDiscount": 1,
-                "marketOfficialPrice": 1,
-                "dockanBuyingPrice": 1,
-                "availableTo": 1,
-                "isFeatured": 1,
-                "status": 1,
-                "isOffer": 1,
-                "offerSource": 1,
-                "offerMaxQuantity": 1,
-                "categoryId": 1,
-                "subCategoryId": 1,
-                "offersIds": 1,
-                "productsIds": 1,
-                "tagsIds": 1,
-                "manufacturerId": 1
-              }
-            },
-            {
-              $sort: {
-                rank: -1
-              }
-            },
-            {
-              $limit: limit
-            },
-            {
-              $lookup: {
-                from: 'categories',
-                localField: 'categoryId',
-                foreignField: '_id',
-                as: 'category'
-              }
-            },
-            {
-              $lookup: {
-                from: 'categories',
-                localField: 'subCategoryId',
-                foreignField: '_id',
-                as: 'subCategory'
-              }
-            },
-            {
-              $lookup: {
-                from: 'manufacturers',
-                localField: 'manufacturerId',
-                foreignField: '_id',
-                as: 'manufacturer'
-              }
-            },
-            {
-              $project: {
-                id: 1,
-                "nameAr": 1,
-                "nameEn": 1,
-                "media": 1,
-                "code": 1,
-                "sku": 1,
-                "pack": 1,
-                "description": 1,
-                "horecaPrice": 1,
-                "wholeSalePrice": 1,
-                "wholeSaleMarketPrice": 1,
-                "marketPrice": 1,
-                "horecaPriceDiscount": 1,
-                "wholeSalePriceDiscount": 1,
-                "marketOfficialPrice": 1,
-                "dockanBuyingPrice": 1,
-                "availableTo": 1,
-                "isFeatured": 1,
-                "status": 1,
-                "isOffer": 1,
-                "offerSource": 1,
-                "offerMaxQuantity": 1,
-                "categoryId": 1,
-                "subCategoryId": 1,
-                "offersIds": 1,
-                "productsIds": 1,
-                "tagsIds": 1,
-                "manufacturerId": 1,
-                "category": {
-                  "$arrayElemAt": ["$category", 0]
-                },
-                "subCategory": {
-                  "$arrayElemAt": ["$subCategory", 0]
-                },
-                "manufacturer": {
-                  "$arrayElemAt": ["$manufacturer", 0]
-                }
-              }
-            },
+            $limit: limit
+          },
           ], function (err, products) {
             if (err)
               return cb(err);
@@ -573,31 +591,31 @@ module.exports = function (Products) {
 
   Products.remoteMethod('similarProduct', {
     accepts: [{
-        arg: 'productId',
-        type: 'string',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'limit',
-        type: 'number',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'req',
-        http: {
-          source: 'req'
-        }
-      },
-      {
-        arg: 'res',
-        http: {
-          source: 'res'
-        }
+      arg: 'productId',
+      type: 'string',
+      'http': {
+        source: 'query'
       }
+    },
+    {
+      arg: 'limit',
+      type: 'number',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'req',
+      http: {
+        source: 'req'
+      }
+    },
+    {
+      arg: 'res',
+      http: {
+        source: 'res'
+      }
+    }
     ],
     http: {
       verb: 'get',
@@ -609,7 +627,7 @@ module.exports = function (Products) {
   //      db.collection('products').createIndex({ titleAr: "text", titleEn: "text" }, function(err) {
   //      });
   //    })
-  Products.search = function (string, isOffer, clientType = "", limit = 10, skip = 0, isOrder = "false",  res, cb) {
+  Products.search = function (string, isOffer, clientType = "", limit = 10, skip = 0, isOrder = "false", res, cb) {
     var stages = []
     if (isOffer != undefined)
       stages.push({
@@ -619,8 +637,8 @@ module.exports = function (Products) {
       });
 
 
-    if(isOrder.toLowerCase() == 'true'){
-      stages.push({$match : { productAbstractId : {$ne : null}}}); 
+    if (isOrder.toLowerCase() == 'true') {
+      stages.push({ $match: { productAbstractId: { $ne: null } } });
     }
     var stringArray = []
     if (string != undefined)
@@ -693,101 +711,102 @@ module.exports = function (Products) {
         foreignField: '_id',
         as: 'manufacturer'
       }
-    }, {
-      $match: {
-        $and: [statusObject, {
-          $or: [
-            nameArMatch,
-            nameEnMatch,
-            {
-              'manufacturer.nameEn': {
-                $regex: ".*(?i)" + string + ".*"
-              }
-            },
-            {
-              'manufacturer.nameAr': {
-                $regex: ".*(?i)" + string + ".*"
-              }
-            },
-            {
-              tagsIds: {
-                $regex: ".*(?i)" + string + ".*"
-              }
-            },
-
-          ]
-        }, clientTypeObject],
-      }
-    }, {
-      $skip: skip
-    }, {
-      $limit: limit
-    }, {
-      $lookup: {
-        from: 'categories',
-        localField: 'categoryId',
-        foreignField: '_id',
-        as: 'category'
-      }
-    }, {
-      $lookup: {
-        from: 'categories',
-        localField: 'subCategoryId',
-        foreignField: '_id',
-        as: 'subCategory'
-      }
     },
-    {
-      $lookup: {
-        from: 'productAbstract',
-        localField: 'productAbstractId',
-        foreignField: '_id',
-        as: 'productAbstract'
-      }
-    }, {
-      $project: {
-        id: '$_id',
-        "nameAr": 1,
-        "nameEn": 1,
-        "media": 1,
-        "code": 1,
-        "sku": 1,
-        "pack": 1,
-        "description": 1,
-        "horecaPrice": 1,
-        "wholeSalePrice": 1,
-        "wholeSaleMarketPrice": 1,
-        "marketPrice": 1,
-        "horecaPriceDiscount": 1,
-        "wholeSalePriceDiscount": 1,
-        "marketOfficialPrice": 1,
-        "dockanBuyingPrice": 1,
-        "availableTo": 1,
-        "isFeatured": 1,
-        "status": 1,
-        "isOffer": 1,
-        "offerSource": 1,
-        "offerMaxQuantity": 1,
-        "categoryId": 1,
-        "subCategoryId": 1,
-        "offersIds": 1,
-        "productsIds": 1,
-        "tagsIds": 1,
-        "manufacturerId": 1,
-        "category": {
-          "$arrayElemAt": ["$category", 0]
-        },
-        "subCategory": {
-          "$arrayElemAt": ["$subCategory", 0]
-        },
-        "manufacturer": {
-          "$arrayElemAt": ["$manufacturer", 0]
-        } , 
-        "productAbstract" : {
-          "$arrayElemAt": ["$productAbstract", 0]
+      {
+        $match: {
+          $and: [statusObject, {
+            $or: [
+              nameArMatch,
+              nameEnMatch,
+              {
+                'manufacturer.nameEn': {
+                  $regex: ".*(?i)" + string + ".*"
+                }
+              },
+              {
+                'manufacturer.nameAr': {
+                  $regex: ".*(?i)" + string + ".*"
+                }
+              },
+              {
+                tagsIds: {
+                  $regex: ".*(?i)" + string + ".*"
+                }
+              },
+
+            ]
+          }, clientTypeObject],
         }
-      }
-    });
+      }, {
+        $skip: skip
+      }, {
+        $limit: limit
+      }, {
+        $lookup: {
+          from: 'categories',
+          localField: 'categoryId',
+          foreignField: '_id',
+          as: 'category'
+        }
+      }, {
+        $lookup: {
+          from: 'categories',
+          localField: 'subCategoryId',
+          foreignField: '_id',
+          as: 'subCategory'
+        }
+      },
+      {
+        $lookup: {
+          from: 'productAbstract',
+          localField: 'productAbstractId',
+          foreignField: '_id',
+          as: 'productAbstract'
+        }
+      }, {
+        $project: {
+          id: '$_id',
+          "nameAr": 1,
+          "nameEn": 1,
+          "media": 1,
+          "code": 1,
+          "sku": 1,
+          "pack": 1,
+          "description": 1,
+          "horecaPrice": 1,
+          "wholeSalePrice": 1,
+          "wholeSaleMarketPrice": 1,
+          "marketPrice": 1,
+          "horecaPriceDiscount": 1,
+          "wholeSalePriceDiscount": 1,
+          "marketOfficialPrice": 1,
+          "dockanBuyingPrice": 1,
+          "availableTo": 1,
+          "isFeatured": 1,
+          "status": 1,
+          "isOffer": 1,
+          "offerSource": 1,
+          "offerMaxQuantity": 1,
+          "categoryId": 1,
+          "subCategoryId": 1,
+          "offersIds": 1,
+          "productsIds": 1,
+          "tagsIds": 1,
+          "manufacturerId": 1,
+          "category": {
+            "$arrayElemAt": ["$category", 0]
+          },
+          "subCategory": {
+            "$arrayElemAt": ["$subCategory", 0]
+          },
+          "manufacturer": {
+            "$arrayElemAt": ["$manufacturer", 0]
+          },
+          "productAbstract": {
+            "$arrayElemAt": ["$productAbstract", 0]
+          }
+        }
+      });
 
     Products.getDataSource().connector.collection('products')
       .aggregate(stages, function (err, products) {
@@ -800,53 +819,53 @@ module.exports = function (Products) {
 
   Products.remoteMethod('search', {
     accepts: [{
-        arg: 'string',
-        type: 'string',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'isOffer',
-        type: 'string',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'clientType',
-        type: 'string',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'limit',
-        type: 'number',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'skip',
-        type: 'number',
-        'http': {
-          source: 'query'
-        }
-      },      
-      {
-        arg: 'isOrder',
-        type: 'string',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'res',
-        http: {
-          source: 'res'
-        }
+      arg: 'string',
+      type: 'string',
+      'http': {
+        source: 'query'
       }
+    },
+    {
+      arg: 'isOffer',
+      type: 'string',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'clientType',
+      type: 'string',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'limit',
+      type: 'number',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'skip',
+      type: 'number',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'isOrder',
+      type: 'string',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'res',
+      http: {
+        source: 'res'
+      }
+    }
     ],
     http: {
       verb: 'get',
@@ -947,86 +966,93 @@ module.exports = function (Products) {
           as: 'manufacturer'
         }
       }, {
-        $match: {
-          $or: [nameArMatch,
-            nameEnMatch,
-            {
-              'manufacturer.nameEn': {
-                $regex: ".*(?i)" + string + ".*"
-              }
-            },
-            {
-              'manufacturer.nameAr': {
-                $regex: ".*(?i)" + string + ".*"
-              }
-            },
-            {
-              tagsIds: {
-                $regex: ".*(?i)" + string + ".*"
-              }
-            },
+          $match: {
+            $or: [nameArMatch,
+              nameEnMatch,
+              {
+                'manufacturer.nameEn': {
+                  $regex: ".*(?i)" + string + ".*"
+                }
+              },
+              {
+                'manufacturer.nameAr': {
+                  $regex: ".*(?i)" + string + ".*"
+                }
+              },
+              {
+                tagsIds: {
+                  $regex: ".*(?i)" + string + ".*"
+                }
+              },
 
-          ]
-        }
-      }, {
-        $skip: skip
-      }, {
-        $limit: limit
-      }, {
-        $lookup: {
-          from: 'categories',
-          localField: 'categoryId',
-          foreignField: '_id',
-          as: 'category'
-        }
-      }, {
-        $lookup: {
-          from: 'categories',
-          localField: 'subCategoryId',
-          foreignField: '_id',
-          as: 'subCategory'
-        }
-      }, {
-        $project: {
-          id: '$_id',
-          "nameAr": 1,
-          "nameEn": 1,
-          "media": 1,
-          "code": 1,
-          "sku": 1,
-          "pack": 1,
-          "description": 1,
-          "horecaPrice": 1,
-          "wholeSalePrice": 1,
-          "wholeSaleMarketPrice": 1,
-          "marketPrice": 1,
-          "horecaPriceDiscount": 1,
-          "wholeSalePriceDiscount": 1,
-          "marketOfficialPrice": 1,
-          "dockanBuyingPrice": 1,
-          "availableTo": 1,
-          "isFeatured": 1,
-          "status": 1,
-          "isOffer": 1,
-          "offerSource": 1,
-          "offerMaxQuantity": 1,
-          "categoryId": 1,
-          "subCategoryId": 1,
-          "offersIds": 1,
-          "productsIds": 1,
-          "tagsIds": 1,
-          "manufacturerId": 1,
-          "category": {
-            "$arrayElemAt": ["$category", 0]
-          },
-          "subCategory": {
-            "$arrayElemAt": ["$subCategory", 0]
-          },
-          "manufacturer": {
-            "$arrayElemAt": ["$manufacturer", 0]
+            ]
+          }
+        }, {
+          $skip: skip
+        }, {
+          $limit: limit
+        }, {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryId',
+            foreignField: '_id',
+            as: 'category'
+          }
+        }, {
+          $lookup: {
+            from: 'categories',
+            localField: 'subCategoryId',
+            foreignField: '_id',
+            as: 'subCategory'
+          }
+        }, {
+          $project: {
+            id: '$_id',
+            "nameAr": 1,
+            "nameEn": 1,
+            "media": 1,
+            "code": 1,
+            "sku": 1,
+            "pack": 1,
+            "description": 1,
+            "horecaPrice": 1,
+            "wholeSalePrice": 1,
+            "wholeSaleMarketPrice": 1,
+            "marketPrice": 1,
+            "horecaPriceDiscount": 1,
+            "wholeSalePriceDiscount": 1,
+            "marketOfficialPrice": 1,
+            "dockanBuyingPrice": 1,
+            "availableTo": 1,
+            "isFeatured": 1,
+            "status": 1,
+            "isOffer": 1,
+            "offerSource": 1,
+            "offerMaxQuantity": 1,
+            "categoryId": 1,
+            "subCategoryId": 1,
+            "offersIds": 1,
+            "productsIds": 1,
+            "tagsIds": 1,
+            "manufacturerId": 1,
+            "category": {
+              "$arrayElemAt": ["$category", 0]
+            },
+            "subCategory": {
+              "$arrayElemAt": ["$subCategory", 0]
+            },
+            "manufacturer": {
+              "$arrayElemAt": ["$manufacturer", 0]
+            }
+          }
+        },
+        {
+          $match: {
+            "category.status": "active",
+            "subCategory.status": "active",
           }
         }
-      });
+      );
 
       Products.getDataSource().connector.collection('products')
         .aggregate(stages, function (err, products) {
@@ -1039,45 +1065,45 @@ module.exports = function (Products) {
 
   Products.remoteMethod('searchClient', {
     accepts: [{
-        arg: 'string',
-        type: 'string',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'isOffer',
-        type: 'string',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'limit',
-        type: 'number',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'skip',
-        type: 'number',
-        'http': {
-          source: 'query'
-        }
-      },
-      {
-        arg: 'res',
-        http: {
-          source: 'res'
-        }
-      },
-      {
-        arg: 'req',
-        http: {
-          source: 'req'
-        }
+      arg: 'string',
+      type: 'string',
+      'http': {
+        source: 'query'
       }
+    },
+    {
+      arg: 'isOffer',
+      type: 'string',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'limit',
+      type: 'number',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'skip',
+      type: 'number',
+      'http': {
+        source: 'query'
+      }
+    },
+    {
+      arg: 'res',
+      http: {
+        source: 'res'
+      }
+    },
+    {
+      arg: 'req',
+      http: {
+        source: 'req'
+      }
+    }
     ],
     http: {
       verb: 'get',
@@ -1102,20 +1128,20 @@ module.exports = function (Products) {
       if (isFeatured == undefined)
         where = {
           "and": [{
-              "status": "available"
+            "status": "available"
+          },
+          {
+            "isOffer": true,
+          },
+          {
+            "or": [{
+              "availableTo": "both"
             },
             {
-              "isOffer": true,
-            },
-            {
-              "or": [{
-                  "availableTo": "both"
-                },
-                {
-                  "availableTo": clientType
-                }
-              ]
+              "availableTo": clientType
             }
+            ]
+          }
           ]
         };
       else {
@@ -1125,22 +1151,22 @@ module.exports = function (Products) {
           isFeatured = false
         where = {
           "and": [{
-              "status": "available"
+            "status": "available"
+          },
+          {
+            "isOffer": true,
+          },
+          {
+            "isFeatured": isFeatured
+          }, {
+            "or": [{
+              "availableTo": "both"
             },
             {
-              "isOffer": true,
-            },
-            {
-              "isFeatured": isFeatured
-            }, {
-              "or": [{
-                  "availableTo": "both"
-                },
-                {
-                  "availableTo": clientType
-                }
-              ]
+              "availableTo": clientType
             }
+            ]
+          }
           ]
         };
       }
@@ -1168,25 +1194,25 @@ module.exports = function (Products) {
           return callback(err, null)
         where = {
           "and": [{
-              "status": "available"
-            },
-            {
-              "isOffer": true,
-            },
-            {
-              "id": {
-                "inq": product.offersIds
-              }
-            },
-            {
-              "or": [{
-                  "availableTo": "both"
-                },
-                {
-                  "availableTo": clientType
-                }
-              ]
+            "status": "available"
+          },
+          {
+            "isOffer": true,
+          },
+          {
+            "id": {
+              "inq": product.offersIds
             }
+          },
+          {
+            "or": [{
+              "availableTo": "both"
+            },
+            {
+              "availableTo": clientType
+            }
+            ]
+          }
           ]
         };
         Products.find({
@@ -1302,16 +1328,16 @@ module.exports = function (Products) {
   Products.remoteMethod('importProducts', {
     description: 'import products from excel file',
     accepts: [{
-        arg: 'fileUrl',
-        type: 'string',
-        description: 'url  file after uploaded on api/attachments/excelFiles/upload'
-      },
-      {
-        arg: 'res',
-        http: {
-          source: 'res'
-        }
+      arg: 'fileUrl',
+      type: 'string',
+      description: 'url  file after uploaded on api/attachments/excelFiles/upload'
+    },
+    {
+      arg: 'res',
+      http: {
+        source: 'res'
       }
+    }
     ],
     http: {
       verb: 'post',
@@ -1405,21 +1431,21 @@ module.exports = function (Products) {
       Products.find({
         "where": {
           "and": [{
-              "isOffer": "false"
-            },
-            {
-              "isFeatured": "true"
-            },
-            {
-              "status": "available",
-            },
-            {
-              "or": [{
-                "availableTo": "both"
-              }, {
-                "availableTo": clientType
-              }]
-            }
+            "isOffer": "false"
+          },
+          {
+            "isFeatured": "true"
+          },
+          {
+            "status": "available",
+          },
+          {
+            "or": [{
+              "availableTo": "both"
+            }, {
+              "availableTo": clientType
+            }]
+          }
           ]
         }
       }, function (err, data) {
@@ -1452,19 +1478,19 @@ module.exports = function (Products) {
       Products.find({
         "where": {
           "and": [{
-              "manufacturerId": manufacturerId
-            },
-            {
-              "status": "available",
+            "manufacturerId": manufacturerId
+          },
+          {
+            "status": "available",
 
-            },
-            {
-              "or": [{
-                "availableTo": "both"
-              }, {
-                "availableTo": clientType
-              }]
-            }
+          },
+          {
+            "or": [{
+              "availableTo": "both"
+            }, {
+              "availableTo": clientType
+            }]
+          }
           ]
         }
       }, function (err, data) {
@@ -1540,8 +1566,8 @@ module.exports = function (Products) {
 
   };
 
-  Products.findByBarcode = async function(code){
-    return Products.app.models.products.find({ "where": { "barcode": code } });   
+  Products.findByBarcode = async function (code) {
+    return Products.app.models.products.find({ "where": { "barcode": code } });
   }
 };
 
@@ -1549,148 +1575,148 @@ module.exports = function (Products) {
 
 // for import/export Excel
 var model = [{
-    displayName: "ID",
-    access: "_id",
-    type: "string"
-  },
-  {
-    displayName: "code",
-    access: "code",
-    type: "string"
-  },
-  {
-    displayName: "sku",
-    access: "sku",
-    type: "string"
-  },
-  {
-    displayName: "Arabic Name",
-    access: "nameAr",
-    type: "string"
-  },
-  {
-    displayName: "English Name",
-    access: "nameEn",
-    type: "string"
-  },
-  {
-    displayName: "attachment url",
-    access: "media[url]",
-    type: "string"
-  },
-  {
-    displayName: "attachment thumbnail",
-    access: "media[thumbnail]",
-    type: "string"
-  },
-  {
-    displayName: "pack",
-    access: "pack",
-    type: "string"
-  },
-  {
-    displayName: "description",
-    access: "description",
-    type: "string"
-  },
-  {
-    displayName: "horeca price / before offer",
-    access: "horecaPrice",
-    type: "number"
-  },
-  {
-    displayName: "wholeSale price / before offer",
-    access: "wholeSalePrice",
-    type: "number"
-  },
-  {
-    displayName: "wholeSale market price",
-    access: "wholeSaleMarketPrice",
-    type: "number"
-  },
-  {
-    displayName: "market official price",
-    access: "marketOfficialPrice",
-    type: "number"
-  },
-  {
-    displayName: "dockan buying price",
-    access: "dockanBuyingPrice",
-    type: "number"
-  },
-  {
-    displayName: "horeca Price discount / after offer",
-    access: "horecaPriceDiscount",
-    type: "number"
-  },
-  {
-    displayName: "wholeSale Price Discount / after offer",
-    access: "wholeSalePriceDiscount",
-    type: "number"
-  },
-  {
-    displayName: "is Featured",
-    access: "isFeatured",
-    type: "boolean"
-  },
-  {
-    displayName: "status",
-    access: "status",
-    type: "string"
-  },
-  {
-    displayName: "available to",
-    access: "availableTo",
-    type: "string"
-  },
-  {
-    displayName: "is Offer",
-    access: "isOffer",
-    type: "boolean"
-  },
-  {
-    displayName: "offer source",
-    access: "offerSource",
-    type: "string"
-  },
-  {
-    displayName: "offer max quantity",
-    access: "offerMaxQuantity",
-    type: "string"
-  },
-  {
-    displayName: "creation date",
-    access: "creationDate",
-    type: "Date"
-  },
-  {
-    displayName: "manufacturer ID",
-    access: "manufacturerId",
-    type: "string"
-  },
-  {
-    displayName: "category ID",
-    access: "categoryId",
-    type: "string"
-  },
-  {
-    displayName: "subCategory ID",
-    access: "subCategoryId",
-    type: "string"
-  },
-  {
-    displayName: "tags",
-    access: "tagsIds",
-    type: "General"
-  },
-  {
-    displayName: "offer products",
-    access: "offerProducts",
-    type: "string"
-  },
-  {
-    displayName: "related Offers",
-    access: "offersIds",
-    type: "string"
-  },
+  displayName: "ID",
+  access: "_id",
+  type: "string"
+},
+{
+  displayName: "code",
+  access: "code",
+  type: "string"
+},
+{
+  displayName: "sku",
+  access: "sku",
+  type: "string"
+},
+{
+  displayName: "Arabic Name",
+  access: "nameAr",
+  type: "string"
+},
+{
+  displayName: "English Name",
+  access: "nameEn",
+  type: "string"
+},
+{
+  displayName: "attachment url",
+  access: "media[url]",
+  type: "string"
+},
+{
+  displayName: "attachment thumbnail",
+  access: "media[thumbnail]",
+  type: "string"
+},
+{
+  displayName: "pack",
+  access: "pack",
+  type: "string"
+},
+{
+  displayName: "description",
+  access: "description",
+  type: "string"
+},
+{
+  displayName: "horeca price / before offer",
+  access: "horecaPrice",
+  type: "number"
+},
+{
+  displayName: "wholeSale price / before offer",
+  access: "wholeSalePrice",
+  type: "number"
+},
+{
+  displayName: "wholeSale market price",
+  access: "wholeSaleMarketPrice",
+  type: "number"
+},
+{
+  displayName: "market official price",
+  access: "marketOfficialPrice",
+  type: "number"
+},
+{
+  displayName: "dockan buying price",
+  access: "dockanBuyingPrice",
+  type: "number"
+},
+{
+  displayName: "horeca Price discount / after offer",
+  access: "horecaPriceDiscount",
+  type: "number"
+},
+{
+  displayName: "wholeSale Price Discount / after offer",
+  access: "wholeSalePriceDiscount",
+  type: "number"
+},
+{
+  displayName: "is Featured",
+  access: "isFeatured",
+  type: "boolean"
+},
+{
+  displayName: "status",
+  access: "status",
+  type: "string"
+},
+{
+  displayName: "available to",
+  access: "availableTo",
+  type: "string"
+},
+{
+  displayName: "is Offer",
+  access: "isOffer",
+  type: "boolean"
+},
+{
+  displayName: "offer source",
+  access: "offerSource",
+  type: "string"
+},
+{
+  displayName: "offer max quantity",
+  access: "offerMaxQuantity",
+  type: "string"
+},
+{
+  displayName: "creation date",
+  access: "creationDate",
+  type: "Date"
+},
+{
+  displayName: "manufacturer ID",
+  access: "manufacturerId",
+  type: "string"
+},
+{
+  displayName: "category ID",
+  access: "categoryId",
+  type: "string"
+},
+{
+  displayName: "subCategory ID",
+  access: "subCategoryId",
+  type: "string"
+},
+{
+  displayName: "tags",
+  access: "tagsIds",
+  type: "General"
+},
+{
+  displayName: "offer products",
+  access: "offerProducts",
+  type: "string"
+},
+{
+  displayName: "related Offers",
+  access: "offersIds",
+  type: "string"
+},
 ]
