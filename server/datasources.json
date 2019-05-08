@@ -2,8 +2,8 @@
   "mongoDb": {
     "host": "localhost",
     "port": 27017,
-    "url": "mongodb://localhost:27017/dekaneh_target",
-    "database": "dekaneh_target",
+    "url": "mongodb://localhost:27017/dekaneh_product_abstract_target",
+    "database": "dekaneh_product_abstract_target",
     "password": "",
     "name": "mongoDb",
     "user": "",
