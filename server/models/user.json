@@ -59,11 +59,11 @@
       "type": "date",
       "required": true,
       "default": "$now"
-    }, 
-    "state" : {
-      "type" : "string" , 
-      "required" : false , 
-      "default" : "out"
+    },
+    "state": {
+      "type": "string",
+      "required": false,
+      "default": "out"
     }
   },
   "validations": [],
@@ -315,6 +315,32 @@
       "http": [
         {
           "path": "/type",
+          "verb": "get"
+        }
+      ]
+    },
+    "me": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "object",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/me",
           "verb": "get"
         }
       ]

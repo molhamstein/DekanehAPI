@@ -442,4 +442,12 @@ module.exports = function (User) {
 
   }
 
+
+  User.me = async function(req){
+
+    if(!req.user){
+      throw ERROR(403 , "User not login"); 
+    }
+    return req.user; 
+  }
 };
