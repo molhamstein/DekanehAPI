@@ -9,8 +9,8 @@
     "date": {
       "type": "date"
     },
-    "shift": {
-      "type": "number"
+    "warehouseKeeperId": {
+      "type": "string"
     },
     "totalCount": {
       "type": "number"

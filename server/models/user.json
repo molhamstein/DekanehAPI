@@ -59,6 +59,11 @@
       "type": "date",
       "required": true,
       "default": "$now"
+    }, 
+    "state" : {
+      "type" : "string" , 
+      "required" : false , 
+      "default" : "out"
     }
   },
   "validations": [],

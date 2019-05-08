@@ -33,7 +33,7 @@
   },
   "acls": [],
   "methods": {
-    "logProducts": {
+    "login": {
       "isStatic": true,
       "accepts": [
         {
@@ -44,10 +44,10 @@
           "source": "path"
         },
         {
-          "arg": "shift",
-          "type": "number",
-          "required": true,
-          "source": "body"
+          "arg" : "req" , 
+          "http": {
+            "source": "req"
+          }
         }
       ],
       "returns": [
@@ -61,7 +61,40 @@
       "description": "",
       "http": [
         {
-          "path": "/:id/log",
+          "path": "/:id/login",
+          "verb": "post"
+        }
+      ]
+    },
+    "logout": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "source": "path"
+        } ,
+        {
+          "arg" : "req" , 
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/:id/logout",
           "verb": "post"
         }
       ]
