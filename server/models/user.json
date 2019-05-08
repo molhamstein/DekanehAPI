@@ -68,6 +68,10 @@
   },
   "validations": [],
   "relations": {
+    "warehouse": {
+      "type": "belongsTo",
+      "model": "warehouse"
+    },
     "area": {
       "type": "belongsTo",
       "model": "area"
