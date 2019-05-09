@@ -1527,8 +1527,8 @@ module.exports = function (Products) {
    // product.marketOfficialPrice = 0;
    // product.dockanBuyingPrice = 0;
 
-    if(product.productAbstract())
-      product.marketOfficialPrice = product.productAbstract().officialConsumerPrice; 
+   // if(product.productAbstract())
+    //  product.marketOfficialPrice = product.productAbstract().officialConsumerPrice; 
     
     return product;
   }
