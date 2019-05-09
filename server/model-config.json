@@ -176,5 +176,9 @@
   "barcode": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "installment": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

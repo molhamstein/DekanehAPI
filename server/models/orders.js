@@ -942,6 +942,11 @@ module.exports = function (Orders) {
     // if(order.deliveryMemberId != req.user.id.toString())
     // 	return cb(ERROR (500,'not privilege to this order'));
 
+    // update user balance 
+    let user =  await order.client.getAsync();  
+    user.balance -= order.totalPrice; 
+    await user.save(); 
+
     order.status = 'delivered';
     order.deliveredDate = new Date();
     await order.save();
