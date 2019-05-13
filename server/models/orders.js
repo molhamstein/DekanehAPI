@@ -824,6 +824,9 @@ module.exports = function (Orders) {
       throw ERROR(404, 'order not found');
 
 
+    if(!order.warehouseId){ 
+      order.warehouseId  = (await Orders.app.models.warehouse.findOne({})).id; 
+    }
     if (order.status !== 'pending')
       throw ERROR(400, 'order is not pending');
 
@@ -1111,8 +1114,6 @@ module.exports = function (Orders) {
     });
 
   }
-
-
 
   Orders.warehoueKeeperOrders = async function (req, from, to, status) {
     let { user } = req;
