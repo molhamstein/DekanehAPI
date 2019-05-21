@@ -1,5 +1,5 @@
 'use strict';
-let ObjectId = require('mongodb').ObjectId ; 
+let ObjectId = require('mongodb').ObjectId;
 
 
 
@@ -10,8 +10,8 @@ let ObjectId = require('mongodb').ObjectId ;
  * @param {Number} nextCount 
  * @param {Number} diff 
  */
-function calcNextAvg(currentAvg , currentCount , nextCount , diff){
-    return (currentAvg * currentCount + diff)  / nextCount; 
+function calcNextAvg(currentAvg, currentCount, nextCount, diff) {
+    return (currentAvg * currentCount + diff) / nextCount;
 }
 module.exports = function (Warehouseproducts) {
 
@@ -23,20 +23,20 @@ module.exports = function (Warehouseproducts) {
         this.expectedCount = this.expectedCount + expectedCountDiff;
         return this.save();
     }
-    Warehouseproducts.prototype.updatetotalCount = function (totalCountDiff , {buyingPrice , sellingPrice}) {
-        
-        this.totalCount = this.totalCount + totalCountDiff;
-        if(typeof buyingPrice !== 'undefined'){
+    Warehouseproducts.prototype.updatetotalCount = function (totalCountDiff, { buyingPrice, sellingPrice }) {
 
-            this.avgBuyingPrice = calcNextAvg(this.avgBuyingPrice , this.accumulatedBuyingCountOverTime , this.accumulatedBuyingCountOverTime  + totalCountDiff , totalCountDiff * buyingPrice);
-            this.accumulatedBuyingCountOverTime += totalCountDiff ; 
+        this.totalCount = this.totalCount + totalCountDiff;
+        if (typeof buyingPrice !== 'undefined') {
+
+            this.avgBuyingPrice = calcNextAvg(this.avgBuyingPrice, this.accumulatedBuyingCountOverTime, this.accumulatedBuyingCountOverTime + totalCountDiff, totalCountDiff * buyingPrice);
+            this.accumulatedBuyingCountOverTime += totalCountDiff;
 
         }
-        if(typeof sellingPrice !== 'undefined'){
+        if (typeof sellingPrice !== 'undefined') {
 
-            totalCountDiff = -totalCountDiff; 
-            this.avgSellingPrice = calcNextAvg(this.avgSellingPrice , this.accumulatedSellingCountOverTime , this.accumulatedSellingCountOverTime  + totalCountDiff , totalCountDiff * sellingPrice);
-            this.accumulatedSellingCountOverTime += totalCountDiff ; 
+            totalCountDiff = -totalCountDiff;
+            this.avgSellingPrice = calcNextAvg(this.avgSellingPrice, this.accumulatedSellingCountOverTime, this.accumulatedSellingCountOverTime + totalCountDiff, totalCountDiff * sellingPrice);
+            this.accumulatedSellingCountOverTime += totalCountDiff;
 
         }
         return this.save();
@@ -63,8 +63,8 @@ module.exports = function (Warehouseproducts) {
         if (to)
             and.push({ date: { $lte: to } });
 
-        if(productAbstractId)   
-            and.push({productAbstractId : ObjectId( productAbstractId ) } ); 
+        if (productAbstractId)
+            and.push({ productAbstractId: ObjectId(productAbstractId) });
 
 
         if (and.length)
@@ -84,12 +84,12 @@ module.exports = function (Warehouseproducts) {
                 },
                 {
                     $replaceRoot: { newRoot: "$grouped" }
-                }, 
+                },
                 {
                     $group: {
-                        _id: {  month: { $month: "$date" }, day: { $dayOfMonth: "$date" }, year: { $year: "$date" } },
-                        count: { $sum: "$expectedCount" }, 
-                        cost : { $sum : {$multiply : [ "$expectedCount" , "$avgBuyingPrice"] }}
+                        _id: { month: { $month: "$date" }, day: { $dayOfMonth: "$date" }, year: { $year: "$date" } },
+                        count: { $sum: "$expectedCount" },
+                        cost: { $sum: { $multiply: ["$expectedCount", "$avgBuyingPrice"] } }
                     }
                 }
             ];
@@ -104,6 +104,87 @@ module.exports = function (Warehouseproducts) {
 
 
     }
+
+
+
+    Warehouseproducts.search = function (string, limit = 10, skip = 0, res, cb) {
+        var stages = [];
+
+        var nameArMatch = {
+            "productAbstract.nameAr": {
+                $regex: ".*" + string + ".*"
+            }
+        }
+        var nameEnMatch = {
+            "productAbstract.nameEn": {
+                $regex: ".*" + string + ".*"
+            }
+        }
+
+
+
+        stages.push(
+            {
+                $lookup: {
+                    from: 'productAbstract',
+                    localField: 'productAbstractId',
+                    foreignField: '_id',
+                    as: 'productAbstract'
+                }
+            }
+           ,
+            {
+                $unwind: '$productAbstract'
+            }
+            , {
+                $match: {
+
+                    $or: [
+                        nameArMatch,
+                        nameEnMatch,
+                    ]
+
+                }
+            }, {
+                $skip: skip
+            }, {
+                $limit: limit
+            }, {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'categoryId',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            }, {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'subCategoryId',
+                    foreignField: '_id',
+                    as: 'subCategory'
+                }
+            }, {
+                $lookup: {
+                    from: 'warehouseProducts',
+                    localField: '_id',
+                    foreignField: 'productAbstractId',
+                    as: 'warehouseProducts'
+                }
+            }
+
+
+        );
+
+        Warehouseproducts.getDataSource().connector.collection('warehouseProducts')
+            .aggregate(stages, function (err, products) {
+                if (err)
+                    return cb(err);
+                return res.json(products)
+            });
+
+    }
+
+
 
 
 

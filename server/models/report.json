@@ -1,0 +1,32 @@
+{
+  "name": "report",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "note": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {
+    "user": {
+      "type": "belongsTo",
+      "model": "user"
+    },
+    "warehouseProduct": {
+      "type": "belongsTo",
+      "model": "warehouseProducts",
+      "foreignKey": "productAbstractId"
+    },
+    "order": {
+      "type": "belongsTo",
+      "model": "orders"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

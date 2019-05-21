@@ -1,0 +1,51 @@
+{
+  "name": "config",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "client": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {
+    "clientValidation": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        },
+        {
+          "arg": "version",
+          "type": "string",
+          "required": true,
+          "description": "current version of the client app"
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "Check if the current client version is valid",
+      "http": [
+        {
+          "path": "/client/validation",
+          "verb": "post"
+        }
+      ]
+    }
+  }
+}

@@ -83,6 +83,42 @@
   },
   "acls": [],
   "methods": {
+    "search": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "string",
+          "type": "string",
+          "http": {
+            "source": "query"
+          }
+        },
+        {
+          "arg": "limit",
+          "type": "number",
+          "http": {
+            "source": "query"
+          }
+        },
+        {
+          "arg": "skip",
+          "type": "number",
+          "http": {
+            "source": "query"
+          }
+        },
+        {
+          "arg": "res",
+          "http": {
+            "source": "res"
+          }
+        }
+      ],
+      "http": {
+        "verb": "get",
+        "path": "/search"
+      }
+    },
     "daily": {
       "isStatic": true,
       "accepts": [
