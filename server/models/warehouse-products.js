@@ -137,6 +137,38 @@ module.exports = function (Warehouseproducts) {
                 $unwind: '$productAbstract'
             }
             , {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'productAbstract.categoryId',
+                    foreignField: '_id',
+                    as: 'productAbstract.category'
+                }
+            }, {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'productAbstract.subCategoryId',
+                    foreignField: '_id',
+                    as: 'productAbstract.subCategory'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'manufacturers',
+                    localField: 'productAbstract.manufacturerId',
+                    foreignField: '_id',
+                    as: 'productAbstract.manufacturer'
+                }
+            },
+            {
+                $unwind: '$productAbstract.manufacturer'
+            },
+            {
+                $unwind: '$productAbstract.subCategory'
+            },
+            {
+                $unwind: '$productAbstract.category'
+            }
+            , {
                 $match: {
                     $or: [
                         nameArMatch,
