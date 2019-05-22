@@ -132,46 +132,22 @@ module.exports = function (Warehouseproducts) {
                     as: 'productAbstract'
                 }
             }
-           ,
+            ,
             {
                 $unwind: '$productAbstract'
             }
             , {
                 $match: {
-
                     $or: [
                         nameArMatch,
                         nameEnMatch,
                     ]
-
                 }
             }, {
                 $skip: skip
             }, {
                 $limit: limit
-            }, {
-                $lookup: {
-                    from: 'categories',
-                    localField: 'categoryId',
-                    foreignField: '_id',
-                    as: 'category'
-                }
-            }, {
-                $lookup: {
-                    from: 'categories',
-                    localField: 'subCategoryId',
-                    foreignField: '_id',
-                    as: 'subCategory'
-                }
-            }, {
-                $lookup: {
-                    from: 'warehouseProducts',
-                    localField: '_id',
-                    foreignField: 'productAbstractId',
-                    as: 'warehouseProducts'
-                }
             }
-
 
         );
 

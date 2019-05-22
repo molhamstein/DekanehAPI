@@ -6,7 +6,11 @@
     "validateUpsert": true
   },
   "properties": {
-    "client": {
+    "clientCurrentVersion": {
+      "type": "string",
+      "required": true
+    },
+    "clientMinimumVersion" :{
       "type": "string",
       "required": true
     }

@@ -17,6 +17,7 @@
       "type": "belongsTo",
       "model": "user"
     },
+    
     "warehouseProduct": {
       "type": "belongsTo",
       "model": "warehouseProducts",
