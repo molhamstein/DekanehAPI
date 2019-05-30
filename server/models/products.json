@@ -28,16 +28,15 @@
     "description": {
       "type": "string"
     },
-    "consumerPrice" : {
-      "type" :"number" , 
-      "required": true, 
-      "default" : 0 
+    "consumerPrice": {
+      "type": "number",
+      "required": true,
+      "default": 0
     },
-    "consumerPriceDiscount" : {
-      "type" :"number" , 
-      "required": true , 
-      "default" : 0 
-
+    "consumerPriceDiscount": {
+      "type": "number",
+      "required": true,
+      "default": 0
     },
     "horecaPrice": {
       "type": "number",
@@ -162,9 +161,7 @@
       "foreignKey": "productId"
     }
   },
-  "acls": [
-    
-  ],
+  "acls": [],
   "methods": {
     "findByBarcode": {
       "isStatic": true,
@@ -340,6 +337,32 @@
           "verb": "get"
         }
       ]
+    },
+    "report": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "res",
+          "http": {
+            "source": "res"
+          }
+        }
+        ],
+        "returns": [
+          {
+            "arg": "result",
+            "type": "array",
+            "root": true,
+            "description": ""
+          } 
+        ],
+        "description": "product prices report ",
+        "http": [
+          {
+            "path": "/report",
+            "verb": "get"
+          }
+        ]
+      }
     }
   }
-}

@@ -1649,6 +1649,80 @@ module.exports = function (Products) {
   Products.findByBarcode = async function (code) {
     return Products.app.models.products.find({ "where": { "barcode": code } });
   }
+
+  Products.report = function (res, cb) {
+
+    // @todo warehouseId (specifiy wich warehouse to report)
+
+    let stages = [
+
+      {
+        $lookup: {
+          from: 'productAbstract',
+          localField: 'productAbstractId',
+          foreignField: '_id',
+          as: 'productAbstract'
+        }
+      },
+      {
+        $unwind: "$productAbstract"
+      },
+      {
+        $lookup: {
+          from: 'warehouseProducts',
+          localField: 'productAbstractId',
+          foreignField: 'productAbstractId',
+          as: 'warehouseProduct'
+        }
+      },
+      {
+        $unwind: "$warehouseProduct"
+      },
+      {
+        $lookup: {
+          from: 'supplyProduct',
+          as: 'supplyProduct',
+          localField: 'productAbstractId',
+          foreignField: 'productAbstractId',
+
+        }
+      },
+      {
+        $addFields: {
+          "supplyProduct": {
+            "$arrayElemAt": ["$supplyProduct", -1]
+          }
+        }
+      },
+
+    ];
+
+
+    Products.getDataSource().connector.collection('products')
+      .aggregate(stages, (err, products) => {
+        if (err) return cb(err);
+
+
+
+        var config = {
+          path: 'files/excelFiles',
+          save: true,
+          fileName: 'products-report' + Date.now() + '.xlsx'
+        };
+
+
+
+
+        mongoXlsx.mongoData2Xlsx(products, pricesReportModel, config, function (err, data) {
+          if (err) return cb(err);
+          return res.sendFile(path.join(__dirname, '../../', data.fullPath))
+
+        });
+
+
+      });
+
+  }
 };
 
 
@@ -1800,3 +1874,84 @@ var model = [{
   type: "string"
 },
 ]
+
+
+
+var pricesReportModel = [
+  {
+    displayName: "ID",
+    access: "_id",
+    type: "string"
+  },
+  {
+    displayName: "Arabic Name",
+    access: "nameAr",
+    type: "string"
+  },
+  {
+    displayName: "English Name",
+    access: "nameEn",
+    type: "string"
+  },
+  {
+    displayName: "Horeca Price ",
+    access: "horecaPrice",
+    type: "number"
+  },
+  {
+    displayName: "WholeSale Price ",
+    access: "wholeSalePrice",
+    type: "number"
+  },
+  {
+    displayName: "Consumer Price ",
+    access: "consumerPrice",
+    type: "number"
+  },
+  {
+    displayName: "Lates Supply Price ",
+    access: "supplyProduct[buyingPrice]",
+    type: "number"
+  },
+
+  {
+    displayName: "Avg Buying Price",
+    access: "warehouseProduct[avgBuyingPrice]",
+    type: "number"
+  },
+  {
+    displayName: "Avg Selling Price",
+    access: "warehouseProduct[avgSellingPrice]",
+    type: "number"
+  },
+
+
+  {
+    displayName: " Official Consumer Price ",
+    access: "productAbstract[officialConsumerPrice]",
+    type: "number"
+  },
+  {
+    displayName: " Official Mass Market Price ",
+    access: "productAbstract[officialMassMarketPrice]",
+    type: "number"
+  },
+  /*
+
+  {
+    displayName: "Horeca Price discount ",
+    access: "horecaPriceDiscount",
+    type: "number"
+  },
+  {
+    displayName: "WholeSale Price Discount ",
+    access: "wholeSalePriceDiscount",
+    type: "number"
+  },
+  {
+    displayName: "Consumer Price Discount ",
+    access: "consumerPriceDiscount",
+    type: "number"
+  }  */
+
+];
