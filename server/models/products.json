@@ -59,6 +59,10 @@
       "required": true,
       "default": false
     },
+    "featuredBtc" : {
+      "type": "boolean",
+      "default": false
+    },
     "status": {
       "type": "string",
       "required": true,
@@ -209,6 +213,32 @@
       "http": [
         {
           "path": "/productsFeatured",
+          "verb": "get"
+        }
+      ]
+    },
+    "featuredBtc": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "",
+      "http": [
+        {
+          "path": "/featured/btc",
           "verb": "get"
         }
       ]

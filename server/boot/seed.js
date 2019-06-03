@@ -12,13 +12,6 @@ module.exports = async function (app) {
             ]
         },
         {
-            "nameAr": "warehousePackager",
-            "nameEn": "warehousePackager",
-            "privilegeIds": [
-                "packageOrder"
-            ]
-        },
-        {
             "nameAr": "warehouseKeeper",
             "nameEn": "warehouseKeeper",
             "privilegeIds": [

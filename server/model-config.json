@@ -188,5 +188,9 @@
   "report" : {
     "dataSource" : "mongoDb", 
     "public" : true
+  },
+  "claim" : {
+    "dataSource" : "mongoDb", 
+    "public" : true
   }
 }

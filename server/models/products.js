@@ -1539,6 +1539,118 @@ module.exports = function (Products) {
   };
 
 
+  Products.featuredBtc = function (req, callback) {
+    var result;
+    Products.app.models.user.findById(req.accessToken.userId, function (err, oneUser) {
+      if (err)
+        return cb(err);
+      var clientType = oneUser.clientType;
+
+      // { $match: { productAbstractId: { $ne: null } } }, 
+      // 
+
+      let stages = [];
+
+      stages.push(
+        {
+          $match: {
+
+            isOffer: false,
+            status: "available",
+            $or: [{
+              availableTo: "both"
+            }, {
+              availableTo: clientType
+            }],
+            featuredBtc: true
+          }
+        },
+        { $match: { productAbstractId: { $ne: null } } },
+        {
+          $lookup: {
+            from: 'manufacturers',
+            localField: 'manufacturerId',
+            foreignField: '_id',
+            as: 'manufacturer'
+          }
+        }, {
+          $lookup: {
+            from: 'categories',
+            localField: 'categoryId',
+            foreignField: '_id',
+            as: 'category'
+          }
+        }, {
+          $lookup: {
+            from: 'categories',
+            localField: 'subCategoryId',
+            foreignField: '_id',
+            as: 'subCategory'
+          }
+        }, {
+          $project: {
+            id: '$_id',
+            "nameAr": 1,
+            "nameEn": 1,
+            "media": 1,
+            "code": 1,
+            "sku": 1,
+            "pack": 1,
+            "description": 1,
+            "horecaPrice": 1,
+            "wholeSalePrice": 1,
+            "wholeSaleMarketPrice": 1,
+            "marketPrice": 1,
+            "horecaPriceDiscount": 1,
+            "wholeSalePriceDiscount": 1,
+            "marketOfficialPrice": 1,
+            "dockanBuyingPrice": 1,
+            "availableTo": 1,
+            "isFeatured": 1,
+            "status": 1,
+            "isOffer": 1,
+            "offerSource": 1,
+            "offerMaxQuantity": 1,
+            "categoryId": 1,
+            "subCategoryId": 1,
+            "offersIds": 1,
+            "productsIds": 1,
+            "tagsIds": 1,
+            "manufacturerId": 1,
+            "category": {
+              "$arrayElemAt": ["$category", 0]
+            },
+            "subCategory": {
+              "$arrayElemAt": ["$subCategory", 0]
+            },
+            "manufacturer": {
+              "$arrayElemAt": ["$manufacturer", 0]
+            }
+          }
+        },
+        {
+          $match: {
+            "category.status": "active",
+            "subCategory.status": "active",
+          }
+        }
+      );
+
+
+      Products.getDataSource().connector.collection('products')
+        .aggregate(stages, function (err, products) {
+          if (err)
+            return callback(err);
+          callback(null, products);
+        });
+
+
+
+
+    })
+  };
+
+
 
   /**
    *
