@@ -427,10 +427,18 @@ module.exports = function (Orders) {
             let tempProduct = orderProducts;
             // calc total price 
             let totalPrice = calcOrderProductsTotalPrice(orderProducts);
+            if (isAdmin == false) {
 
-            if (isAdmin == false && totalPrice < 20000)
-              return callback(ERROR(602, 'total price is low'));
+              if (user.clientType == 'consumer') {
+                if (totalPrice < 10000)
+                  return callback(ERROR(602, 'total price is low'));
+              } else {
+                if (totalPrice < 20000)
+                  return callback(ERROR(602, 'total price is low'));
 
+              }
+            }
+         
             data.totalPrice = totalPrice;
             delete data['orderProducts'];
             delete data['client'];
@@ -824,8 +832,8 @@ module.exports = function (Orders) {
       throw ERROR(404, 'order not found');
 
 
-    if(!order.warehouseId){ 
-      order.warehouseId  = (await Orders.app.models.warehouse.findOne({})).id; 
+    if (!order.warehouseId) {
+      order.warehouseId = (await Orders.app.models.warehouse.findOne({})).id;
     }
     if (order.status !== 'pending')
       throw ERROR(400, 'order is not pending');
@@ -912,7 +920,7 @@ module.exports = function (Orders) {
       let product = orderProduct.product();
       let productAbstractId = product.productAbstract().id;
       let warehouse = order.warehouse();
-      let warehouseProduct = await warehouse.warehouseProducts({ where : { productAbstractId } });
+      let warehouseProduct = await warehouse.warehouseProducts({ where: { productAbstractId } });
       warehouseProduct = warehouseProduct[0];
       // update warehouse total count 
       await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount, { sellingPrice: orderProduct.sellingPrice });
@@ -946,9 +954,9 @@ module.exports = function (Orders) {
     // 	return cb(ERROR (500,'not privilege to this order'));
 
     // update user balance 
-    let user =  await order.client.getAsync();  
-    user.balance -= order.totalPrice; 
-    await user.save(); 
+    let user = await order.client.getAsync();
+    user.balance -= order.totalPrice;
+    await user.save();
 
     order.status = 'delivered';
     order.deliveredDate = new Date();
@@ -967,7 +975,7 @@ module.exports = function (Orders) {
     if (!order)
       throw ERROR(404, 'order not found');
 
-    if (order.status == 'canceled' )
+    if (order.status == 'canceled')
       throw ERROR(400, 'the order has been canceled already');
 
     for (let orderProduct of order.orderProducts()) {
@@ -975,17 +983,17 @@ module.exports = function (Orders) {
       let product = orderProduct.product();
       let productAbstractId = product.productAbstract().id;
       let warehouse = order.warehouse();
-      let warehouseProduct = await warehouse.warehouseProducts({ where : { productAbstractId } });
+      let warehouseProduct = await warehouse.warehouseProducts({ where: { productAbstractId } });
       warehouseProduct = warehouseProduct[0];
 
       // in: ['pending', 'inWarehouse', 'packed', 'pendingDelivery', 'inDelivery', 'delivered', 'canceled'] 
-      
-      if (['pending', 'inWarehouse', 'packed', 'inDelivery' , 'pendingDelivery' , 'delivered'].includes(order.status)) {
+
+      if (['pending', 'inWarehouse', 'packed', 'inDelivery', 'pendingDelivery', 'delivered'].includes(order.status)) {
         await warehouseProduct.updateExpectedCount(orderProduct.count * product.parentCount);
       }
 
       // restore warehouse total count 
-      if (['inDelivery' , 'delivered'].includes(order.status)) {
+      if (['inDelivery', 'delivered'].includes(order.status)) {
         await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount, { sellingPrice: orderProduct.sellingPrice });
       }
     }
@@ -998,7 +1006,7 @@ module.exports = function (Orders) {
   }
 
 
- 
+
 
   Orders.list = async function (req) {
 
@@ -1128,7 +1136,7 @@ module.exports = function (Orders) {
     if (status)
       and.push({ status });
     else
-      and.push({ status: { inq: ['inWarehouse', 'packed' , 'pendingDelivery'] } });
+      and.push({ status: { inq: ['inWarehouse', 'packed', 'pendingDelivery'] } });
 
 
     if (from)
