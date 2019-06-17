@@ -238,515 +238,204 @@ module.exports = function (Orders) {
     callback(null);
   };
 
-  Orders.editOrder = function (id, data, context, callback) {
-    if (!context.req.accessToken || !context.req.accessToken.userId)
-      return callback(ERROR(403, 'User not login'))
-
-    if (!data.orderProducts || !Array.isArray(data.orderProducts) || data.orderProducts.length == 0)
-      return callback(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
-    var orderProducts = data.orderProducts;
-    var isAdmin = false
-    if (data.isAdmin == true) {
-      isAdmin = true
-      delete data.isAdmin;
-    }
 
 
-    var productsIds = []
-    _.each(orderProducts, product => {
-      try {
-        productsIds.push(Orders.dataSource.ObjectID(product.productId).toString());
-      } catch (e) {
-        return callback(ERROR(400, 'productId not ID'))
-      }
-    });
-
-    Orders.app.models.user.findById(data.clientId, (err, user) => {
-      if (err)
-        return callback(err);
-      if (!user)
-        return callback(ERROR(400, 'user not found'));
-
-      data.clientId = user.id;
-
-
-      Orders.app.models.orderProducts.find({
-        "where": {
-          "orderId": id
-        }
-      }, function (err, oldOrderProducts) {
-        if (err)
-          return callback(err);
-        var oldProductsIds = [];
-        oldOrderProducts.forEach(element => {
-          oldProductsIds.push(element.productId.toString());
-        });
-
-        var deletedProductsId = []
-        var newProductsId = []
-
-        oldProductsIds.forEach(element => {
-          if (productsIds.includes(element) == false)
-            deletedProductsId.push(element)
-        });
-        productsIds.forEach(element => {
-          if (oldProductsIds.includes(element) == false)
-            newProductsId.push(element)
-        });
-        // old products which are not deleted 
-        var tempOldProducts = [];
-        // old products which are deleted 
-        var oldDeletedOrderProducts = [];
-
-        oldOrderProducts.forEach(element => {
-          if (deletedProductsId.includes(element.productId.toString()) == false)
-            tempOldProducts.push(element);
-          else
-            oldDeletedOrderProducts.push(element);
-
-        });
-
-
-
-        Orders.app.models.products.find({
-          where: {
-            id: {
-              'inq': productsIds
-            }
-          }
-        }, function (err, productsFromDb) {
-          if (err)
-            return callback(err);
-
-          var unavalidProd = [];
-          productsFromDb.forEach(element => {
-            if (element.status != "available") {
-              unavalidProd.push(element);
-            }
-          });
-
-          if (unavalidProd.length != 0) {
-            return callback({
-              "statusCode": 611,
-              "data": unavalidProd
-            });
-          }
-
-
-          Orders.app.models.products.find({
-            where: {
-              id: {
-                'inq': newProductsId
-              }
-            }
-          }, async function (err, newProducts) {
-            if (err)
-              return callback(err);
-
-            let warehouseProductCountUpdates = [];
-
-            let order = await Orders.app.models.orders.findById(id);
-            if (!order)
-              return callback(ERROR(404, "order not found"));
-
-            let warehouse = order.warehouse();
-
-
-
-            try {
-              //validate new order products availability in warehouse product 
-              let unvalidWarehouseProducts = [];
-
-              let warehouse = order.warehouse();
-              let temp = await validateWarehouseProductsAvailability(warehouse, orderProducts, newProducts);
-
-              unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
-              warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
-
-              // validate to be edited order product  availability in warehouse product                   
-
-              let orderProductsCountDiff = tempOldProducts.map(oldProduct => {
-                let newOldProduct = orderProducts.find(p => p.productId == oldProduct.productId);
-                return { productId: newOldProduct.productId, count: (newOldProduct.count - oldProduct.count) };
-              });
-              let oldProductsFromDb = tempOldProducts.map(orderProduct => orderProduct.product());
-
-              temp = await validateWarehouseProductsAvailability(warehouse, orderProductsCountDiff, oldProductsFromDb);
-              unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
-              warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
-
-              if (unvalidWarehouseProducts.length != 0) {
-                return callback({
-                  "statusCode": 612, // unavailable in warehouse 
-                  "data": unvalidWarehouseProducts
-                });
-              }
-
-              // add deleted orders product to be updated in warehouse products  
-              for (let orderProduct of oldDeletedOrderProducts) {
-                let product = orderProduct.product();
-                let productAbstractId = product.productAbstract().id;
-                let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
-                // warehouse doesn't have  the product 
-                if (!warehouseProduct) {
-                  throw new Error("warehouse doesn't have a product");
-                }
-                // warehouse doesn't have enough amount of the product 
-                warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (orderProduct.count * product.parentCount), sellingPrice: orderProduct.sellingPrice })
-              }
-
-
-
-            } catch (err) {
-              // data format error e.g product doesn't belong to productAbstract 
-              return callback(err);
-            }
-
-
-
-            data.clientType = user.clientType;
-
-
-            try {
-              assignOrderProductsSellingPrice(orderProducts, productsFromDb, user);
-              await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
-              // restore the price of old products 
-              orderProducts = orderProducts.map(orderProduct => {
-
-                let oldOrderPoroduct = oldOrderProducts.find(oldOrderProduct => oldOrderProduct.productId == orderProduct.productId);
-                if (!oldOrderPoroduct) return orderProduct;
-                orderProduct.productSnapshot = oldOrderPoroduct.productSnapshot;
-                orderProduct.sellingPrice = oldOrderPoroduct.sellingPrice;
-                return orderProduct;
-              });
-
-            } catch (err) {
-              return next(err);
-            }
-
-            let tempProduct = orderProducts;
-            // calc total price 
-            let totalPrice = calcOrderProductsTotalPrice(orderProducts);
-            if (isAdmin == false) {
-
-              if (user.clientType == 'consumer') {
-                if (totalPrice < 10000)
-                  return callback(ERROR(602, 'total price is low'));
-              } else {
-                if (totalPrice < 20000)
-                  return callback(ERROR(602, 'total price is low'));
-
-              }
-            }
-         
-            data.totalPrice = totalPrice;
-            delete data['orderProducts'];
-            delete data['client'];
-
-            Orders.findById(id, function (err, mainOrder) {
-              if (err)
-                return callback(err, null)
-              data.priceBeforeCoupon = data.totalPrice;
-
-              if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
-                changeOrderProduct(order, tempProduct, warehouseProductCountUpdates, function (err) {
-
-                  if (err)
-                    return callback(err)
-                  mainOrder.updateAttributes(data, function (err, data) {
-                    if (err)
-                      return callback(err)
-                    return callback();
-                  })
-                })
-              } else if (data.couponCode != undefined && mainOrder.couponCode == undefined) {
-
-                Orders.app.models.coupons.findOne({
-                  where: {
-                    code: data.couponCode,
-                    expireDate: {
-                      gte: new Date()
-                    },
-                    userId: user.id
-                  }
-                }, function (err, coupon) {
-                  if (err)
-                    return callback(err);
-                  if (!coupon)
-                    return callback(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
-                  if (coupon.numberOfUsed >= coupon.numberOfTimes || coupon.status == 'used')
-                    return callback(ERROR(400, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
-
-                  data.couponId = coupon.id;
-
-                  if (coupon.type == 'fixed') {
-                    data.totalPrice -= coupon.value;
-                  } else {
-                    data.totalPrice -= ((data.totalPrice * coupon.value) / 100)
-                  }
-
-                  // edit coupon1
-
-                  coupon.numberOfUsed++;
-                  if (coupon.numberOfUsed == coupon.numberOfTimes)
-                    coupon.status = 'used';
-                  coupon.save()
-                  changeOrderProduct(order, tempProduct, warehouseProductCountUpdates, function (err) {
-                    if (err)
-                      return callback(err)
-
-                    mainOrder.updateAttributes(data, function (err, data) {
-                      if (err)
-                        return callback(err)
-                      return callback();
-                    })
-                  })
-                });
-              } else if (data.couponCode != undefined && mainOrder.couponCode != undefined && mainOrder.couponCode == data.couponCode) {
-
-                Orders.app.models.coupons.findOne({
-                  where: {
-                    code: data.couponCode,
-                    expireDate: {
-                      gte: new Date()
-                    },
-                    userId: user.id
-                  }
-                }, function (err, coupon) {
-                  if (err)
-                    return callback(err);
-                  if (!coupon)
-                    return callback(ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
-
-                  data.couponId = coupon.id;
-
-                  if (coupon.type == 'fixed') {
-                    data.totalPrice -= coupon.value;
-                  } else {
-                    data.totalPrice -= ((data.totalPrice * coupon.value) / 100)
-                  }
-
-                  changeOrderProduct(order, tempProduct, warehouseProductCountUpdates, function (err) {
-                    if (err)
-                      return callback(err)
-
-                    mainOrder.updateAttributes(data, function (err, data) {
-                      if (err)
-                        return callback(err)
-                      return callback();
-                    })
-                  })
-                });
-              } else {
-                return callback(ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE'));
-              }
-            })
-          })
-        })
-      })
-    })
-  }
-
-  function changeOrderProduct(order, tempProduct, warehouseProductCountUpdates, callback) {
+  async function changeOrderProduct(order, tempProduct, warehouseProductCountUpdates) {
     let id = order.id;
 
 
-    Orders.app.models.orderProducts.destroyAll({
+    let isDelete = await Orders.app.models.orderProducts.destroyAll({
       "orderId": id
-    },
-      function (err, isDelete) {
-        if (err)
-          return callback(err)
+    });
 
 
-        _.each(tempProduct, oneProduct => {
-          oneProduct.orderId = id;
-        })
-        Orders.app.models.orderProducts.create(tempProduct, async function (err, data) {
-          if (err)
-            return callback(err)
+    _.each(tempProduct, oneProduct => {
+      oneProduct.orderId = id;
+    });
 
-          for (let { warehouseProduct, countDiff, sellingPrice } of warehouseProductCountUpdates) {
+    let data = await Orders.app.models.orderProducts.create(tempProduct);
 
+    for (let { warehouseProduct, countDiff, sellingPrice } of warehouseProductCountUpdates) {
+      // update warehouse products count 
+      await warehouseProduct.updateExpectedCount(countDiff);
+      if (['inDelivery', 'delivered'].includes(order.status))
+        await warehouseProduct.updatetotalCount(countDiff, { sellingPrice });
 
-            try {
-              // update warehouse products count 
-              await warehouseProduct.updateExpectedCount(countDiff);
-              if (['inDelivery', 'delivered'].includes(order.status))
-                await warehouseProduct.updatetotalCount(countDiff, { sellingPrice });
-            } catch (err) {
-              return callback(err);
-            }
+    }
 
-          }
-
-          callback()
-        })
-      })
 
   }
 
+  function checkUserLogin(context) {
 
+    if (!context.req.accessToken || !context.req.accessToken.userId)
+      throw ERROR(403, 'User not login');
+  }
 
-  Orders.beforeRemote('create', function (ctx, modelInstance, next) {
-    if (!ctx.req.accessToken || !ctx.req.accessToken.userId)
-      return next(ERROR(403, 'User not login'))
+  function checkProductsExistence(orderProducts) {
+    if (!orderProducts || !Array.isArray(orderProducts) || orderProducts.length == 0)
+      throw ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED");
+  }
 
-    if (!ctx.req.body.orderProducts || !Array.isArray(ctx.req.body.orderProducts) || ctx.req.body.orderProducts.length == 0)
-      return next(ERROR(400, 'products can\'t be empty', "PRODUCTS_REQUIRED"))
+  function checkUnAvailableProducts(productsFromDb) {
+    let unavailableProducts = productsFromDb.filter(product => product.status != "available");
 
+    if (unavailableProducts.length != 0) {
+      throw { "statusCode": 611, "data": unavailableProducts };
+    }
 
+  }
 
-    //assign first warehouse in database as warehouse for the order
-    Orders.app.models.warehouse.findOne({}, (err, warehouse) => {
-      ctx.req.body.warehouseId = warehouse.id;
+  function checkTotalPrice(totalPrice, isAdmin, user) {
 
-
-      var orderProducts = ctx.req.body.orderProducts;
-
-      var isAdmin = false
-      if (ctx.req.body.isAdmin == true) {
-        isAdmin = true
-        delete ctx.req.body.isAdmin;
+    if (isAdmin == false) {
+      if (user.clientType == 'consumer') {
+        if (totalPrice < 10000)
+          throw (ERROR(602, 'total price is low'));
+      } else {
+        if (totalPrice < 20000)
+          throw (ERROR(602, 'total price is low'));
       }
+    }
+  }
 
-      var productsIds = []
-      _.each(orderProducts, product => {
-        try {
-          productsIds.push(Orders.dataSource.ObjectID(product.productId));
-        } catch (e) {
-          return next(ERROR(400, 'productId not ID'))
+  function checkCoupon(coupon) {
+
+    if (!coupon)
+      throw (ERROR(607, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
+    if (coupon.numberOfUsed >= coupon.numberOfTimes || coupon.status == 'used')
+      throw (ERROR(608, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
+  }
+  function calculateCouponDiscount(price, coupon) {
+
+    if (coupon.type == 'fixed') {
+      return price - coupon.value;
+    } else {
+      return price - ((price * coupon.value) / 100)
+    }
+  }
+  Orders.beforeRemote('create', async function (ctx, modelInstance) {
+
+
+    checkUserLogin(ctx);
+
+    checkProductsExistence(ctx.req.body.orderProducts);
+
+    let warehouse = await Orders.app.models.warehouse.findOne({});
+    //assign first warehouse in database as warehouse for the order
+    ctx.req.body.warehouseId = warehouse.id;
+
+
+    var orderProducts = ctx.req.body.orderProducts;
+
+    var isAdmin = false
+    if (ctx.req.body.isAdmin == true) {
+      isAdmin = true
+      delete ctx.req.body.isAdmin;
+    }
+
+    let productsIds = orderProducts.map(product => Orders.dataSource.ObjectID(product.productId));
+
+
+    var tempUserId;
+    if (ctx.req.body.clientId != null)
+      tempUserId = ctx.req.body.clientId;
+    else
+      tempUserId = ctx.req.accessToken.userId;
+
+
+
+    let user = await Orders.app.models.user.findById(tempUserId);
+
+    if (!user)
+      throw ERROR(400, 'user not found');
+
+
+    ctx.req.body.clientId = user.id;
+
+    let productsFromDb = await Orders.app.models.products.find({
+      where: {
+        id: {
+          'inq': productsIds
+        }
+      }
+    });
+
+
+    checkUnAvailableProducts(productsFromDb);
+
+
+    //validate order product availability in warehouse product 
+    let { unvalidWarehouseProducts, warehouseProductCountUpdates } = await validateWarehouseProductsAvailability(warehouse, orderProducts, productsFromDb);
+    if (unvalidWarehouseProducts.length != 0) {
+      throw {
+        "statusCode": 612, // unavailble in warehouse 
+        "data": unvalidWarehouseProducts
+      };
+    }
+
+    // pass data to after create 
+    ctx.warehouseProductCountUpdates = warehouseProductCountUpdates;
+
+    ctx.req.body.status = 'pending';
+    ctx.req.body.clientType = user.clientType;
+
+
+    assignOrderProductsSellingPrice(orderProducts, productsFromDb, user);
+    await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
+
+
+    // calc total price 
+    let totalPrice = calcOrderProductsTotalPrice(orderProducts);
+
+    checkTotalPrice(totalPrice, isAdmin, user);
+
+
+    ctx.req.body.priceBeforeCoupon = totalPrice;
+    ctx.req.body.totalPrice = totalPrice;
+
+    //parse orderProducts 
+    ctx.orderProducts = orderProducts;
+    delete ctx.req.body.orderProducts;
+
+
+    if (ctx.req.body.couponCode) {
+
+      let coupon = await Orders.app.models.coupons.findOne({
+        where: {
+          code: ctx.req.body.couponCode,
+          expireDate: {
+            gte: new Date()
+          },
+          userId: user.id
         }
       });
 
-      var tempUserId;
-      if (ctx.req.body.clientId != null)
-        tempUserId = ctx.req.body.clientId;
-      else
-        tempUserId = ctx.req.accessToken.userId;
+      checkCoupon(coupon);
+
+      ctx.req.body.couponId = coupon.id;
+      ctx.req.body.priceBeforeCoupon = ctx.req.body.totalPrice;
+
+      ctx.req.body.totalPrice = calculateCouponDiscount(totalPrice, coupon);
 
 
 
-      Orders.app.models.user.findById(tempUserId, (err, user) => {
-        if (err)
-          return next(err);
-        if (!user)
-          return next(ERROR(400, 'user not found'));
+      // edit coupon
+      coupon.numberOfUsed += 1;
+      if (coupon.numberOfUsed == coupon.numberOfTimes)
+        coupon.status = 'used';
+      await coupon.save();
 
-        ctx.req.body.clientId = user.id;
-
-        Orders.app.models.products.find({
-          where: {
-            id: {
-              'inq': productsIds
-            }
-          }
-        }, async function (err, productsFromDb) {
-          if (err)
-            return next(err);
+    }
 
 
-          var unavalidProd = [];
-          productsFromDb.forEach(element => {
-            if (element.status != "available") {
-              unavalidProd.push(element);
-            }
-          });
-
-          if (unavalidProd.length != 0) {
-            return next({
-              "statusCode": 611,
-              "data": unavalidProd
-            });
-          }
-
-          try {
-            //validate order product availability in warehouse product 
-            let { unvalidWarehouseProducts, warehouseProductCountUpdates } = await validateWarehouseProductsAvailability(warehouse, orderProducts, productsFromDb);
-            if (unvalidWarehouseProducts.length != 0) {
-              return next({
-                "statusCode": 612, // unavailble in warehouse 
-                "data": unvalidWarehouseProducts
-              });
-            }
-            ctx.warehouseProductCountUpdates = warehouseProductCountUpdates;
-          } catch (err) {
-            // data format error e.g product doesn't belong to productAbstract 
-            return next(err);
-          }
-
-          ctx.req.body.status = 'pending';
-          ctx.req.body.clientType = user.clientType;
 
 
-          try {
-            assignOrderProductsSellingPrice(orderProducts, productsFromDb, user);
-            await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
-          } catch (err) {
-            return next(err);
-          }
-
-          // calc total price 
-          let totalPrice = calcOrderProductsTotalPrice(orderProducts);
-
-
-          if (isAdmin == false && totalPrice < 20000)
-            return next(ERROR(602, 'total price is low'));
-
-          ctx.req.body.priceBeforeCoupon = totalPrice;
-          ctx.req.body.totalPrice = totalPrice;
-
-          //parse orderProducts 
-          ctx.orderProducts = orderProducts;
-          delete ctx.req.body.orderProducts;
-
-
-          if (!ctx.req.body.couponCode)
-            return next();
-
-          Orders.app.models.coupons.findOne({
-            where: {
-              code: ctx.req.body.couponCode,
-              expireDate: {
-                gte: new Date()
-              },
-              userId: user.id
-            }
-          }, function (err, coupon) {
-            if (err)
-              return next(err);
-            if (!coupon)
-              return next(ERROR(607, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
-            if (coupon.numberOfUsed >= coupon.numberOfTimes || coupon.status == 'used')
-              return next(ERROR(608, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
-
-            ctx.req.body.couponId = coupon.id;
-            ctx.req.body.priceBeforeCoupon = ctx.req.body.totalPrice;
-            if (coupon.type == 'fixed') {
-              ctx.req.body.totalPrice -= coupon.value;
-            } else {
-              ctx.req.body.totalPrice -= ((ctx.req.body.totalPrice * coupon.value) / 100)
-            }
-
-            // edit coupon
-            coupon.numberOfUsed += 1;
-            if (coupon.numberOfUsed == coupon.numberOfTimes)
-              coupon.status = 'used';
-            coupon.save(function (err) {
-              if (err)
-                return next(err);
-              return next();
-            });
-          });
-        });
-      });
-
-    });
   });
 
 
 
-  Orders.afterRemote('create', function (ctx, result, next) {
+  Orders.afterRemote('create', async function (ctx, result) {
 
 
     let orderProducts = ctx.orderProducts;
@@ -755,34 +444,250 @@ module.exports = function (Orders) {
       orderProduct.orderId = result.id;
     }
 
-    Orders.app.models.orderProducts.create(orderProducts, async function (err, data) {
-      if (err)
-        return next(err)
+    await Orders.app.models.orderProducts.create(orderProducts);
 
-      // update warehouse products expected count 
-      let warehouseProductCountUpdates = ctx.warehouseProductCountUpdates;
 
-      // @todo bulk update in case of performance issues 
-      for (let { warehouseProduct, countDiff } of warehouseProductCountUpdates) {
-        try {
-          await warehouseProduct.updateExpectedCount(countDiff);
-        } catch (err) {
-          return next(err);
-        }
+    // update warehouse products expected count 
+    let warehouseProductCountUpdates = ctx.warehouseProductCountUpdates;
+
+    // @todo bulk update in case of performance issues 
+    for (let { warehouseProduct, countDiff } of warehouseProductCountUpdates) {
+      await warehouseProduct.updateExpectedCount(countDiff);
+
+    }
+
+    await Orders.app.models.notification.create({
+      "type": "order",
+      "orderId": result.id
+    });
+
+    result.code = result.id.toString().slice(18);
+    return result.save();
+
+  });
+
+  Orders.editOrder = async function (id, data, context) {
+
+
+    checkUserLogin(context);
+    checkProductsExistence(data.orderProducts);
+
+
+    var orderProducts = data.orderProducts;
+    var isAdmin = false
+    if (data.isAdmin == true) {
+      isAdmin = true
+      delete data.isAdmin;
+    }
+
+
+    let productsIds = orderProducts.map(product => Orders.dataSource.ObjectID(product.productId).toString());
+
+
+    let user = await Orders.app.models.user.findById(data.clientId);
+    if (!user)
+      throw ERROR(400, 'user not found');
+
+    data.clientId = user.id;
+
+
+    let oldOrderProducts = await Orders.app.models.orderProducts.find({
+      "where": {
+        "orderId": id
       }
+    });
 
-      Orders.app.models.notification.create({
-        "type": "order",
-        "orderId": result.id
-      }, function (err, data) {
-        if (err)
-          return next(err)
-        result.code = result.id.toString().slice(18);
-        return result.save(next);
-      });
+
+    let oldProductsIds = oldOrderProducts.map(element => element.productId.toString());
+
+
+    let deletedProductsId = oldProductsIds.filter(element => productsIds.includes(element) == false);
+
+    let newProductsId = productsIds.filter(element => oldProductsIds.includes(element) == false);
+
+    // old products which are not deleted 
+    var tempOldProducts = [];
+
+    // old products which are deleted 
+    var oldDeletedOrderProducts = [];
+
+    oldOrderProducts.forEach(element => {
+      if (deletedProductsId.includes(element.productId.toString()) == false)
+        tempOldProducts.push(element);
+      else
+        oldDeletedOrderProducts.push(element);
 
     });
-  });
+
+
+
+    let productsFromDb = await Orders.app.models.products.find({
+      where: {
+        id: {
+          'inq': productsIds
+        }
+      }
+    });
+
+
+
+    checkUnAvailableProducts(productsFromDb);
+
+
+
+    let newProducts = await Orders.app.models.products.find({
+      where: {
+        id: {
+          'inq': newProductsId
+        }
+      }
+    });
+
+    let warehouseProductCountUpdates = [];
+
+    let order = await Orders.app.models.orders.findById(id);
+    if (!order)
+      throw ERROR(404, "order not found");
+
+    let warehouse = order.warehouse();
+
+
+
+    //validate new order products availability in warehouse product 
+    let unvalidWarehouseProducts = [];
+
+    let temp = await validateWarehouseProductsAvailability(warehouse, orderProducts, newProducts);
+   
+    unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
+    warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
+
+    // validate to be edited order product  availability in warehouse product                   
+
+    let orderProductsCountDiff = tempOldProducts.map(oldProduct => {
+      let newOldProduct = orderProducts.find(p => p.productId == oldProduct.productId);
+      return { productId: newOldProduct.productId, count: (newOldProduct.count - oldProduct.count) };
+    });
+    let oldProductsFromDb = tempOldProducts.map(orderProduct => orderProduct.product());
+
+    temp = await validateWarehouseProductsAvailability(warehouse, orderProductsCountDiff, oldProductsFromDb);
+    unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
+    warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
+
+   
+
+    if (unvalidWarehouseProducts.length != 0) {
+      throw {
+        "statusCode": 612, // unavailable in warehouse 
+        "data": unvalidWarehouseProducts
+      };
+    }
+
+    // add deleted orders product to be updated in warehouse products  
+    for (let orderProduct of oldDeletedOrderProducts) {
+      let product = orderProduct.product();
+      let productAbstractId = product.productAbstract().id;
+      let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
+      // warehouse doesn't have  the product 
+      if (!warehouseProduct) {
+        throw new Error("warehouse doesn't have a product");
+      }
+      // warehouse doesn't have enough amount of the product 
+      warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (orderProduct.count * product.parentCount), sellingPrice: orderProduct.sellingPrice })
+    }
+
+
+
+
+
+    data.clientType = user.clientType;
+
+
+    assignOrderProductsSellingPrice(orderProducts, productsFromDb, user);
+    await assignOrderProductsSnapshot(orderProducts, productsFromDb, warehouse);
+    // restore the price of old products 
+    orderProducts = orderProducts.map(orderProduct => {
+
+      let oldOrderPoroduct = oldOrderProducts.find(oldOrderProduct => oldOrderProduct.productId == orderProduct.productId);
+      if (!oldOrderPoroduct) return orderProduct;
+      orderProduct.productSnapshot = oldOrderPoroduct.productSnapshot;
+      orderProduct.sellingPrice = oldOrderPoroduct.sellingPrice;
+      return orderProduct;
+    });
+
+
+    let tempProduct = orderProducts;
+    // calc total price 
+    let totalPrice = calcOrderProductsTotalPrice(orderProducts);
+    checkTotalPrice(totalPrice , isAdmin , user);
+
+    data.totalPrice = totalPrice;
+    delete data['orderProducts'];
+    delete data['client'];
+
+    let mainOrder = await Orders.findById(id);
+    data.priceBeforeCoupon = data.totalPrice;
+
+    if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
+      // do nothing 
+    } else if (data.couponCode != undefined && mainOrder.couponCode == undefined) {
+
+      let coupon = await Orders.app.models.coupons.findOne({
+        where: {
+          code: data.couponCode,
+          expireDate: {
+            gte: new Date()
+          },
+          userId: user.id
+        }
+      });
+
+      checkCoupon(coupon);
+
+      data.couponId = coupon.id;
+
+      data.totalPrice = calculateCouponDiscount(data.totalPrice, coupon);
+
+      // edit coupon1
+
+      coupon.numberOfUsed++;
+      if (coupon.numberOfUsed == coupon.numberOfTimes)
+        coupon.status = 'used';
+
+      await coupon.save()
+
+
+    } else if (data.couponCode != undefined && mainOrder.couponCode != undefined && mainOrder.couponCode == data.couponCode) {
+
+      let coupon = await Orders.app.models.coupons.findOne({
+        where: {
+          code: data.couponCode,
+          expireDate: {
+            gte: new Date()
+          },
+          userId: user.id
+        }
+      });
+
+      if (!coupon)
+        throw (ERROR(400, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
+
+      data.couponId = coupon.id;
+      data.totalPrice = calculateCouponDiscount(data.totalPrice, coupon);
+
+
+    } else {
+      throw ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE');
+    }
+
+
+    await changeOrderProduct(order, tempProduct, warehouseProductCountUpdates);
+    delete data.id; 
+    
+    await mainOrder.updateAttributes(data);
+
+
+
+  }
 
 
   Orders.assignOrderDeliverer = async function (orderId, userId) {
