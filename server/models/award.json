@@ -1,0 +1,91 @@
+{
+  "name": "award",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {},
+  "properties": {
+    "nameAr": {
+      "type": "string",
+      "required": false
+    },
+    "nameEn": {
+      "type": "string",
+      "required": false
+    },
+    "details": {
+      "type": "string",
+      "required": false
+    },
+    "from": {
+      "type": "date",
+      "required": true
+    },
+    "to": {
+      "type": "date",
+      "required": true
+    },
+    "every": {
+      "type": "number",
+      "required": true
+    },
+    "countLimit": {
+      "type": "number",
+      "required": false,
+      "default": 1
+    },
+    "clientTypes": {
+      "type": [
+        "string"
+      ],
+      "required": false,
+      "default": []
+    }
+    
+  },
+  "validations": [],
+  "relations": {
+    "actionRelation": {
+      "type": "embedsOne",
+      "model": "awardAction",
+      "property": "action",
+      "options": {
+        "validate": true
+      }
+    },
+    "periodsRelation": {
+      "type": "embedsMany",
+      "model": "awardPeriod",
+      "property": "periods",
+      "options": {
+        "validate": true
+      }
+    },
+    "couponTemplateRelation": {
+      "type": "embedsMany",
+      "model": "couponTemplate",
+      "property": "coupons",
+      "options": {
+        "validate": true
+      }
+    },
+    "areas": {
+      "type": "referencesMany",
+      "model": "area",
+      "options": {
+        "validate": true
+      }
+    }, 
+    "prizes": {
+      "type": "referencesMany",
+      "model": "products",
+      "options": {
+        "validate": true
+      }
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

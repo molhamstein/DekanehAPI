@@ -1,0 +1,26 @@
+{
+  "name": "awardAction",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {},
+  "properties": {
+    "type": {
+      "type": "string",
+      "required": true
+    },
+    "target": {
+      "type": "number",
+      "required": true
+    }
+    
+  },
+  "validations": [],
+  "relations": {
+   
+  },
+  "acls": [],
+  "methods": {}
+}

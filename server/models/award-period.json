@@ -1,0 +1,28 @@
+{
+  "name": "awardPeriod",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {},
+  "properties": {
+    "from": {
+      "type" : "date" , 
+      "required" : true 
+    } , 
+    "to": {
+      "type" : "date" , 
+      "required" : true 
+    }
+    
+  },
+  "validations": [],
+  "relations": {
+   
+  },
+  "acls": [],
+  "methods": {
+    
+  }
+}

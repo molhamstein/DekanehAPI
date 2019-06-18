@@ -184,13 +184,33 @@
   "config": {
     "dataSource": "mongoDb",
     "public": true
-  }, 
-  "report" : {
-    "dataSource" : "mongoDb", 
-    "public" : true
   },
-  "claim" : {
-    "dataSource" : "mongoDb", 
-    "public" : true
+  "report": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "claim": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "award": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "awardAction": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "couponTemplate": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "awardPeriod": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "userAward": {
+    "dataSource": "mongoDb",
+    "public": true
   }
 }

@@ -1,0 +1,19 @@
+{
+  "name": "couponTemplate",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {},
+  "properties": {
+   
+    
+  },
+  "validations": [],
+  "relations": {
+   
+  },
+  "acls": [],
+  "methods": {}
+}

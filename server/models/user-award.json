@@ -1,0 +1,35 @@
+{
+  "name": "userAward",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {},
+  "properties": {
+    "progress": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
+    "count": {
+      "type": "number",
+      "required": false,
+      "default": 0
+    }
+  },
+  "validations": [],
+  "relations": {
+    "user": {
+      "type": "belongsTo",
+      "model": "user"
+    },
+    "awardPeriod": {
+      "type": "belongsTo",
+      "model": "awardPeriod",
+      "foreignKey": "awardPeriodId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
