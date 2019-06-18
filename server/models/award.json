@@ -71,16 +71,18 @@
         "validate": true
       }
     },
-    "areas": {
+    "areasRelation": {
       "type": "referencesMany",
       "model": "area",
+      "foreignKey" : "areaIds" , 
       "options": {
         "validate": true
       }
     }, 
-    "prizes": {
+    "prizesRelation": {
       "type": "referencesMany",
       "model": "products",
+      "foreignKey" : "prizeIds" , 
       "options": {
         "validate": true
       }

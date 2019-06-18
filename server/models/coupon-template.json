@@ -7,13 +7,32 @@
   },
   "scope": {},
   "properties": {
-   
-    
+    "id": {
+      "type": "string",
+      "id": true,
+      "defaultFn": "uuid"
+    },
+    "value": {
+      "type": "number",
+      "required": true
+    },
+    "type": {
+      "type": "string",
+      "required": true,
+      "default": "fixed"
+    },
+    "expireDate": {
+      "type": "date",
+      "required": true
+    },
+    "numberOfTimes": {
+      "type": "number",
+      "required": true,
+      "default": 1
+    }
   },
   "validations": [],
-  "relations": {
-   
-  },
+  "relations": {},
   "acls": [],
   "methods": {}
 }
