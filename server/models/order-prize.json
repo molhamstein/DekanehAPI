@@ -1,0 +1,49 @@
+{
+  "name": "orderPrize",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "scope": {
+    "include": [
+      "product"
+    ]
+  },
+  "properties": {
+    "count": {
+      "type": "number",
+      "required": true,
+      "default": 1
+    },
+    "creationDate": {
+      "type": "date",
+      "required": true,
+      "default": "$now"
+    },
+    "userAwardCount": {
+      "type": "number",
+      "required": true,
+      "description": " index of userAward",
+      "default": 0
+    }
+  },
+  "validations": [],
+  "relations": {
+    "product": {
+      "type": "belongsTo",
+      "model": "products"
+    },
+    "order": {
+      "type": "belongsTo",
+      "model": "orders",
+      "foreignKey": "orderId"
+    },
+    "userAward": {
+      "type": "belongsTo",
+      "model": "userAward"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

@@ -11,7 +11,8 @@
       "deliveryMember",
       "orderProducts",
       "warehouseKeeper",
-      "warehouse"
+      "warehouse", 
+      "orderPrizes"
     ]
   },
   "properties": {
@@ -81,6 +82,11 @@
     "orderProducts": {
       "type": "hasMany",
       "model": "orderProducts",
+      "foreignKey": "orderId"
+    },
+    "orderPrizes": {
+      "type": "hasMany",
+      "model": "orderPrize",
       "foreignKey": "orderId"
     },
     "warehouse": {

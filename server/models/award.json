@@ -80,12 +80,14 @@
       }
     }, 
     "prizesRelation": {
-      "type": "referencesMany",
-      "model": "products",
-      "foreignKey" : "prizeIds" , 
+
+      "type": "embedsMany",
+      "model": "productPrize",
+      "property": "prizes",
       "options": {
         "validate": true
       }
+
     }
   },
   "acls": [],

@@ -1,5 +1,5 @@
 {
-  "name": "awardAction",
+  "name": "productPrize",
   "base": "Model",
   "idInjection": true,
   "options": {
@@ -7,19 +7,22 @@
   },
   "scope": {},
   "properties": {
-    "type": {
+    "id": {
       "type": "string",
-      "required": true
+      "id": true,
+      "defaultFn": "uuid"
     },
-    "target": {
+    "count": {
       "type": "number",
       "required": true
     }
-    
   },
   "validations": [],
   "relations": {
-   
+    "product": {
+      "type": "belongsTo",
+      "model": "products"
+    }
   },
   "acls": [],
   "methods": {}

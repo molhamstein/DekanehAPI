@@ -7,7 +7,6 @@ const path = require('path');
 var pdf = require('html-pdf');
 var myConfig = require('../myConfig');
 
-
 var options = {
   format: 'A4',
   border: {
@@ -26,7 +25,6 @@ module.exports = function (Orders) {
   Orders.validatesPresenceOf('warehouseId');
 
   async function validateWarehouseProductsAvailability(warehouse, orderProducts, products) {
-
 
     //validate new order products availability in warehouse product 
     let unvalidWarehouseProducts = [];
@@ -49,7 +47,7 @@ module.exports = function (Orders) {
         orderProduct.count = Math.max(orderProduct.count, 0);
         unvalidWarehouseProducts.push(orderProduct);
       }
-      warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount), sellingPrice: orderProduct.sellingPrice })
+      warehouseProductCountUpdates.push({ warehouseProduct, countDiff: (-orderProduct.count * product.parentCount), sellingPrice: (orderProduct.sellingPrice ? orderProduct.sellingPrice : 0) })
     }
 
     return { unvalidWarehouseProducts, warehouseProductCountUpdates };
@@ -180,7 +178,6 @@ module.exports = function (Orders) {
       var firstMainProduct = [];
       var secondeMainProduct = [];
       var orderProducts = JSON.parse(JSON.stringify(data.orderProducts()));
-      // console.log("products")
       for (let index = 0; index < orderProducts.length; index++) {
         const element = orderProducts[index];
         if (index < 18)
@@ -433,7 +430,160 @@ module.exports = function (Orders) {
 
   });
 
+  // @todo refactor with coupon.js 
+  var generateCodeNumber = function () {
+    return Math.floor(100000 + Math.random() * 900000)
+  }
 
+
+  async function addOrderPrizes(order, prizes, warehouseProductCountUpdates) {
+    let id = order.id;
+
+    prizes.forEach(oneProduct => {
+      oneProduct.orderId = id;
+    });
+
+    await Orders.app.models.orderPrize.create(prizes);
+    for (let { warehouseProduct, countDiff } of warehouseProductCountUpdates) {
+      // update warehouse products count 
+      await warehouseProduct.updateExpectedCount(countDiff);
+    }
+
+  }
+
+  async function rewardUser(order, award, userAward) {
+
+
+    let { clientId } = order;
+
+    for (let coupon of award.coupons) {
+
+      let userCoupon = { ...coupon };
+      userCoupon.code = generateCodeNumber();
+      userCoupon.numberOfUsed = 0;
+      userCoupon.userId = clientId;
+      userCoupon.userAwardId = userAward.id;
+      userCoupon.userAwardCount = userAward.count;
+      delete userCoupon.id;
+      await Orders.app.models.coupons.create(userCoupon);
+      // @todo notify user 
+    }
+
+
+    if (award.prizes) {
+
+      let productsIds = award.prizes.map(p => p.productId);
+
+      let productsFromDb = await Orders.app.models.products.find({
+        where: {
+          id: {
+            'inq': productsIds
+          }
+        }
+      });
+      let orderPrizes = [...award.prizes];
+      orderPrizes.forEach(prize => {
+        prize.userAwardId = userAward.id;
+        prize.userAwardCount = userAward.count;
+        prize.productId = prize.productId.toString();
+        delete prize.id;
+      });
+
+
+      let warehouse = await Orders.app.models.warehouse.findOne({});
+
+      let { unvalidWarehouseProducts, warehouseProductCountUpdates } =
+        await validateWarehouseProductsAvailability(warehouse, orderPrizes, productsFromDb);
+
+      if (unvalidWarehouseProducts.length) {
+        // @todo notify admin 
+
+      }
+      await addOrderPrizes(order, orderPrizes, warehouseProductCountUpdates);
+      // @todo notify user 
+
+    }
+
+
+
+  }
+
+  async function processOrderAward(order) {
+
+
+    let { orderDate, clientType, clientId, totalPrice } = order;
+    let awards = await new Promise((res, rej) => {
+
+
+      Orders.getDataSource().connector.collection('award')
+        .find(
+          {
+            $and: [
+              {
+                from: { $lte: orderDate },
+                to: { $gte: orderDate }
+              },
+              {
+                $or: [
+                  { clientTypes: clientType },
+                  { clientTypes: [] }
+                ]
+              }
+              // @todo complete filters 
+            ]
+
+          }, (err, result) => {
+            if (err) return rej(err);
+
+            result.toArray((err, awards) => {
+              res(awards);
+            });
+          });
+    });
+
+
+    for (let award of awards) {
+
+      // find the current period 
+
+      let period = award.periods.find(({ from, to }) => orderDate >= from && orderDate <= to);
+      let [userAward] = await Orders.app.models.userAward.findOrCreate({ where: { awardPeriodId: period.id, userId: clientId } }, { awardId: award._id, awardPeriodId: period.id, userId: clientId });
+      if (userAward.complete) {
+        // continue;
+      }
+
+      let action = award.action;
+      // update user award progress according to the action type 
+      if (action.type == 'price') {
+
+        userAward.progress += totalPrice;
+        // add order to user award for future usage 
+        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
+
+
+      } else if (award.action == 'company') {
+          // @todo implement actions 
+
+      }
+
+
+
+      if (userAward.progress >= action.target) {
+        rewardUser(order, award, userAward);
+        userAward.progress = 0;
+        userAward.count++;
+      }
+
+
+      if (userAward.count == award.countLimit) {
+        userAward.complete = true;
+      }
+      await userAward.save();
+
+    }
+
+
+  }
 
   Orders.afterRemote('create', async function (ctx, result) {
 
@@ -452,6 +602,7 @@ module.exports = function (Orders) {
 
     // @todo bulk update in case of performance issues 
     for (let { warehouseProduct, countDiff } of warehouseProductCountUpdates) {
+
       await warehouseProduct.updateExpectedCount(countDiff);
 
     }
@@ -462,6 +613,14 @@ module.exports = function (Orders) {
     });
 
     result.code = result.id.toString().slice(18);
+
+
+    if (!result.couponId) {
+      // if order has no coupon 
+      processOrderAward(result);
+    }
+
+
     return result.save();
 
   });
@@ -557,7 +716,7 @@ module.exports = function (Orders) {
     let unvalidWarehouseProducts = [];
 
     let temp = await validateWarehouseProductsAvailability(warehouse, orderProducts, newProducts);
-   
+
     unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
     warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
 
@@ -573,7 +732,7 @@ module.exports = function (Orders) {
     unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
     warehouseProductCountUpdates = [...warehouseProductCountUpdates, ...temp.warehouseProductCountUpdates];
 
-   
+
 
     if (unvalidWarehouseProducts.length != 0) {
       throw {
@@ -618,7 +777,7 @@ module.exports = function (Orders) {
     let tempProduct = orderProducts;
     // calc total price 
     let totalPrice = calcOrderProductsTotalPrice(orderProducts);
-    checkTotalPrice(totalPrice , isAdmin , user);
+    checkTotalPrice(totalPrice, isAdmin, user);
 
     data.totalPrice = totalPrice;
     delete data['orderProducts'];
@@ -681,8 +840,8 @@ module.exports = function (Orders) {
 
 
     await changeOrderProduct(order, tempProduct, warehouseProductCountUpdates);
-    delete data.id; 
-    
+    delete data.id;
+
     await mainOrder.updateAttributes(data);
 
 
@@ -820,6 +979,7 @@ module.exports = function (Orders) {
     order.status = 'inDelivery';
     order.deliveryReceptionDate = new Date();
 
+    // update order products 
     for (let orderProduct of order.orderProducts()) {
 
       let product = orderProduct.product();
@@ -829,8 +989,19 @@ module.exports = function (Orders) {
       warehouseProduct = warehouseProduct[0];
       // update warehouse total count 
       await warehouseProduct.updatetotalCount(- orderProduct.count * product.parentCount, { sellingPrice: orderProduct.sellingPrice });
-
     }
+    // update order prizes 
+    for (let orderPrize of order.orderPrizes()) {
+
+      let product = orderPrize.product();
+      let productAbstractId = product.productAbstract().id;
+      let warehouse = order.warehouse();
+      let warehouseProduct = await warehouse.warehouseProducts({ where: { productAbstractId } });
+      warehouseProduct = warehouseProduct[0];
+      // update warehouse total count 
+      await warehouseProduct.updatetotalCount(- orderPrize.count * product.parentCount, { sellingPrice: 0 });
+    }
+
     await order.save();
     // TODO : send Notification to user delivery 
     notifications.orderInDelievery(order);
@@ -900,6 +1071,27 @@ module.exports = function (Orders) {
       // restore warehouse total count 
       if (['inDelivery', 'delivered'].includes(order.status)) {
         await warehouseProduct.updatetotalCount(orderProduct.count * product.parentCount, { sellingPrice: orderProduct.sellingPrice });
+      }
+    }
+
+    
+    for (let orderPrize of order.orderPrizes()) {
+
+      let product = orderPrize.product();
+      let productAbstractId = product.productAbstract().id;
+      let warehouse = order.warehouse();
+      let warehouseProduct = await warehouse.warehouseProducts({ where: { productAbstractId } });
+      warehouseProduct = warehouseProduct[0];
+
+      // in: ['pending', 'inWarehouse', 'packed', 'pendingDelivery', 'inDelivery', 'delivered', 'canceled'] 
+
+      if (['pending', 'inWarehouse', 'packed', 'inDelivery', 'pendingDelivery', 'delivered'].includes(order.status)) {
+        await warehouseProduct.updateExpectedCount(orderPrize.count * product.parentCount);
+      }
+
+      // restore warehouse total count 
+      if (['inDelivery', 'delivered'].includes(order.status)) {
+        await warehouseProduct.updatetotalCount(orderPrize.count * product.parentCount, { sellingPrice: 0 });
       }
     }
 

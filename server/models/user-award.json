@@ -16,6 +16,20 @@
       "type": "number",
       "required": false,
       "default": 0
+    },
+    "complete": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
+    "orders": {
+      "type": "array",
+      "required": false,
+      "default": []
+    },
+    "awardPeriodId": {
+      "type": "string",
+      "required": true
     }
   },
   "validations": [],
@@ -24,10 +38,9 @@
       "type": "belongsTo",
       "model": "user"
     },
-    "awardPeriod": {
+    "award": {
       "type": "belongsTo",
-      "model": "awardPeriod",
-      "foreignKey": "awardPeriodId"
+      "model": "award"
     }
   },
   "acls": [],

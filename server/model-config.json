@@ -212,5 +212,14 @@
   "userAward": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "productPrize": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "orderPrize": {
+    "dataSource": "mongoDb",
+    "public": true
   }
+  
 }
