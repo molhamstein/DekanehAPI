@@ -29,8 +29,9 @@ module.exports = function (Orders) {
     //validate new order products availability in warehouse product 
     let unvalidWarehouseProducts = [];
     let warehouseProductCountUpdates = [];
-    for (let product of products) {
+    for (let orderProduct of orderProducts) {
 
+      let product = products.find(p => p.id == orderProduct.productId);
       let productAbstractId = product.productAbstract().id;
       let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
       // warehouse doesn't have  the product 
@@ -38,7 +39,6 @@ module.exports = function (Orders) {
         throw new Error("warehouse doesn't have a product");
       }
       // warehouse doesn't have enough amount of the product 
-      let orderProduct = orderProducts.find(p => p.productId == product.id);
       let total = warehouseProduct.expectedCount - orderProduct.count * product.parentCount;
 
       if (total < warehouseProduct.threshold) {
@@ -549,7 +549,7 @@ module.exports = function (Orders) {
       let period = award.periods.find(({ from, to }) => orderDate >= from && orderDate <= to);
       let [userAward] = await Orders.app.models.userAward.findOrCreate({ where: { awardPeriodId: period.id, userId: clientId } }, { awardId: award._id, awardPeriodId: period.id, userId: clientId });
       if (userAward.complete) {
-        // continue;
+        continue;
       }
 
       let action = award.action;
@@ -562,14 +562,14 @@ module.exports = function (Orders) {
 
 
       } else if (award.action == 'company') {
-          // @todo implement actions 
+        // @todo implement actions 
 
       }
 
 
 
       if (userAward.progress >= action.target) {
-        rewardUser(order, award, userAward);
+        await rewardUser(order, award, userAward);
         userAward.progress = 0;
         userAward.count++;
       }
@@ -1074,7 +1074,7 @@ module.exports = function (Orders) {
       }
     }
 
-    
+
     for (let orderPrize of order.orderPrizes()) {
 
       let product = orderPrize.product();
