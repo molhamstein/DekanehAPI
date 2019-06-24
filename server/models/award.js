@@ -10,26 +10,94 @@ module.exports = function (Award) {
 
 
 
-        let { from, to, every } = modelInstance;
+        let { from, to, occurrence, occurrenceType } = modelInstance;
 
-        let nextEnd = (start, every) => {
-            let end = new Date(start);
-            end.setDate(end.getDate() + every - 1);
-            return end;
-        };
-
-
-        for (let start = new Date(from), end = nextEnd(start, every); end <= to; start = new Date(end), start.setDate(start.getDate() + 1), end = nextEnd(start, every)) {
-            
-            modelInstance.periodsRelation.create({
-                from: new Date(start),
-                to: new Date(end)
-            });
-        }
-
-      
-
+        from.setHours(0 , 0 , 0 , 0 ); 
         
+        if (occurrenceType == 'daily') {
+
+            let nextEnd = (start, occurrence) => {
+                let end = new Date(start);
+                end.setDate(end.getDate() + occurrence - 1);
+
+                return end;
+            };
+            let nextStart = (end) => {
+                let start = new Date(end);
+                start.setDate(start.getDate() + 1);
+                return start;
+            }
+
+            for (let start = new Date(from), end = nextEnd(start, occurrence);
+                end <= to;
+                start = nextStart(end),
+                end = nextEnd(start, occurrence)) {
+
+                modelInstance.periodsRelation.create({
+                    from: new Date(start),
+                    to: new Date(end)
+                });
+            }
+
+        } else if (occurrenceType == 'monthly') {
+
+
+            let nextEnd = (start, occurrence) => {
+                let end = new Date(start);
+                end.setMonth(end.getMonth() + occurrence);
+                end.setDate(0);
+                return end;
+            };
+            let nextStart = (end) => {
+                let start = new Date(end);
+
+                start.setDate(start.getDate() + 1);
+                return start;
+            }
+
+            let start = new Date(from);
+            start.setDate(1);
+
+            for (let end = nextEnd(start, occurrence); end <= to;
+                start = nextStart(end),
+                end = nextEnd(start, occurrence)) {
+
+                modelInstance.periodsRelation.create({
+                    from: new Date(start),
+                    to: new Date(end)
+                });
+            }
+        } else if (occurrenceType == 'weekly') {
+
+
+            let nextEnd = (start, occurrence) => {
+                let end = new Date(start);
+                end.setDate(end.getDate() + occurrence * 7 - 1);
+                return end;
+            };
+            let nextStart = (end) => {
+                let start = new Date(end);
+                start.setDate(start.getDate() + 1);
+
+                return start;
+            }
+            let start = new Date(from);
+            while (start.getDay() != 6)
+                start.setDate(start.getDate() + 1);
+
+            for (let end = nextEnd(start, occurrence);
+                end <= to;
+                start = nextStart(end),
+                end = nextEnd(start, occurrence)) {
+
+                modelInstance.periodsRelation.create({
+                    from: new Date(start),
+                    to: new Date(end)
+                });
+            }
+
+
+        }
 
     });
 

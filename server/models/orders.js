@@ -512,7 +512,10 @@ module.exports = function (Orders) {
   async function processOrderAward(order) {
 
 
-    let { orderDate, clientType, clientId, totalPrice } = order;
+    let {  clientType, clientId, totalPrice } = order;
+    let orderDate =  new Date(order.orderDate); 
+    orderDate.setHours(0 , 0 , 0 , 0 ); 
+    
     let awards = await new Promise((res, rej) => {
 
 

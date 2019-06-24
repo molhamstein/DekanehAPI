@@ -27,9 +27,14 @@
       "type": "date",
       "required": true
     },
-    "every": {
+    "occurrence": {
       "type": "number",
       "required": true
+    },
+    "occurrenceType": {
+      "type": "string",
+      "required": true ,
+      "default" : "daily"
     },
     "countLimit": {
       "type": "number",
@@ -43,7 +48,6 @@
       "required": false,
       "default": []
     }
-    
   },
   "validations": [],
   "relations": {
@@ -74,20 +78,18 @@
     "areasRelation": {
       "type": "referencesMany",
       "model": "area",
-      "foreignKey" : "areaIds" , 
+      "foreignKey": "areaIds",
       "options": {
         "validate": true
       }
-    }, 
+    },
     "prizesRelation": {
-
       "type": "embedsMany",
       "model": "productPrize",
       "property": "prizes",
       "options": {
         "validate": true
       }
-
     }
   },
   "acls": [],
