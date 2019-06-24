@@ -3,6 +3,7 @@
 var _ = require('lodash');
 const ejs = require('ejs');
 const path = require('path');
+var mongoXlsx = require('mongo-xlsx');
 
 var pdf = require('html-pdf');
 var myConfig = require('../myConfig');
@@ -170,7 +171,7 @@ module.exports = function (Orders) {
 
       var userType = ""
       if (data.clientType == "wholesale")
-        userType = "الصفة التجارية للمبيع : لمحل مفرق";
+        userTyppe = "الصفة التجارية للمبيع : لمحل مفرق";
       else
         userType = "الصفة التجارية للمبيع : لمحل جملة";
 
@@ -1219,6 +1220,253 @@ module.exports = function (Orders) {
     });
 
   }
+  function clientReport2Xlsx(data, type, cb) {
+
+
+    let clients = {};
+
+
+
+    let priceModel = [
+      {
+        displayName: "Client",
+        access: "client",
+        type: "string"
+      },
+    ];
+
+    let countModel = [
+      {
+        displayName: "Client",
+        access: "client",
+        type: "string"
+      },
+    ];
+
+
+
+    if (type == "weekly") {
+
+      let minYear = 1e10;
+      let maxYear = -1;
+      let minWeek = 1e10;
+      let maxWeek = -1;
+
+      data.forEach(record => {
+
+        let { year, week } = record;
+
+        clients[record.clientId] = clients[record.clientId] || {};
+        clients[record.clientId]["client"] = record.client.shopName;
+        clients[record.clientId][`price.${year}.${week}`] = record.price;
+        clients[record.clientId][`count.${year}.${week}`] = record.count;
+
+        if (year > maxYear) {
+          maxYear = year;
+          maxWeek = week;
+        }
+        if (year < minYear) {
+          minYear = year;
+          minWeek = week;
+        }
+
+        if (year == maxYear)
+          maxWeek = Math.max(week, maxWeek);
+
+        if (year == minYear)
+          minWeek = Math.min(week, minWeek);
+
+      });
+
+      // create columns 
+      for (let year = minYear; year <= maxYear; year++) {
+        for (let week = (year == minYear ? minWeek : 0); week <= (year == maxYear ? maxWeek : 53); week++) {
+          priceModel.push(
+
+            {
+              displayName: `Year ${year} Week ${week} `,
+              access: `price.${year}.${week}`,
+              type: "number",
+            }
+          );
+          countModel.push(
+
+            {
+              displayName: `Year ${year} Week ${week} `,
+              access: `count.${year}.${week}`,
+              type: "number",
+
+            }
+          );
+        }
+      }
+
+
+    } else {
+      // monthly 
+
+      let minYear = 1e10;
+      let maxYear = -1;
+      let minMonth = 1e10;
+      let maxMonth = -1;
+
+      data.forEach(record => {
+
+        let { year, month } = record;
+
+        clients[record.clientId] = clients[record.clientId] || {};
+        clients[record.clientId]["client"] = record.client.shopName;
+        clients[record.clientId][`price.${year}.${month}`] = record.price;
+        clients[record.clientId][`count.${year}.${month}`] = record.count;
+
+        if (year > maxYear) {
+          maxYear = year;
+          maxMonth = month;
+        }
+        if (year < minYear) {
+          minYear = year;
+          minMonth = month;
+        }
+
+        if (year == maxYear)
+          maxMonth = Math.max(month, maxMonth);
+
+        if (year == minYear)
+          minMonth = Math.min(month, minMonth);
+
+      });
+
+      // create columns 
+      for (let year = minYear; year <= maxYear; year++) {
+        for (let month = (year == minYear ? minMonth : 1); month <= (year == maxYear ? maxMonth : 12); month++) {
+          priceModel.push(
+
+            {
+              displayName: `Year ${year} Month ${month} `,
+              access: `price.${year}.${month}`,
+              type: "number",
+            }
+          );
+          countModel.push(
+
+            {
+              displayName: `Year ${year} Month ${month} `,
+              access: `count.${year}.${month}`,
+              type: "number",
+
+            }
+          );
+        }
+      }
+
+    }
+
+
+
+    clients = Object.values(clients);
+
+    let config = {
+      path: 'files/excelFiles',
+      save: true,
+      fileName: `clinet-report-${Date.now().toString()}.xlsx`,
+
+    };
+
+
+    let priceSheet = mongoXlsx.mongoData2XlsxData(clients, priceModel);
+    let countSheet = mongoXlsx.mongoData2XlsxData(clients, countModel);
+
+    mongoXlsx.mongoData2XlsxMultiPage([priceSheet, countSheet], ["Price", "Count"], config, (err, data) => {
+      if (err) cb(err);
+      else cb(null, data);
+    });
+
+
+
+  }
+  Orders.clientReport = function (res, from, to, type, excel) {
+
+    let and = [];
+    if (from)
+      and.push({ orderDate: { $gte: from } });
+
+    if (to)
+      and.push({ orderDate: { $lte: to } });
+
+
+    if (and.length)
+      and = [{ $match: { $and: and } }];
+
+    let groupId = {
+      year: { $year: "$orderDate" },
+      clientId: "$clientId"
+    };
+
+
+    if (type == 'weekly') {
+      groupId.week = { $week: "$orderDate" };
+    } else {
+      //monthly 
+      groupId.month = { $month: "$orderDate" };
+    }
+
+    let stages =
+      [
+        ...and,
+        {
+          $group: {
+            _id: groupId,
+            price: { $sum: "$totalPrice" },
+            count: { $sum: 1 },
+          },
+
+        },
+        { $sort: { "_id.week": 1, "_id.month": 1, "_id.year": 1, "_id.day": 1 } }
+        ,
+        {
+          $replaceRoot: { newRoot: { $mergeObjects: ["$_id", { price: "$price", count: "$count" }] } }
+        },
+        {
+          $lookup: {
+            from: 'user',
+            localField: 'clientId',
+            foreignField: '_id',
+            as: 'client'
+          }
+        },
+        {
+          $unwind: "$client"
+        }
+        /*{
+          $group: {
+            _id: { "clientId": "$_id.clientId" },
+            orders: { $push: "$$ROOT" },
+          }
+        }*/
+      ];
+
+
+    Orders.getDataSource().connector.collection('orders').aggregate(stages, (err, result) => {
+      if (err)
+        return res.status(500).json(err);
+
+      if (!excel) {
+        return res.json(result);
+      }
+
+      clientReport2Xlsx(result, type, (err, data) => {
+        if (err)
+          return res.status(500).json(err);
+        res.sendFile(path.join(__dirname, '../../', data.fullPath))
+      });
+
+
+
+    });
+
+
+  }
+
 
   Orders.warehoueKeeperOrders = async function (req, from, to, status) {
     let { user } = req;

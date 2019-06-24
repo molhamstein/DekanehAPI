@@ -11,7 +11,7 @@
       "deliveryMember",
       "orderProducts",
       "warehouseKeeper",
-      "warehouse", 
+      "warehouse",
       "orderPrizes"
     ]
   },
@@ -377,15 +377,14 @@
       },
       "isStatic": true
     },
-    "warehoueKeeperOrders" : {
+    "warehoueKeeperOrders": {
       "accepts": [
-
         {
           "arg": "req",
           "http": {
             "source": "req"
           }
-        },        
+        },
         {
           "arg": "from",
           "type": "date",
@@ -404,14 +403,12 @@
           "required": false
         }
       ],
-      "returns": 
-        {
-          "arg": "result",
-          "type": "array",
-          "root": true,
-          "description": ""
-        }
-      ,
+      "returns": {
+        "arg": "result",
+        "type": "array",
+        "root": true,
+        "description": ""
+      },
       "http": {
         "verb": "get",
         "path": "/warehouseKeeperOrders"
@@ -454,10 +451,62 @@
           "description": ""
         }
       ],
-      "description": "Get daily report of supply products",
+      "description": "Get daily report of sold abstract products",
       "http": [
         {
-        "path": "/dailyOrder",
+          "path": "/dailyOrder",
+          "verb": "get"
+        }
+      ]
+    },
+    "clientReport": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "res",
+          "http": {
+            "source": "res"
+          }
+        },
+        {
+          "arg": "from",
+          "type": "date",
+          "required": false,
+          "description": ""
+        },
+        {
+          "arg": "to",
+          "type": "date",
+          "required": false,
+          "description": ""
+        },
+        {
+          "arg": "type",
+          "type": "string",
+          "required": false,
+          "default": "monthly",
+          "description": "weekly|monthly"
+        },
+        {
+          "arg" : "excel" ,
+          "type" : "boolean" ,
+          "required" : false , 
+          "default" : false , 
+          "description" : "whether to download excel file or not"
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "Get report of client orders",
+      "http": [
+        {
+          "path": "/clientReport",
           "verb": "get"
         }
       ]
