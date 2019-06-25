@@ -26,6 +26,10 @@
       "type": "date",
       "required": true,
       "defaultFn": "now"
+    },
+    "object": {
+      "type": "object",
+      "required": false
     }
   },
   "validations": [],

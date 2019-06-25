@@ -467,7 +467,7 @@ module.exports = function (Orders) {
       userCoupon.userAwardCount = userAward.count;
       delete userCoupon.id;
       await Orders.app.models.coupons.create(userCoupon);
-      // @todo notify user 
+
     }
 
 
@@ -497,13 +497,21 @@ module.exports = function (Orders) {
         await validateWarehouseProductsAvailability(warehouse, orderPrizes, productsFromDb);
 
       if (unvalidWarehouseProducts.length) {
-        // @todo notify admin 
+        await Orders.app.models.notification.create({
+          "type": "prizeOutOfStock",
+          "orderId": order.id,
+          object: { "awardId": award._id }
+        });
 
       }
       await addOrderPrizes(order, orderPrizes, warehouseProductCountUpdates);
-      // @todo notify user 
-
     }
+
+    notifications.rewardUser(order, award);
+
+
+
+
 
 
 
@@ -560,14 +568,13 @@ module.exports = function (Orders) {
             res(result);
           });
     });
-    console.log(awards);
     for (let award of awards) {
       // find the current period 
       let period = award.periods.find(({ from, to }) => orderDate >= from && orderDate <= to);
 
       let [userAward] = await Orders.app.models.userAward.findOrCreate({ where: { awardPeriodId: period._id, userId: clientId } }, { awardId: award._id, awardPeriodId: period._id, userId: clientId });
       if (userAward.complete) {
-        //    continue;
+        continue;
       }
 
       let action = award.action;
@@ -577,7 +584,6 @@ module.exports = function (Orders) {
         userAward.progress += totalPrice;
         // add order to user award for future usage 
         userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
-
 
       } else if (award.action == 'company') {
         // @todo implement actions 
@@ -625,6 +631,7 @@ module.exports = function (Orders) {
 
     }
 
+    //admin notification 
     await Orders.app.models.notification.create({
       "type": "order",
       "orderId": result.id

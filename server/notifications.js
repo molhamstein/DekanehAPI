@@ -16,6 +16,14 @@ module.exports.orderInDelievery = function (order) {
   });
 }
 
+module.exports.rewardUser = function (order, award) {
+  _sendNotification(order.clientId, null, 'rewardUser',
+    {
+      orderId: order.id,
+      awardId: award._id
+    });
+}
+
 
 module.exports.sendMultiNot = function (title, body, token) {
   token.forEach(element => {
@@ -60,7 +68,7 @@ var _sendNotificationToMultiUsers = function (usersIds, actorId, action, object)
 
 
 var _sendNotification = function (userId, actorId, action, object) {
-  console.log("qwe123", userId);
+
   app.models.user.findById(userId, function (err, user) {
 
     _sendOneSignalNotification(user.fireBaseToken, action, object);
@@ -72,7 +80,6 @@ var _sendNotification = function (userId, actorId, action, object) {
     }, function (err, notification) {
       if (err)
         return console.log(err);
-      console.log("notification sent", userId, object);
     });
   })
 
@@ -81,22 +88,22 @@ var _sendNotification = function (userId, actorId, action, object) {
 
 var _sendOneSignalNotification = function (token, action, object) {
 
-  var message = {} ; 
+  var message = {};
 
 
-  if(action == 'orderDelivered'){
+  if (action == 'orderDelivered') {
 
 
     message = { //this may vary according to the message type (single recipient, multicast, topic, et cetera)
       to: token,
       collapse_key: myConfig.senderId,
-  
+
       notification: {
         title: 'تم توصيل طلبك بنجاح',
         body: 'أعطنا رأيك بخدمات دُكّان',
         click_action: "rating"
       },
-  
+
       data: { //you can send only notification or only data(or include both)
         "orderId": object.orderId,
         "openActivity": "rating"
@@ -104,26 +111,44 @@ var _sendOneSignalNotification = function (token, action, object) {
     };
 
 
-  }else if(action == 'orderInDelivery'){
+  } else if (action == 'orderInDelivery') {
 
-    message = { 
+    message = {
       to: token,
       collapse_key: myConfig.senderId,
-  
+
       notification: {
         title: 'تم اسناد طلبك لموصل طلبات',
         body: '',
         click_action: "orderInDelivery"
       },
-  
+
       data: { //you can send only notification or only data(or include both)
         "orderId": object.orderId,
         "openActivity": "orderInDelivery"
       }
     };
 
+  } else if (action == 'rewardUser') {
+
+    message = {
+      to: token,
+      collapse_key: myConfig.senderId,
+
+      notification: {
+        title: 'مبارك ! لقد ربحت جائزة جديدة',
+        body: '',
+        click_action: "rewardUser"
+      },
+
+      data: { //you can send only notification or only data(or include both)
+        "orderId": object.orderId,
+        "awardId": object.awardId,
+        "openActivity": "rewardUser"
+      }
+    };
   }
- 
+
 
 
   fcm.send(message, function (err, response) {
