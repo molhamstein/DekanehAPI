@@ -1249,6 +1249,7 @@ module.exports = function (Orders) {
     let { minYear, maxYear, minIndex, maxIndex } = obj;
 
     if (type == "weekly") {
+      console.log("over here");
       for (let year = minYear; year <= maxYear; year++) {
         for (let week = (year == minYear ? minIndex : 0); week <= (year == maxYear ? maxIndex : 53); week++) {
           priceModel.push(
@@ -1292,8 +1293,7 @@ module.exports = function (Orders) {
           );
         }
       }
-    } else {
-      //  monthly 
+    } else if (type == "monthly") {
 
       for (let year = minYear; year <= maxYear; year++) {
         for (let month = (year == minYear ? minIndex : 1); month <= (year == maxYear ? maxIndex : 12); month++) {
@@ -1334,8 +1334,7 @@ module.exports = function (Orders) {
     }
     else if (type == "daily") {
       index = 'day';
-    } else {
-      // monthly 
+    } else if (type == "monthly") {
       index = 'month';
     }
 
@@ -1345,7 +1344,11 @@ module.exports = function (Orders) {
       let indexValue = record[index];
       let id = target == 'client' ? record.clientId : record.areaId;
       values[id] = values[id] || {};
-      values[id]["area"] = record.area.nameAr;
+      if (target == "area")
+        values[id]["area"] = record.area.nameAr;
+      else
+        values[id]["client"] = record.client.shopName;
+
       values[id][`price.${year}.${indexValue}`] = record.price;
       values[id][`count.${year}.${indexValue}`] = record.count;
 
@@ -1473,11 +1476,12 @@ module.exports = function (Orders) {
       clientId: "$clientId"
     };
 
+    if (["weekly", "monthly"].find(x => x == type) == null)
+      type = 'monthly';
 
-    if (type == 'weekly') {
+    if (type == "weekly") {
       groupId.week = { $week: "$orderDate" };
-    } else {
-      //monthly 
+    } else if (type == "monthly") {
       groupId.month = { $month: "$orderDate" };
     }
 
@@ -1556,14 +1560,16 @@ module.exports = function (Orders) {
       areaId: "$client.areaId"
     };
 
+    if (["weekly", "monthly", "daily"].find(x => x == type) == null)
+      type = 'monthly';
 
-    if (type == 'weekly') {
+
+
+    if (type == "weekly") {
       groupId.week = { $week: "$orderDate" };
-    } else if (type == 'monthly') {
-      //monthly 
+    } else if (type == "monthly") {
       groupId.month = { $month: "$orderDate" };
-    } else {
-      // daily 
+    } else if (type == "daily") {
       groupId.month = { $month: "$orderDate" };
       groupId.day = { $dayOfYear: "$orderDate" };
     }
