@@ -488,11 +488,11 @@
           "description": "weekly|monthly"
         },
         {
-          "arg" : "excel" ,
-          "type" : "boolean" ,
-          "required" : false , 
-          "default" : false , 
-          "description" : "whether to download excel file or not"
+          "arg": "excel",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "whether to download excel file or not"
         }
       ],
       "returns": [
@@ -507,6 +507,58 @@
       "http": [
         {
           "path": "/clientReport",
+          "verb": "get"
+        }
+      ]
+    },
+    "areaReport": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "res",
+          "http": {
+            "source": "res"
+          }
+        },
+        {
+          "arg": "from",
+          "type": "date",
+          "required": false,
+          "description": ""
+        },
+        {
+          "arg": "to",
+          "type": "date",
+          "required": false,
+          "description": ""
+        },
+        {
+          "arg": "type",
+          "type": "string",
+          "required": false,
+          "default": "monthly",
+          "description": "daily|weekly|monthly"
+        },
+        {
+          "arg": "excel",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "description": "whether to download excel file or not"
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "Get report of areas orders",
+      "http": [
+        {
+          "path": "/areaReport",
           "verb": "get"
         }
       ]
