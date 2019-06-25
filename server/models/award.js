@@ -12,7 +12,6 @@ module.exports = function (Award) {
 
         let { from, to, occurrence, occurrenceType } = modelInstance;
 
-        from.setHours(0 , 0 , 0 , 0 ); 
         
         if (occurrenceType == 'daily') {
 
@@ -62,7 +61,7 @@ module.exports = function (Award) {
                 start = nextStart(end),
                 end = nextEnd(start, occurrence)) {
 
-                modelInstance.periodsRelation.create({
+                modelInstance.periods.create({
                     from: new Date(start),
                     to: new Date(end)
                 });

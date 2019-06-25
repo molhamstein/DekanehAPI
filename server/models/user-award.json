@@ -5,7 +5,12 @@
   "options": {
     "validateUpsert": true
   },
-  "scope": {},
+  
+  "scope": {
+    "include": [
+      "awardPeriod"
+    ]
+  },
   "properties": {
     "progress": {
       "type": "number",
@@ -26,10 +31,6 @@
       "type": "array",
       "required": false,
       "default": []
-    },
-    "awardPeriodId": {
-      "type": "string",
-      "required": true
     }
   },
   "validations": [],
@@ -41,6 +42,11 @@
     "award": {
       "type": "belongsTo",
       "model": "award"
+    },
+    "awardPeriod": {
+      "type": "belongsTo",
+      "model": "awardPeriod",
+      "foreignKey": "awardPeriodId"
     }
   },
   "acls": [],

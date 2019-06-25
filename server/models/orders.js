@@ -512,48 +512,62 @@ module.exports = function (Orders) {
   async function processOrderAward(order) {
 
 
-    let {  clientType, clientId, totalPrice } = order;
-    let orderDate =  new Date(order.orderDate); 
-    orderDate.setHours(0 , 0 , 0 , 0 ); 
-    
+    let { clientType, clientId, totalPrice } = order;
+    let orderDate = new Date(order.orderDate);
+    orderDate.setHours(0, 0, 0, 0);
+    let client = await Orders.app.models.user.findOne(order.clientId);
+    let clientAreaId = client.areaId;
+
     let awards = await new Promise((res, rej) => {
 
-
       Orders.getDataSource().connector.collection('award')
-        .find(
-          {
-            $and: [
-              {
-                from: { $lte: orderDate },
-                to: { $gte: orderDate }
-              },
-              {
-                $or: [
-                  { clientTypes: clientType },
-                  { clientTypes: [] }
+        .aggregate(
+          [
+            {
+              $match: {
+                $and: [
+                  {
+                    from: { $lte: orderDate },
+                    to: { $gte: orderDate }
+                  },
+                  {
+                    $or: [
+                      { clientTypes: clientType },
+                      { clientTypes: [] }
+                    ]
+                  },
+                  {
+                    $or: [
+                      { areaIds: clientAreaId },
+                      { areaIds: [] }
+                    ]
+                  }
+                  // @todo complete filters 
                 ]
               }
-              // @todo complete filters 
-            ]
-
-          }, (err, result) => {
+            },
+            {
+              $lookup: {
+                from: 'awardPeriod',
+                localField: '_id',
+                foreignField: 'awardId',
+                as: 'periods'
+              }
+            }
+          ]
+          , (err, result) => {
             if (err) return rej(err);
-
-            result.toArray((err, awards) => {
-              res(awards);
-            });
+            res(result);
           });
     });
-
-
+    console.log(awards);
     for (let award of awards) {
-
       // find the current period 
-
       let period = award.periods.find(({ from, to }) => orderDate >= from && orderDate <= to);
-      let [userAward] = await Orders.app.models.userAward.findOrCreate({ where: { awardPeriodId: period.id, userId: clientId } }, { awardId: award._id, awardPeriodId: period.id, userId: clientId });
+
+      let [userAward] = await Orders.app.models.userAward.findOrCreate({ where: { awardPeriodId: period._id, userId: clientId } }, { awardId: award._id, awardPeriodId: period._id, userId: clientId });
       if (userAward.complete) {
-        continue;
+        //    continue;
       }
 
       let action = award.action;

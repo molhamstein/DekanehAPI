@@ -55,17 +55,13 @@
       "type": "embedsOne",
       "model": "awardAction",
       "property": "action",
-      "options": {
+      "options": {  
         "validate": true
       }
     },
-    "periodsRelation": {
-      "type": "embedsMany",
-      "model": "awardPeriod",
-      "property": "periods",
-      "options": {
-        "validate": true
-      }
+    "periods": {
+      "type": "hasMany",
+      "model": "awardPeriod"
     },
     "couponTemplateRelation": {
       "type": "embedsMany",

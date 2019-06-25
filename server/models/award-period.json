@@ -7,27 +7,22 @@
   },
   "scope": {},
   "properties": {
-    "id": {
-      "type": "string",
-      "id": true,
-      "defaultFn": "uuid"
-    },
     "from": {
-      "type" : "date" , 
-      "required" : true 
-    } , 
+      "type": "date",
+      "required": true
+    },
     "to": {
-      "type" : "date" , 
-      "required" : true 
+      "type": "date",
+      "required": true
     }
-    
   },
   "validations": [],
   "relations": {
-   
+    "award": {
+      "type": "belongsTo",
+      "model": "award"
+    }
   },
   "acls": [],
-  "methods": {
-    
-  }
+  "methods": {}
 }
