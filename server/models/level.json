@@ -1,0 +1,55 @@
+{
+  "name": "level",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "nameAr": {
+      "type": "string"
+    },
+    "nameEn": {
+      "type": "string",
+      "required": true
+    },
+    "limit": {
+      "type": "number",
+      "required": true
+    },
+    "count": {
+      "type": "number",
+      "required": false,
+      "default": 0
+    },
+    "clientType": {
+      "type": "string",
+      "required": false,
+      "default": 0
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {
+    "calssifyUsers": {
+      "isStatic": true,
+      "accepts": [],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "Classify users into levels according to their purchases",
+      "http": [
+        {
+          "path": "/calssifyUsers",
+          "verb": "put"
+        }
+      ]
+    }
+  }
+}

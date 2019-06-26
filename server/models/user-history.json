@@ -1,0 +1,42 @@
+{
+  "name": "userHistory",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "userSnapshot": {
+      "type": "object",
+      "required": true
+    },
+    "date": {
+      "type": "date",
+      "default": "$now"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {
+    "calssifyUsers": {
+      "isStatic": true,
+      "accepts": [],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "Classify users into levels according to their purchases",
+      "http": [
+        {
+          "path": "/calssifyUsers",
+          "verb": "put"
+        }
+      ]
+    }
+  }
+}

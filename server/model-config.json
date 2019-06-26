@@ -220,6 +220,13 @@
   "orderPrize": {
     "dataSource": "mongoDb",
     "public": true
+  },
+  "level": {
+    "dataSource": "mongoDb",
+    "public": true
+  },
+  "userHistory": {
+    "dataSource": "mongoDb",
+    "public": true
   }
-  
 }

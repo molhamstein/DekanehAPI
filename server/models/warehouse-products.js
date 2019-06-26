@@ -48,6 +48,7 @@ module.exports = function (Warehouseproducts) {
         let total = collection.count({});
         let stockOut = collection.count({ $expr: { lte: ["$expectedCount", "$threshold"] } });
         [warning, total, stockOut] = await Promise.all([warning, total, stockOut]);
+        total -= warning + stockOut;
 
         return { total, warning, stockOut };
     }

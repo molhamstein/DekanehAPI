@@ -12,7 +12,8 @@
   ],
   "scope": {
     "include": [
-      "roles"
+      "roles" , 
+      "level"
     ]
   },
   "properties": {
@@ -76,6 +77,10 @@
     "warehouse": {
       "type": "belongsTo",
       "model": "warehouse"
+    },
+    "level": {
+      "type": "belongsTo",
+      "model": "level"
     },
     "area": {
       "type": "belongsTo",
