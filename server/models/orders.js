@@ -1529,9 +1529,11 @@ module.exports = function (Orders) {
         return res.json(result);
       }
 
+
       clientReport2Xlsx(result, type, (err, data) => {
         if (err)
           return res.status(500).json(err);
+          
         res.sendFile(path.join(__dirname, '../../', data.fullPath))
       });
 
@@ -1561,7 +1563,7 @@ module.exports = function (Orders) {
     };
 
     if (["weekly", "monthly", "daily"].find(x => x == type) == null)
-      type = 'monthly';
+      type = "monthly";
 
 
 
