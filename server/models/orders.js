@@ -326,7 +326,8 @@ module.exports = function (Orders) {
 
     var orderProducts = ctx.req.body.orderProducts;
 
-    var isAdmin = false
+    var isAdmin = false;
+
     if (ctx.req.body.isAdmin == true) {
       isAdmin = true
       delete ctx.req.body.isAdmin;
@@ -525,7 +526,7 @@ module.exports = function (Orders) {
     orderDate.setHours(0, 0, 0, 0);
     let client = await Orders.app.models.user.findOne(order.clientId);
     let clientAreaId = client.areaId;
-
+    let clientLevelId = client.levelId;
     let awards = await new Promise((res, rej) => {
 
       Orders.getDataSource().connector.collection('award')
@@ -549,6 +550,12 @@ module.exports = function (Orders) {
                       { areaIds: clientAreaId },
                       { areaIds: [] }
                     ]
+                  },
+                  {
+                    $or: [
+                      { levelIds: clientLevelId },
+                      { levelIds: [] }
+                    ]
                   }
                   // @todo complete filters 
                 ]
@@ -568,6 +575,11 @@ module.exports = function (Orders) {
             res(result);
           });
     });
+
+    let orderDb = await Orders.findById(order.id);
+    let orderProducts = orderDb.orderProducts();
+
+
     for (let award of awards) {
       // find the current period 
       let period = award.periods.find(({ from, to }) => orderDate >= from && orderDate <= to);
@@ -577,6 +589,8 @@ module.exports = function (Orders) {
         continue;
       }
 
+
+
       let action = award.action;
       // update user award progress according to the action type 
       if (action.type == 'price') {
@@ -585,8 +599,68 @@ module.exports = function (Orders) {
         // add order to user award for future usage 
         userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
 
-      } else if (award.action == 'company') {
-        // @todo implement actions 
+      } else if (action.type == 'count') {
+
+        userAward.progres++;
+        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
+
+      } else if (action.type == 'products-price') {
+        let productIds = action.productIds;
+
+        let orderAwardProducts = orderProducts.filter(orderProduct =>
+          productIds.find(id => id.toString() == orderProduct.product().id.toString()) != undefined
+        );
+
+        if (orderAwardProducts.length == 0) continue;
+
+        userAward.progress += orderAwardProducts.reduce((sum, { sellingPrice, count }) => count * sellingPrice + sum, 0);
+        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
+
+
+      } else if (action.type == 'products-count') {
+
+        let productIds = action.productIds;
+
+        let orderAwardProducts = orderProducts.filter(orderProduct =>
+          productIds.find(id => id.toString() == orderProduct.product().id.toString()) != undefined
+        );
+
+        if (orderAwardProducts.length == 0) continue;
+
+        userAward.progress += orderAwardProducts.reduce((sum, { count }) => count + sum, 0);
+        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
+
+
+
+      } else if (action.type == 'company-price') {
+
+        let manufacturerId = action.manufacturerId.toString();
+
+        let orderAwardProducts = orderProducts.filter(orderProduct =>
+          orderProduct.product().manufacturerId.toString() == manufacturerId
+        );
+
+        if (orderAwardProducts.length == 0) continue;
+
+        userAward.progress += orderAwardProducts.reduce((sum, { sellingPrice, count }) => count * sellingPrice + sum, 0);
+        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
+
+
+
+      } else if (action.type == 'company-count') {
+
+        let manufacturerId = action.manufacturerId.toString();
+
+        let orderAwardProducts = orderProducts.filter(orderProduct =>
+          orderProduct.product().manufacturerId.toString() == manufacturerId
+        );
+
+        if (orderAwardProducts.length == 0) continue;
+
+        userAward.progress += orderAwardProducts.reduce((sum, { count }) => count  + sum, 0);
+        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
+
+
 
       }
 
@@ -640,13 +714,16 @@ module.exports = function (Orders) {
     result.code = result.id.toString().slice(18);
 
 
+
+
+    let orderResult = await result.save();
+
     if (!result.couponId) {
       // if order has no coupon 
-      processOrderAward(result);
+      processOrderAward(orderResult);
     }
 
-
-    return result.save();
+    return orderResult;
 
   });
 
@@ -1249,7 +1326,6 @@ module.exports = function (Orders) {
     let { minYear, maxYear, minIndex, maxIndex } = obj;
 
     if (type == "weekly") {
-      console.log("over here");
       for (let year = minYear; year <= maxYear; year++) {
         for (let week = (year == minYear ? minIndex : 0); week <= (year == maxYear ? maxIndex : 53); week++) {
           priceModel.push(
@@ -1533,7 +1609,7 @@ module.exports = function (Orders) {
       clientReport2Xlsx(result, type, (err, data) => {
         if (err)
           return res.status(500).json(err);
-          
+
         res.sendFile(path.join(__dirname, '../../', data.fullPath))
       });
 

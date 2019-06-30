@@ -15,11 +15,21 @@
       "type": "number",
       "required": true
     }
-    
   },
   "validations": [],
   "relations": {
-   
+    "productRelation": {
+      "type": "referencesMany",
+      "model": "products",
+      "foreignKey": "productIds",
+      "options": {
+        "validate": true
+      }
+    },
+    "manufacturer": {
+      "type": "belongsTo",
+      "model": "manufacturers"
+    }
   },
   "acls": [],
   "methods": {}

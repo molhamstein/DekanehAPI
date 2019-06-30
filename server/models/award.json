@@ -79,6 +79,14 @@
         "validate": true
       }
     },
+    "levelsRelation": {
+      "type": "referencesMany",
+      "model": "level",
+      "foreignKey": "levelIds",
+      "options": {
+        "validate": true
+      }
+    },
     "prizesRelation": {
       "type": "embedsMany",
       "model": "productPrize",

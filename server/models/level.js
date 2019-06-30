@@ -149,12 +149,12 @@ module.exports = function (Level) {
             let user = await userModel.findById(userId);
             if (!levelId) {
                 // user has no 
-                user.levelId = null;
+                 user.updateAttributes({ levelId: null });
+
             } else {
-                user.levelId = levelId;
+                 user.updateAttributes({ levelId });
                 levelsCount[levelId]++;
             }
-            user.save();
         }
 
         for (let levelId in levelsCount) {
