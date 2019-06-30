@@ -23,6 +23,8 @@ module.exports = function (Orders) {
   Orders.validatesInclusionOf('status', {
     in: ['pending', 'inWarehouse', 'packed', 'pendingDelivery', 'inDelivery', 'delivered', 'canceled']
   });
+
+
   Orders.validatesPresenceOf('warehouseId');
 
   async function validateWarehouseProductsAvailability(warehouse, orderProducts, products) {
@@ -518,16 +520,16 @@ module.exports = function (Orders) {
 
   }
 
-  async function processOrderAward(order) {
+  async function getMatchAwards(order) {
 
-
-    let { clientType, clientId, totalPrice } = order;
+    let { clientType } = order;
     let orderDate = new Date(order.orderDate);
     orderDate.setHours(0, 0, 0, 0);
     let client = await Orders.app.models.user.findOne(order.clientId);
     let clientAreaId = client.areaId;
     let clientLevelId = client.levelId;
-    let awards = await new Promise((res, rej) => {
+
+    return new Promise((res, rej) => {
 
       Orders.getDataSource().connector.collection('award')
         .aggregate(
@@ -576,12 +578,93 @@ module.exports = function (Orders) {
           });
     });
 
+
+  }
+  function calcOrderAwardProgress(award, order) {
+    let orderProducts = order.orderProducts();
+    let { totalPrice } = order;
+
+    let action = award.action;
+    let progressDiff = 0;
+    // update user award progress according to the action type 
+    if (action.type == 'price') {
+      progressDiff = totalPrice;
+
+    } else if (action.type == 'count') { // orders count 
+
+      progressDiff = 1;
+
+    } else if (action.type == 'products-price') {
+      let productIds = action.productIds;
+
+      let orderAwardProducts = orderProducts.filter(orderProduct =>
+        productIds.find(id => id.toString() == orderProduct.product().id.toString()) != undefined
+      );
+
+      if (orderAwardProducts.length == 0) return 0;
+
+      progressDiff = orderAwardProducts.reduce((sum, { sellingPrice, count }) => count * sellingPrice + sum, 0);
+
+    } else if (action.type == 'products-count') {
+
+      let productIds = action.productIds;
+
+      let orderAwardProducts = orderProducts.filter(orderProduct =>
+        productIds.find(id => id.toString() == orderProduct.product().id.toString()) != undefined
+      );
+
+      if (orderAwardProducts.length == 0) return 0;
+
+      progressDiff = orderAwardProducts.reduce((sum, { count }) => count + sum, 0);
+
+    } else if (action.type == 'company-price') {
+
+      let manufacturerId = action.manufacturerId.toString();
+
+      let orderAwardProducts = orderProducts.filter(orderProduct =>
+        orderProduct.product().manufacturerId.toString() == manufacturerId
+      );
+
+      if (orderAwardProducts.length == 0) return 0;
+
+      progressDiff = orderAwardProducts.reduce((sum, { sellingPrice, count }) => count * sellingPrice + sum, 0);
+
+    } else if (action.type == 'company-count') {
+
+      let manufacturerId = action.manufacturerId.toString();
+
+      let orderAwardProducts = orderProducts.filter(orderProduct =>
+        orderProduct.product().manufacturerId.toString() == manufacturerId
+      );
+
+      if (orderAwardProducts.length == 0) return 0;
+
+      progressDiff = orderAwardProducts.reduce((sum, { count }) => count + sum, 0);
+
+    }
+    return progressDiff;
+
+  }
+  async function processOrderAward(order) {
+
+
+    let { clientId } = order;
+    let orderDate = new Date(order.orderDate);
+    orderDate.setHours(0, 0, 0, 0);
+
+    let awards = await getMatchAwards(order);
+
     let orderDb = await Orders.findById(order.id);
-    let orderProducts = orderDb.orderProducts();
 
 
     for (let award of awards) {
+      
+      let progressDiff = calcOrderAwardProgress(award, orderDb);
+      if (progressDiff == 0)
+        continue;
+
       // find the current period 
+      let action  = award.action; 
       let period = award.periods.find(({ from, to }) => orderDate >= from && orderDate <= to);
 
       let [userAward] = await Orders.app.models.userAward.findOrCreate({ where: { awardPeriodId: period._id, userId: clientId } }, { awardId: award._id, awardPeriodId: period._id, userId: clientId });
@@ -589,81 +672,9 @@ module.exports = function (Orders) {
         continue;
       }
 
-
-
-      let action = award.action;
-      // update user award progress according to the action type 
-      if (action.type == 'price') {
-
-        userAward.progress += totalPrice;
-        // add order to user award for future usage 
-        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
-
-      } else if (action.type == 'count') {
-
-        userAward.progres++;
-        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
-
-      } else if (action.type == 'products-price') {
-        let productIds = action.productIds;
-
-        let orderAwardProducts = orderProducts.filter(orderProduct =>
-          productIds.find(id => id.toString() == orderProduct.product().id.toString()) != undefined
-        );
-
-        if (orderAwardProducts.length == 0) continue;
-
-        userAward.progress += orderAwardProducts.reduce((sum, { sellingPrice, count }) => count * sellingPrice + sum, 0);
-        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
-
-
-      } else if (action.type == 'products-count') {
-
-        let productIds = action.productIds;
-
-        let orderAwardProducts = orderProducts.filter(orderProduct =>
-          productIds.find(id => id.toString() == orderProduct.product().id.toString()) != undefined
-        );
-
-        if (orderAwardProducts.length == 0) continue;
-
-        userAward.progress += orderAwardProducts.reduce((sum, { count }) => count + sum, 0);
-        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
-
-
-
-      } else if (action.type == 'company-price') {
-
-        let manufacturerId = action.manufacturerId.toString();
-
-        let orderAwardProducts = orderProducts.filter(orderProduct =>
-          orderProduct.product().manufacturerId.toString() == manufacturerId
-        );
-
-        if (orderAwardProducts.length == 0) continue;
-
-        userAward.progress += orderAwardProducts.reduce((sum, { sellingPrice, count }) => count * sellingPrice + sum, 0);
-        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
-
-
-
-      } else if (action.type == 'company-count') {
-
-        let manufacturerId = action.manufacturerId.toString();
-
-        let orderAwardProducts = orderProducts.filter(orderProduct =>
-          orderProduct.product().manufacturerId.toString() == manufacturerId
-        );
-
-        if (orderAwardProducts.length == 0) continue;
-
-        userAward.progress += orderAwardProducts.reduce((sum, { count }) => count  + sum, 0);
-        userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date() });
-
-
-
-      }
-
+    
+      userAward.progress += progressDiff;
+      userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date(), progressDiff });
 
 
       if (userAward.progress >= action.target) {
