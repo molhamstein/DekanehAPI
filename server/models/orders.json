@@ -96,6 +96,11 @@
       "options": {
         "nestRemoting": true
       }
+    },
+    "awards": {
+      "type": "referencesMany",
+      "model": "award",
+      "foreignKey": "awardIds"
     }
   },
   "acls": [],

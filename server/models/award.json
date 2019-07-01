@@ -7,6 +7,36 @@
   },
   "scope": {},
   "properties": {
+    "status": {
+      "type": "string",
+      "required": false,
+      "default": "activated"
+    },
+    "complete": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
+    "count": {
+      "type": "string",
+      "required": false,
+      "default": 0
+    },
+    "countLimit": {
+      "type": "number",
+      "required": false,
+      "default": 0
+    },
+    "times": {
+      "type": "number",
+      "required": false,
+      "default": 1
+    },
+    "createdAt": {
+      "type": "date",
+      "required": false,
+      "default": "$now"
+    },
     "nameAr": {
       "type": "string",
       "required": false
@@ -33,13 +63,8 @@
     },
     "occurrenceType": {
       "type": "string",
-      "required": true ,
-      "default" : "daily"
-    },
-    "countLimit": {
-      "type": "number",
-      "required": false,
-      "default": 1
+      "required": true,
+      "default": "daily"
     },
     "clientTypes": {
       "type": [
@@ -55,7 +80,7 @@
       "type": "embedsOne",
       "model": "awardAction",
       "property": "action",
-      "options": {  
+      "options": {
         "validate": true
       }
     },
@@ -97,5 +122,32 @@
     }
   },
   "acls": [],
-  "methods": {}
+  "methods": {
+    "me": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "Get user awards match",
+      "http": [
+        {
+          "path": "/me",
+          "verb": "get"
+        }
+      ]
+    }
+  }
 }

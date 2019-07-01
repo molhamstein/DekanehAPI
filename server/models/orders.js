@@ -509,13 +509,13 @@ module.exports = function (Orders) {
       }
       await addOrderPrizes(order, orderPrizes, warehouseProductCountUpdates);
     }
+    order.awards.add(award._id);
+    let complete = false;
+    if (award.countLimit != 0 && award.count + 1 == award.countLimit)
+      complete = true;
 
+    await Orders.app.models.award.updateAll({ id: award._id.toString() }, { count: award.count + 1, complete });
     notifications.rewardUser(order, award);
-
-
-
-
-
 
 
   }
@@ -524,7 +524,6 @@ module.exports = function (Orders) {
 
     let { clientType } = order;
     let orderDate = new Date(order.orderDate);
-    orderDate.setHours(0, 0, 0, 0);
     let client = await Orders.app.models.user.findOne(order.clientId);
     let clientAreaId = client.areaId;
     let clientLevelId = client.levelId;
@@ -537,6 +536,12 @@ module.exports = function (Orders) {
             {
               $match: {
                 $and: [
+                  {
+                    status: "activated"
+                  },
+                  {
+                    complete: false
+                  },
                   {
                     from: { $lte: orderDate },
                     to: { $gte: orderDate }
@@ -559,7 +564,6 @@ module.exports = function (Orders) {
                       { levelIds: [] }
                     ]
                   }
-                  // @todo complete filters 
                 ]
               }
             },
@@ -650,21 +654,22 @@ module.exports = function (Orders) {
 
     let { clientId } = order;
     let orderDate = new Date(order.orderDate);
-    orderDate.setHours(0, 0, 0, 0);
+
 
     let awards = await getMatchAwards(order);
 
     let orderDb = await Orders.findById(order.id);
+    
 
 
     for (let award of awards) {
-      
+
       let progressDiff = calcOrderAwardProgress(award, orderDb);
       if (progressDiff == 0)
         continue;
 
       // find the current period 
-      let action  = award.action; 
+      let action = award.action;
       let period = award.periods.find(({ from, to }) => orderDate >= from && orderDate <= to);
 
       let [userAward] = await Orders.app.models.userAward.findOrCreate({ where: { awardPeriodId: period._id, userId: clientId } }, { awardId: award._id, awardPeriodId: period._id, userId: clientId });
@@ -672,24 +677,26 @@ module.exports = function (Orders) {
         continue;
       }
 
-    
+
       userAward.progress += progressDiff;
       userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date(), progressDiff });
 
 
       if (userAward.progress >= action.target) {
-        await rewardUser(order, award, userAward);
+        await rewardUser(orderDb, award, userAward);
         userAward.progress = 0;
         userAward.count++;
       }
 
 
-      if (userAward.count == award.countLimit) {
+      if (userAward.count == award.times) {
         userAward.complete = true;
       }
       await userAward.save();
 
     }
+
+    await orderDb.save();
 
 
   }

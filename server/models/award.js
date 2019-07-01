@@ -12,7 +12,7 @@ module.exports = function (Award) {
 
         let { from, to, occurrence, occurrenceType } = modelInstance;
 
-        
+
         if (occurrenceType == 'daily') {
 
             let nextEnd = (start, occurrence) => {
@@ -99,6 +99,101 @@ module.exports = function (Award) {
         }
 
     });
+    Award.userAwards = async function (user) {
+
+        let { clientType, areaId, levelId } = user;
+        let targetDate = new Date();
+
+        return new Promise((res, rej) => {
+
+            Award.getDataSource().connector.collection('award')
+                .aggregate(
+                    [
+                        {
+                            $match: {
+                                $and: [
+                                    {
+                                        status: "activated"
+                                    },
+                                    {
+                                        complete: false
+                                    },
+                                    {
+                                        from: { $lte: targetDate },
+                                        to: { $gte: targetDate }
+                                    },
+                                    {
+                                        $or: [
+                                            { clientTypes: clientType },
+                                            { clientTypes: [] }
+                                        ]
+                                    },
+                                    {
+                                        $or: [
+                                            { areaIds: areaId },
+                                            { areaIds: [] }
+                                        ]
+                                    },
+                                    {
+                                        $or: [
+                                            { levelIds: levelId },
+                                            { levelIds: [] }
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: 'awardPeriod',
+                                localField: '_id',
+                                foreignField: 'awardId',
+                                as: 'period'
+                            }
+                        },
+                        {
+                            $unwind: "$period"
+                        }
+                        ,
+                        {
+                            $match: {
+                                "period.from": { $lte: targetDate },
+                                "period.to": { $gte: targetDate }
+
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: 'userAward',
+                                localField: 'period._id',
+                                foreignField: 'awardPeriodId',
+                                as: 'userAward'
+                            }
+                        },
+                        {
+                            $unwind: {
+                                path: "$userAward",
+                                preserveNullAndEmptyArrays: true
+                            }
+
+                        }
+
+                    ]
+                    , (err, result) => {
+                        if (err) return rej(err);
+                        res(result);
+                    });
+        });
 
 
+    }
+    Award.me = async function (req) {
+        // all my match awards 
+        if (!req.user)
+            throw ERROR(403, 'user not login');
+
+        return Award.userAwards(req.user, new Date());
+
+
+    }
 };
