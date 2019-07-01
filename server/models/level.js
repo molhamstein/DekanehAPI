@@ -149,10 +149,10 @@ module.exports = function (Level) {
             let user = await userModel.findById(userId);
             if (!levelId) {
                 // user has no 
-                 user.updateAttributes({ levelId: null });
+                user.updateAttributes({ levelId: null });
 
             } else {
-                 user.updateAttributes({ levelId });
+                user.updateAttributes({ levelId });
                 levelsCount[levelId]++;
             }
         }
@@ -167,4 +167,25 @@ module.exports = function (Level) {
 
 
     }
+
+    Level.observe('before save', async function (ctx) {
+
+        let count = 0 ; 
+        if (ctx.isNewInstance) {
+            let { instance } = ctx;
+            count = await Level.count({ limit: instance.limit, clientType: instance.clientType });
+          
+        } else {
+            let instance = ctx.currentInstance;
+             count = await Level.count({ limit: ctx.data.limit, clientType: instance.clientType, id: { ne: instance.id } });
+        }
+
+        if (count != 0)
+            throw ERROR(422, "Level already exist");
+
+    });
+
+    Level.observe('after save', async function (ctx) {
+        Level.calssifyUsers(); 
+    }); 
 };

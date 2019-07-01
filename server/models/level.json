@@ -6,6 +6,10 @@
     "validateUpsert": true
   },
   "properties": {
+    "createdAt": {
+      "type": "date",
+      "default": "$now"
+    },
     "nameAr": {
       "type": "string"
     },
@@ -25,7 +29,7 @@
     "clientType": {
       "type": "string",
       "required": false,
-      "default": 0
+      "default": "wholesale"
     }
   },
   "validations": [],
