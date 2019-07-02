@@ -12,15 +12,15 @@
   ],
   "scope": {
     "include": [
-      "roles" , 
+      "roles",
       "level"
     ]
   },
   "properties": {
-    "balance" : {
-      "type" : "number", 
-      "default" : 0 ,
-      "required" : false
+    "balance": {
+      "type": "number",
+      "default": 0,
+      "required": false
     },
     "phoneNumber": {
       "type": "string",
@@ -102,6 +102,11 @@
       "options": {
         "disableInclude": true
       }
+    },
+    "installments": {
+      "type": "hasMany",
+      "model": "installment",
+      "foreignKey": "userId"
     }
   },
   "acls": [

@@ -10,6 +10,16 @@
       "type": "number",
       "required": true,
       "default": 0
+    },
+    "createdAt": {
+      "type": "date",
+      "required": "false",
+      "default": "$now"
+    },
+    "receivedAt": {
+      "type": "date",
+      "required": "false",
+      "default": "$now"
     }
   },
   "validations": [],
@@ -28,7 +38,7 @@
   },
   "acls": [],
   "methods": {
-  "editInstallment": {
+    "editInstallment": {
       "isStatic": true,
       "accepts": [
         {
@@ -44,6 +54,12 @@
           "arg": "amount",
           "type": "number",
           "required": true,
+          "description": ""
+        },
+        {
+          "arg": "receivedAt",
+          "type": "date",
+          "required": false,
           "description": ""
         }
       ],

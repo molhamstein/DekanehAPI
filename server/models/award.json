@@ -5,7 +5,12 @@
   "options": {
     "validateUpsert": true
   },
-  "scope": {},
+  "scope": {
+    "include": [
+      "areas",
+      "levels"
+    ]
+  },
   "properties": {
     "status": {
       "type": "string",
@@ -18,7 +23,7 @@
       "default": false
     },
     "count": {
-      "type": "string",
+      "type": "number",
       "required": false,
       "default": 0
     },
@@ -96,7 +101,7 @@
         "validate": true
       }
     },
-    "areasRelation": {
+    "areas": {
       "type": "referencesMany",
       "model": "area",
       "foreignKey": "areaIds",
@@ -104,7 +109,7 @@
         "validate": true
       }
     },
-    "levelsRelation": {
+    "levels": {
       "type": "referencesMany",
       "model": "level",
       "foreignKey": "levelIds",

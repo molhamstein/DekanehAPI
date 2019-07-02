@@ -5,7 +5,11 @@
   "options": {
     "validateUpsert": true
   },
-  "scope": {},
+  "scope": {
+    "include": [
+      "product"
+    ]
+  },
   "properties": {
     "id": {
       "type": "string",

@@ -34,7 +34,7 @@ module.exports = function (Orders) {
     let warehouseProductCountUpdates = [];
     for (let orderProduct of orderProducts) {
 
-      let product = products.find(p => p.id == orderProduct.productId);
+      let product = products.find(p => p.id.toString() == orderProduct.productId.toString());
       let productAbstractId = product.productAbstract().id;
       let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
       // warehouse doesn't have  the product 
@@ -455,8 +455,14 @@ module.exports = function (Orders) {
 
   }
 
-  async function rewardUser(order, award, userAward) {
+  async function rewardUser(order, award, userAward, notify = true) {
 
+    // add coupon 
+    // add prizes 
+    // check stock 
+    // update stock 
+    // update order 
+    // notify user 
 
     let { clientId } = order;
 
@@ -515,7 +521,10 @@ module.exports = function (Orders) {
       complete = true;
 
     await Orders.app.models.award.updateAll({ id: award._id.toString() }, { count: award.count + 1, complete });
-    notifications.rewardUser(order, award);
+    await order.save();
+
+    if (notify)
+      notifications.rewardUser(order, award);
 
 
   }
@@ -649,6 +658,10 @@ module.exports = function (Orders) {
     return progressDiff;
 
   }
+  async function processEditOrderAward(order) {
+    let userAwards = [];
+
+  }
   async function processOrderAward(order) {
 
 
@@ -659,7 +672,7 @@ module.exports = function (Orders) {
     let awards = await getMatchAwards(order);
 
     let orderDb = await Orders.findById(order.id);
-    
+
 
 
     for (let award of awards) {
@@ -673,14 +686,17 @@ module.exports = function (Orders) {
       let period = award.periods.find(({ from, to }) => orderDate >= from && orderDate <= to);
 
       let [userAward] = await Orders.app.models.userAward.findOrCreate({ where: { awardPeriodId: period._id, userId: clientId } }, { awardId: award._id, awardPeriodId: period._id, userId: clientId });
-      if (userAward.complete) {
-        continue;
-      }
+
 
 
       userAward.progress += progressDiff;
       userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date(), progressDiff });
 
+
+      if (userAward.complete) {
+        await userAward.save();
+        continue;
+      }
 
       if (userAward.progress >= action.target) {
         await rewardUser(orderDb, award, userAward);
@@ -696,7 +712,7 @@ module.exports = function (Orders) {
 
     }
 
-    await orderDb.save();
+
 
 
   }
@@ -747,6 +763,7 @@ module.exports = function (Orders) {
 
   Orders.editOrder = async function (id, data, context) {
 
+    // @note: in case of any failure do not change the database 
 
     checkUserLogin(context);
     checkProductsExistence(data.orderProducts);
@@ -759,6 +776,12 @@ module.exports = function (Orders) {
       delete data.isAdmin;
     }
 
+    /**
+     * Split products into 
+     * new products 
+     * deleted products 
+     * remaining products 
+     */
 
     let productsIds = orderProducts.map(product => Orders.dataSource.ObjectID(product.productId).toString());
 
@@ -770,14 +793,14 @@ module.exports = function (Orders) {
     data.clientId = user.id;
 
 
-    let oldOrderProducts = await Orders.app.models.orderProducts.find({
+    let oldProducts = await Orders.app.models.orderProducts.find({
       "where": {
         "orderId": id
       }
     });
 
 
-    let oldProductsIds = oldOrderProducts.map(element => element.productId.toString());
+    let oldProductsIds = oldProducts.map(element => element.productId.toString());
 
 
     let deletedProductsId = oldProductsIds.filter(element => productsIds.includes(element) == false);
@@ -785,16 +808,16 @@ module.exports = function (Orders) {
     let newProductsId = productsIds.filter(element => oldProductsIds.includes(element) == false);
 
     // old products which are not deleted 
-    var tempOldProducts = [];
+    var remainingProducts = [];
 
     // old products which are deleted 
-    var oldDeletedOrderProducts = [];
+    var deletedProducts = [];
 
-    oldOrderProducts.forEach(element => {
+    oldProducts.forEach(element => {
       if (deletedProductsId.includes(element.productId.toString()) == false)
-        tempOldProducts.push(element);
+        remainingProducts.push(element);
       else
-        oldDeletedOrderProducts.push(element);
+        deletedProducts.push(element);
 
     });
 
@@ -824,7 +847,8 @@ module.exports = function (Orders) {
 
     let warehouseProductCountUpdates = [];
 
-    let order = await Orders.app.models.orders.findById(id);
+    let order = await Orders.findById(id);
+    console.dir(order); 
     if (!order)
       throw ERROR(404, "order not found");
 
@@ -842,11 +866,11 @@ module.exports = function (Orders) {
 
     // validate to be edited order product  availability in warehouse product                   
 
-    let orderProductsCountDiff = tempOldProducts.map(oldProduct => {
+    let orderProductsCountDiff = remainingProducts.map(oldProduct => {
       let newOldProduct = orderProducts.find(p => p.productId == oldProduct.productId);
       return { productId: newOldProduct.productId, count: (newOldProduct.count - oldProduct.count) };
     });
-    let oldProductsFromDb = tempOldProducts.map(orderProduct => orderProduct.product());
+    let oldProductsFromDb = remainingProducts.map(orderProduct => orderProduct.product());
 
     temp = await validateWarehouseProductsAvailability(warehouse, orderProductsCountDiff, oldProductsFromDb);
     unvalidWarehouseProducts = [...unvalidWarehouseProducts, ...temp.unvalidWarehouseProducts];
@@ -862,7 +886,7 @@ module.exports = function (Orders) {
     }
 
     // add deleted orders product to be updated in warehouse products  
-    for (let orderProduct of oldDeletedOrderProducts) {
+    for (let orderProduct of deletedProducts) {
       let product = orderProduct.product();
       let productAbstractId = product.productAbstract().id;
       let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
@@ -875,9 +899,6 @@ module.exports = function (Orders) {
     }
 
 
-
-
-
     data.clientType = user.clientType;
 
 
@@ -886,7 +907,7 @@ module.exports = function (Orders) {
     // restore the price of old products 
     orderProducts = orderProducts.map(orderProduct => {
 
-      let oldOrderPoroduct = oldOrderProducts.find(oldOrderProduct => oldOrderProduct.productId == orderProduct.productId);
+      let oldOrderPoroduct = oldProducts.find(oldOrderProduct => oldOrderProduct.productId == orderProduct.productId);
       if (!oldOrderPoroduct) return orderProduct;
       orderProduct.productSnapshot = oldOrderPoroduct.productSnapshot;
       orderProduct.sellingPrice = oldOrderPoroduct.sellingPrice;
@@ -903,12 +924,13 @@ module.exports = function (Orders) {
     delete data['orderProducts'];
     delete data['client'];
 
-    let mainOrder = await Orders.findById(id);
     data.priceBeforeCoupon = data.totalPrice;
 
-    if (data.couponCode == undefined && mainOrder.couponCode == undefined) {
+    let hadCoupon = order.couponCode != undefined;
+
+    if (data.couponCode == undefined && order.couponCode == undefined) {
       // do nothing 
-    } else if (data.couponCode != undefined && mainOrder.couponCode == undefined) {
+    } else if (data.couponCode != undefined && order.couponCode == undefined) {
 
       let coupon = await Orders.app.models.coupons.findOne({
         where: {
@@ -935,7 +957,7 @@ module.exports = function (Orders) {
       await coupon.save()
 
 
-    } else if (data.couponCode != undefined && mainOrder.couponCode != undefined && mainOrder.couponCode == data.couponCode) {
+    } else if (data.couponCode != undefined && order.couponCode != undefined && order.couponCode == data.couponCode) {
 
       let coupon = await Orders.app.models.coupons.findOne({
         where: {
@@ -961,9 +983,10 @@ module.exports = function (Orders) {
 
     await changeOrderProduct(order, tempProduct, warehouseProductCountUpdates);
     delete data.id;
+    await order.updateAttributes(data);
 
-    await mainOrder.updateAttributes(data);
-
+    await processEditOrderAward(order);
+    console.dir(order); 
 
 
   }
@@ -1153,6 +1176,8 @@ module.exports = function (Orders) {
     let user = await order.client.getAsync();
     user.balance -= order.totalPrice;
     await user.save();
+    // @todo 
+    // create installment 
 
     order.status = 'delivered';
     order.deliveredDate = new Date();
