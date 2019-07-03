@@ -20,12 +20,6 @@
       "type": "date",
       "required": true,
       "default": "$now"
-    },
-    "userAwardCount": {
-      "type": "number",
-      "required": true,
-      "description": " index of userAward",
-      "default": 0
     }
   },
   "validations": [],

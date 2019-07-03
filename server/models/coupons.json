@@ -41,13 +41,7 @@
     "creationDate": {
       "type": "date",
       "default": "$now"
-    } ,
-    "userAwardCount": {
-      "type": "number",
-      "required": true,
-      "description": " index of userAward",
-      "default": 0
-    }
+    } 
   },
   "validations": [],
   "relations": {
@@ -58,6 +52,10 @@
     "userAward": {
       "type": "belongsTo",
       "model": "userAward"
+    } , 
+    "order": {
+      "type": "belongsTo",
+      "model": "orders"
     }
   },
   "acls": [],

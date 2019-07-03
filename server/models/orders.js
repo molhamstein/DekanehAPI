@@ -32,9 +32,9 @@ module.exports = function (Orders) {
     //validate new order products availability in warehouse product 
     let unvalidWarehouseProducts = [];
     let warehouseProductCountUpdates = [];
-    for (let orderProduct of orderProducts) {
 
-      let product = products.find(p => p.id.toString() == orderProduct.productId.toString());
+    for (let product of products) {
+
       let productAbstractId = product.productAbstract().id;
       let warehouseProduct = await warehouse.warehouseProducts.findOne({ where: { productAbstractId } });
       // warehouse doesn't have  the product 
@@ -42,6 +42,7 @@ module.exports = function (Orders) {
         throw new Error("warehouse doesn't have a product");
       }
       // warehouse doesn't have enough amount of the product 
+      let orderProduct = orderProducts.find(p => p.productId.toString() == product.id.toString());
       let total = warehouseProduct.expectedCount - orderProduct.count * product.parentCount;
 
       if (total < warehouseProduct.threshold) {
@@ -462,19 +463,26 @@ module.exports = function (Orders) {
     // check stock 
     // update stock 
     // update order 
+    // update award count 
     // notify user 
 
-    let { clientId } = order;
 
+    let { clientId, warehouseId } = order;
+    let awardId = award._id ? award._id : award.id;
     for (let coupon of award.coupons) {
 
-      let userCoupon = { ...coupon };
+      let userCoupon = {};
+      let propsToClone = ["value", "type", "numberOfTimes", "expireDate"];
+      for (let prop of propsToClone)
+        userCoupon[prop] = coupon[prop];
+
+
       userCoupon.code = generateCodeNumber();
       userCoupon.numberOfUsed = 0;
       userCoupon.userId = clientId;
       userCoupon.userAwardId = userAward.id;
-      userCoupon.userAwardCount = userAward.count;
-      delete userCoupon.id;
+      userCoupon.orderId = order.id;
+
       await Orders.app.models.coupons.create(userCoupon);
 
     }
@@ -491,16 +499,20 @@ module.exports = function (Orders) {
           }
         }
       });
-      let orderPrizes = [...award.prizes];
-      orderPrizes.forEach(prize => {
-        prize.userAwardId = userAward.id;
-        prize.userAwardCount = userAward.count;
-        prize.productId = prize.productId.toString();
-        delete prize.id;
+      let orderPrizes = award.prizes.map(prize => {
+        let orderPrize = {};
+
+
+        orderPrize.count = prize.count;
+        orderPrize.userAwardId = userAward.id.toString();
+        orderPrize.productId = prize.productId.toString();
+
+        return orderPrize;
+
       });
 
 
-      let warehouse = await Orders.app.models.warehouse.findOne({});
+      let warehouse = await Orders.app.models.warehouse.findById(warehouseId);
 
       let { unvalidWarehouseProducts, warehouseProductCountUpdates } =
         await validateWarehouseProductsAvailability(warehouse, orderPrizes, productsFromDb);
@@ -509,22 +521,75 @@ module.exports = function (Orders) {
         await Orders.app.models.notification.create({
           "type": "prizeOutOfStock",
           "orderId": order.id,
-          object: { "awardId": award._id }
+          object: { "awardId": awardId }
         });
 
       }
       await addOrderPrizes(order, orderPrizes, warehouseProductCountUpdates);
     }
-    order.awards.add(award._id);
+    order.awards.add(awardId);
     let complete = false;
-    if (award.countLimit != 0 && award.count + 1 == award.countLimit)
+    award.count++;
+    if (award.countLimit != 0 && award.count == award.countLimit)
       complete = true;
 
-    await Orders.app.models.award.updateAll({ id: award._id.toString() }, { count: award.count + 1, complete });
+    await Orders.app.models.award.updateAll({ id: awardId.toString() }, { count: award.count, complete });
     await order.save();
 
     if (notify)
       notifications.rewardUser(order, award);
+
+
+  }
+
+  async function restoreOrderPrizes(order, orderPrizes) {
+
+    for (let orderPrize of orderPrizes) {
+
+      let product = orderPrize.product();
+      let productAbstractId = product.productAbstract().id;
+      let warehouse = order.warehouse();
+      let warehouseProduct = await warehouse.warehouseProducts({ where: { productAbstractId } });
+      warehouseProduct = warehouseProduct[0];
+
+      await warehouseProduct.updateExpectedCount(orderPrize.count * product.parentCount);
+
+      // restore warehouse total count 
+      if (['inDelivery', 'delivered'].includes(order.status)) {
+        await warehouseProduct.updatetotalCount(orderPrize.count * product.parentCount, { sellingPrice: 0 });
+      }
+    }
+  }
+  async function removeOrderUserAward(order, award, userAward) {
+
+    // remove coupon 
+
+
+    // update stock 
+    // remove prizes 
+
+    // update order 
+    // update award count 
+
+    let awardId = award._id ? award._id : award.id;
+    let userAwardId = userAward.id;
+    let orderId = order.id;
+
+    await Orders.app.models.coupons.deleteAll({ userAwardId, orderId });
+    let orderPrizes = order.orderPrizes().filter(orderPrize => orderPrize.userAwardId.toString() == userAwardId.toString() && orderPrize.orderId.toString() == orderId.toString());
+
+
+    await restoreOrderPrizes(order, orderPrizes);
+    await Orders.app.models.orderPrize.deleteAll({ userAwardId, orderId });
+
+
+    order.awards.remove(awardId);
+    award.count--;
+    await Orders.app.models.award.updateAll({ id: awardId.toString() }, { count: award.count, complete: false });
+
+    await order.save();
+
+
 
 
   }
@@ -594,6 +659,10 @@ module.exports = function (Orders) {
 
   }
   function calcOrderAwardProgress(award, order) {
+
+    // order that has coupon contribute in 0 progess 
+    if (order.couponId)
+      return 0;
     let orderProducts = order.orderProducts();
     let { totalPrice } = order;
 
@@ -658,10 +727,132 @@ module.exports = function (Orders) {
     return progressDiff;
 
   }
-  async function processEditOrderAward(order) {
-    let userAwards = [];
+
+  async function recalculateOrderUserAward(award, userAward, order, newProgressDiff) {
+
+    // reinitiate userAward 
+    let orderId = order.id;
+    let oldProgress = 0;
+    let curProgress = 0;
+    let curComplete = false;
+    let curCount = 0;
+    let oldCount = 0;
+    let oldComplete = false;
+    userAward.complete = false;
+    userAward.progress = 0;
+    let rewards = [];
+    let removes = [];
+    let action = award.action;
+    for (let userAwardOrder of userAward.orders) {
+      let curOrderId = userAwardOrder.orderId;
+      if (userAwardOrder.orderId.toString() == orderId.toString()) {
+        // current order 
+        oldProgress += userAwardOrder.progressDiff;
+        userAwardOrder.progressDiff = newProgressDiff;
+        curProgress += userAwardOrder.progressDiff;
+
+      } else {
+        oldProgress += userAwardOrder.progressDiff;
+
+        curProgress += userAwardOrder.progressDiff;
+      }
+
+      userAwardOrder.count = curCount;
+
+      let removeAward = false;
+      let getAward = false;
+
+      if (curProgress >= action.target) {
+        curProgress = 0;
+        curCount++;
+        getAward = true;
+      }
+
+      if (oldProgress >= action.target) {
+        oldProgress = 0;
+        oldCount++;
+        removeAward = true;
+      }
+
+      if (curComplete) {
+        getAward = false;
+      }
+      if (oldComplete) {
+        removeAward = false;
+      }
+
+      if (removeAward && getAward) {
+        // do nothing 
+      } else if (getAward) {
+        rewards.push(curOrderId);
+      } else if (removeAward) {
+        removes.push(curOrderId);
+      }
+
+
+      if (curCount == award.times) {
+        curComplete = true;
+        userAward.progress = curProgress;
+        userAward.count = curCount;
+        userAward.complete = true;
+      }
+      if (oldCount == award.times) {
+        oldComplete = true;
+      }
+
+    }
+
+    for (let orderId of removes) {
+      let order = await Orders.findById(orderId);
+      await removeOrderUserAward(order, award, userAward);
+    }
+    for (let orderId of rewards) {
+      let order = await Orders.findById(orderId);
+      await rewardUser(order, award, userAward, false);
+    }
+
+
+    if (!userAward.complete) {
+      userAward.progress = curProgress;
+      userAward.count = curCount;
+    }
+
+
+    await userAward.save();
+  }
+  async function processEditOrderAward(orderId) {
+
+    let order = await Orders.findById(orderId);
+    let userAwards = await Orders.app.models.userAward.find({
+      where: { orders: { elemMatch: { orderId } } }
+    });
+
+    for (let userAward of userAwards) {
+      let award = await userAward.award.getAsync();
+
+      let newProgressDiff = calcOrderAwardProgress(award, order);
+      await recalculateOrderUserAward(award, userAward, order, newProgressDiff);
+
+    }
 
   }
+  async function processCancelOrderAward(orderId) {
+
+    let order = await Orders.findById(orderId);
+    let userAwards = await Orders.app.models.userAward.find({
+      where: { orders: { elemMatch: { orderId } } }
+    });
+
+    for (let userAward of userAwards) {
+      let award = await userAward.award.getAsync();
+
+      await recalculateOrderUserAward(award, userAward, order, 0);
+
+    }
+
+  }
+
+
   async function processOrderAward(order) {
 
 
@@ -678,8 +869,7 @@ module.exports = function (Orders) {
     for (let award of awards) {
 
       let progressDiff = calcOrderAwardProgress(award, orderDb);
-      if (progressDiff == 0)
-        continue;
+
 
       // find the current period 
       let action = award.action;
@@ -688,8 +878,6 @@ module.exports = function (Orders) {
       let [userAward] = await Orders.app.models.userAward.findOrCreate({ where: { awardPeriodId: period._id, userId: clientId } }, { awardId: award._id, awardPeriodId: period._id, userId: clientId });
 
 
-
-      userAward.progress += progressDiff;
       userAward.orders.push({ orderId: order.id, count: userAward.count, date: new Date(), progressDiff });
 
 
@@ -697,6 +885,9 @@ module.exports = function (Orders) {
         await userAward.save();
         continue;
       }
+
+
+      userAward.progress += progressDiff;
 
       if (userAward.progress >= action.target) {
         await rewardUser(orderDb, award, userAward);
@@ -752,10 +943,10 @@ module.exports = function (Orders) {
 
     let orderResult = await result.save();
 
-    if (!result.couponId) {
-      // if order has no coupon 
-      processOrderAward(orderResult);
-    }
+
+    // if order has no coupon 
+    processOrderAward(orderResult);
+
 
     return orderResult;
 
@@ -848,12 +1039,10 @@ module.exports = function (Orders) {
     let warehouseProductCountUpdates = [];
 
     let order = await Orders.findById(id);
-    console.dir(order); 
     if (!order)
       throw ERROR(404, "order not found");
 
-    let warehouse = order.warehouse();
-
+    let warehouse = await order.warehouse();
 
 
     //validate new order products availability in warehouse product 
@@ -926,7 +1115,6 @@ module.exports = function (Orders) {
 
     data.priceBeforeCoupon = data.totalPrice;
 
-    let hadCoupon = order.couponCode != undefined;
 
     if (data.couponCode == undefined && order.couponCode == undefined) {
       // do nothing 
@@ -980,13 +1168,13 @@ module.exports = function (Orders) {
       throw ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE');
     }
 
-
+    // update data 
     await changeOrderProduct(order, tempProduct, warehouseProductCountUpdates);
     delete data.id;
     await order.updateAttributes(data);
 
-    await processEditOrderAward(order);
-    console.dir(order); 
+    await processEditOrderAward(order.id);
+
 
 
   }
@@ -1144,6 +1332,7 @@ module.exports = function (Orders) {
       // update warehouse total count 
       await warehouseProduct.updatetotalCount(- orderPrize.count * product.parentCount, { sellingPrice: 0 });
     }
+    
 
     await order.save();
     // TODO : send Notification to user delivery 
@@ -1199,6 +1388,10 @@ module.exports = function (Orders) {
     if (order.status == 'canceled')
       throw ERROR(400, 'the order has been canceled already');
 
+    if (order.status == 'delivered')
+      throw ERROR(400, 'order can not be canceled');
+
+
     for (let orderProduct of order.orderProducts()) {
 
       let product = orderProduct.product();
@@ -1219,30 +1412,13 @@ module.exports = function (Orders) {
       }
     }
 
-
-    for (let orderPrize of order.orderPrizes()) {
-
-      let product = orderPrize.product();
-      let productAbstractId = product.productAbstract().id;
-      let warehouse = order.warehouse();
-      let warehouseProduct = await warehouse.warehouseProducts({ where: { productAbstractId } });
-      warehouseProduct = warehouseProduct[0];
-
-      // in: ['pending', 'inWarehouse', 'packed', 'pendingDelivery', 'inDelivery', 'delivered', 'canceled'] 
-
-      if (['pending', 'inWarehouse', 'packed', 'inDelivery', 'pendingDelivery', 'delivered'].includes(order.status)) {
-        await warehouseProduct.updateExpectedCount(orderPrize.count * product.parentCount);
-      }
-
-      // restore warehouse total count 
-      if (['inDelivery', 'delivered'].includes(order.status)) {
-        await warehouseProduct.updatetotalCount(orderPrize.count * product.parentCount, { sellingPrice: 0 });
-      }
-    }
-
     order.status = 'canceled';
     order.canceledDate = new Date();
     await order.save();
+
+
+    await processCancelOrderAward(order.id);
+
 
     return 'order is assigned';
   }
