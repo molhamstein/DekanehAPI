@@ -306,6 +306,12 @@ module.exports = function (Orders) {
       throw (ERROR(607, 'coupon not found or expired date', 'COUPON_NOT_FOUND'));
     if (coupon.numberOfUsed >= coupon.numberOfTimes || coupon.status == 'used')
       throw (ERROR(608, 'coupon used for all times', 'COUPON_NOT_AVAILABLE'));
+
+    if (coupon.onhold == true)
+      throw ERROR(609, 'coupon is on hold');
+
+
+
   }
   function calculateCouponDiscount(price, coupon) {
 
@@ -482,6 +488,7 @@ module.exports = function (Orders) {
       userCoupon.userId = clientId;
       userCoupon.userAwardId = userAward.id;
       userCoupon.orderId = order.id;
+      userCoupon.onhold = true;
 
       await Orders.app.models.coupons.create(userCoupon);
 
@@ -560,7 +567,7 @@ module.exports = function (Orders) {
       }
     }
   }
-  async function removeOrderUserAward(order, award, userAward) {
+  async function removeOrderUserAward(order, award, userAward, orderChanged = false) {
 
     // remove coupon 
 
@@ -575,20 +582,26 @@ module.exports = function (Orders) {
     let userAwardId = userAward.id;
     let orderId = order.id;
 
-    await Orders.app.models.coupons.deleteAll({ userAwardId, orderId });
-    let orderPrizes = order.orderPrizes().filter(orderPrize => orderPrize.userAwardId.toString() == userAwardId.toString() && orderPrize.orderId.toString() == orderId.toString());
+    // if the order is already deleted do not remove prizes 
+
+    if (order.status != 'delivered' || orderChanged) {
+      // delete coupons 
+      await Orders.app.models.coupons.deleteAll({ userAwardId, orderId, numberOfUsed: 0 });
+
+      // remove prizes 
+      let orderPrizes = order.orderPrizes().filter(orderPrize => orderPrize.userAwardId.toString() == userAwardId.toString() && orderPrize.orderId.toString() == orderId.toString());
+      await restoreOrderPrizes(order, orderPrizes);
+      await Orders.app.models.orderPrize.deleteAll({ userAwardId, orderId });
 
 
-    await restoreOrderPrizes(order, orderPrizes);
-    await Orders.app.models.orderPrize.deleteAll({ userAwardId, orderId });
+      order.awards.remove(awardId);
+      award.count--;
+      await Orders.app.models.award.updateAll({ id: awardId.toString() }, { count: award.count, complete: false });
+
+      await order.save();
 
 
-    order.awards.remove(awardId);
-    award.count--;
-    await Orders.app.models.award.updateAll({ id: awardId.toString() }, { count: award.count, complete: false });
-
-    await order.save();
-
+    }
 
 
 
@@ -731,7 +744,7 @@ module.exports = function (Orders) {
   async function recalculateOrderUserAward(award, userAward, order, newProgressDiff) {
 
     // reinitiate userAward 
-    let orderId = order.id;
+    let changeOrderId = order.id;
     let oldProgress = 0;
     let curProgress = 0;
     let curComplete = false;
@@ -745,7 +758,7 @@ module.exports = function (Orders) {
     let action = award.action;
     for (let userAwardOrder of userAward.orders) {
       let curOrderId = userAwardOrder.orderId;
-      if (userAwardOrder.orderId.toString() == orderId.toString()) {
+      if (userAwardOrder.orderId.toString() == changeOrderId.toString()) {
         // current order 
         oldProgress += userAwardOrder.progressDiff;
         userAwardOrder.progressDiff = newProgressDiff;
@@ -804,7 +817,7 @@ module.exports = function (Orders) {
 
     for (let orderId of removes) {
       let order = await Orders.findById(orderId);
-      await removeOrderUserAward(order, award, userAward);
+      await removeOrderUserAward(order, award, userAward, orderId.toString() == changeOrderId.toString());
     }
     for (let orderId of rewards) {
       let order = await Orders.findById(orderId);
@@ -1165,7 +1178,7 @@ module.exports = function (Orders) {
 
 
     } else {
-      throw ERROR(604, 'coupon can not change', 'COUPON_CAN_NOT_CHANGE');
+      throw ERROR(604, 'coupon can not be changed', 'COUPON_CAN_NOT_CHANGE');
     }
 
     // update data 
@@ -1332,7 +1345,7 @@ module.exports = function (Orders) {
       // update warehouse total count 
       await warehouseProduct.updatetotalCount(- orderPrize.count * product.parentCount, { sellingPrice: 0 });
     }
-    
+
 
     await order.save();
     // TODO : send Notification to user delivery 
@@ -1371,8 +1384,13 @@ module.exports = function (Orders) {
     order.status = 'delivered';
     order.deliveredDate = new Date();
     await order.save();
-    // TODO : send Notification to client for rate this order 
+
     notifications.afterOrderDelivered(order);
+
+    // activate onhold coupons 
+
+    await Orders.app.models.coupons.updateAll({ orderId }, { onhold: false });
+
     return 'order is delivered';
 
   }

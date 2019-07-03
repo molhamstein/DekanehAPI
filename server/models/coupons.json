@@ -20,6 +20,11 @@
       "required": true,
       "default": "available"
     },
+    "onhold": {
+      "type": "boolean",
+      "required": false,
+      "default": false
+    },
     "code": {
       "type": "string",
       "required": true
@@ -41,7 +46,7 @@
     "creationDate": {
       "type": "date",
       "default": "$now"
-    } 
+    }
   },
   "validations": [],
   "relations": {
@@ -52,7 +57,7 @@
     "userAward": {
       "type": "belongsTo",
       "model": "userAward"
-    } , 
+    },
     "order": {
       "type": "belongsTo",
       "model": "orders"

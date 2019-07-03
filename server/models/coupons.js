@@ -1,9 +1,11 @@
 'use strict';
 
 module.exports = function (Coupons) {
-  Coupons.validatesInclusionOf('type', { in: ['fixed', 'percent']
+  Coupons.validatesInclusionOf('type', {
+    in: ['fixed', 'percent']
   });
-  Coupons.validatesInclusionOf('status', { in: ['available', 'used','deactivated']
+  Coupons.validatesInclusionOf('status', {
+    in: ['available', 'used', 'deactivated']
   });
 
   Coupons.beforeRemote('create', function (ctx, modelInstance, next) {
@@ -38,7 +40,7 @@ module.exports = function (Coupons) {
       if (coupon.status == 'used' || coupon.userId != null) {
         return callback(ERROR(606, 'coupon is used', 'COUPON_NOT_AVAILABLE'));
       }
-      coupon.userId=req.accessToken.userId
+      coupon.userId = req.accessToken.userId
       coupon.save();
       callback(null, coupon)
     })
