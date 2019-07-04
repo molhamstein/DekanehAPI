@@ -170,12 +170,22 @@ module.exports = function (Award) {
                                 as: 'userAward'
                             }
                         },
+
                         {
                             $unwind: {
                                 path: "$userAward",
                                 preserveNullAndEmptyArrays: true
                             }
 
+                        }
+                        ,
+                        {
+                            $match: {
+                                $or: [
+                                    { "userAward": null },
+                                    { "userAward.complete": false }
+                                ]
+                            }
                         }
 
                     ]
