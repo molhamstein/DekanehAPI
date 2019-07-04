@@ -321,12 +321,21 @@ module.exports = function (Orders) {
       return price - ((price * coupon.value) / 100)
     }
   }
+  function checkDuplicateProducts(products) {
+    let duplicate = products.find(({ productId: idI }, indexI) => products.find(({ productId: idJ }, indexJ) => indexI != indexJ && idI.toString() == idJ.toString()));
+
+    if (duplicate)
+      throw ERROR(620, 'duplicate  products');
+
+  }
   Orders.beforeRemote('create', async function (ctx, modelInstance) {
 
 
     checkUserLogin(ctx);
 
     checkProductsExistence(ctx.req.body.orderProducts);
+
+    checkDuplicateProducts(ctx.req.body.orderProducts);
 
     let warehouse = await Orders.app.models.warehouse.findOne({});
     //assign first warehouse in database as warehouse for the order
@@ -974,7 +983,7 @@ module.exports = function (Orders) {
 
     checkUserLogin(context);
     checkProductsExistence(data.orderProducts);
-
+    checkDuplicateProducts(data.orderProducts);
 
     var orderProducts = data.orderProducts;
     var isAdmin = false
