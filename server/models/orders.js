@@ -478,7 +478,7 @@ module.exports = function (Orders) {
     for (let coupon of award.coupons) {
 
       let userCoupon = {};
-      let propsToClone = ["value", "type", "numberOfTimes", "expireDate"];
+      let propsToClone = ["value", "type", "numberOfTimes"];
       for (let prop of propsToClone)
         userCoupon[prop] = coupon[prop];
 
@@ -489,6 +489,9 @@ module.exports = function (Orders) {
       userCoupon.userAwardId = userAward.id;
       userCoupon.orderId = order.id;
       userCoupon.onhold = true;
+      let date = new Date();
+      date.setDate(date.getDate() + coupon.duration);
+      userCoupon.expireDate = date;
 
       await Orders.app.models.coupons.create(userCoupon);
 
@@ -958,10 +961,10 @@ module.exports = function (Orders) {
 
 
     // if order has no coupon 
-    processOrderAward(orderResult);
+    await processOrderAward(orderResult);
 
-
-    return orderResult;
+    let order = await Orders.findById(result.id);
+    ctx.result = order;
 
   });
 
@@ -1376,10 +1379,31 @@ module.exports = function (Orders) {
 
     // update user balance 
     let user = await order.client.getAsync();
-    user.balance -= order.totalPrice;
-    await user.save();
-    // @todo 
-    // create installment 
+
+    // create installments
+    let OutInstallment = {
+
+      userId: user.id,
+      orderId: order.id,
+      amount: order.totalPrice,
+      direction: 'out'
+
+    };
+
+    let InInstallment = {
+
+      userId: user.id,
+      orderId: order.id,
+      amount: -order.totalPrice,
+      direction: 'in'
+
+    };
+
+    await Orders.app.models.installment.create(InInstallment);
+    await Orders.app.models.installment.create(OutInstallment);
+
+
+
 
     order.status = 'delivered';
     order.deliveredDate = new Date();

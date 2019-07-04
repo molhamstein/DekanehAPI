@@ -20,6 +20,10 @@
       "type": "date",
       "required": "false",
       "default": "$now"
+    },
+    "direction": {
+      "type": "string",
+      "required": true
     }
   },
   "validations": [],
@@ -27,13 +31,13 @@
     "user": {
       "type": "belongsTo",
       "model": "user",
-      "foreignKey": "",
+      "foreignKey": "userId",
       "required": true
     },
     "orders": {
       "type": "belongsTo",
       "model": "orders",
-      "foreignKey": ""
+      "foreignKey": "orderId"
     }
   },
   "acls": [],

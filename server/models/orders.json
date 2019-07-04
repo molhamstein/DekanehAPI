@@ -12,7 +12,8 @@
       "orderProducts",
       "warehouseKeeper",
       "warehouse",
-      "orderPrizes"
+      "orderPrizes", 
+      "awards"
     ]
   },
   "properties": {

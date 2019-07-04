@@ -3,7 +3,7 @@
 module.exports = function (Installment) {
 
     Installment.validatesPresenceOf("userId");
-
+    
     Installment.afterRemote('create', async function (ctx, installment) {
         let user = await installment.user.getAsync();
         user.balance += installment.amount;
