@@ -5,7 +5,9 @@
   "options": {
     "validateUpsert": true
   },
-  "scope": {},
+  "scope": {
+    
+  },
   "properties": {
     "type": {
       "type": "string",
@@ -26,9 +28,10 @@
         "validate": true
       }
     },
-    "manufacturer": {
+    "manufacturerRelation": {
       "type": "belongsTo",
-      "model": "manufacturers"
+      "model": "manufacturers",
+      "foreignKey": "manufacturerId"
     }
   },
   "acls": [],

@@ -3,15 +3,20 @@
 module.exports = function (Award) {
 
 
+    function checkDuplicateProducts(products) {
+        let duplicate = products.find(({ productId: idI }, indexI) => products.find(({ productId: idJ }, indexJ) => indexI != indexJ && idI.toString() == idJ.toString()));
 
+        if (duplicate)
+            throw ERROR(620, 'duplicate  products');
+
+    }
+    Award.beforeRemote('create', async function (ctx, modelInstance) {
+        checkDuplicateProducts(ctx.req.body.prizes);
+    });
 
     Award.afterRemote('create', async function (ctx, modelInstance) {
 
-
-
-
         let { from, to, occurrence, occurrenceType } = modelInstance;
-
 
         if (occurrenceType == 'daily') {
 
@@ -206,4 +211,30 @@ module.exports = function (Award) {
 
 
     }
+
+    Award.observe('loaded', async (ctx) => {
+
+
+        if (ctx.instance) {
+
+            // include prizes 
+            let award = ctx.instance;
+            award.prizesInclude = await Promise.all(award.prizes.map(function (prize) {
+
+                return new Promise(async (res, rej) => {
+
+                    let result = { ...prize.__data };
+                    result.product = await Award.app.models.products.findById(prize.productId);
+                    res(result);
+                });
+
+            }));
+            // include action prizes 
+            award.action.products = await Promise.all(award.action.productIds.map(productId => Award.app.models.products.findById(productId)));
+
+            // include action manufacture 
+            if (award.action.manufacturerId)
+                award.action.manufacturer = await Award.app.models.manufacturers.findById(award.action.manufacturerId);
+        }
+    });
 };
