@@ -32,6 +32,7 @@
     "loopback-datasource-juggler": "^2.39.0",
     "loopback-datatype-objectid": "^1.0.5",
     "mailgun-js": "^0.22.0",
+    "mobile-detect": "^1.4.3",
     "mongo-xlsx": "^1.0.12",
     "mongodb": "^3.2.3",
     "morgan-body": "^2.4.7",

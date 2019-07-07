@@ -13,6 +13,11 @@
     "clientMinimumVersion" :{
       "type": "string",
       "required": true
+    }, 
+    "running" : {
+      "type" : "boolean" , 
+      "required" : true , 
+      "default" : true
     }
   },
   "validations": [],

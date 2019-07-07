@@ -17,46 +17,58 @@ module.exports = function (Config) {
      * @returns 1 if version1 > version2 
      * @returns -1 if version1 < version2 
      */
-    function compareVersion(version1, version2) {
+    Config.compareVersion = (version1, version2) => {
 
 
         if (version1 == version2) return 0;
 
         let av1 = version1.split(".").map(x => parseFloat(x));
         let av2 = version2.split(".").map(x => parseFloat(x));
-
+        
         for (let index in av1) {
-
-            if (av1[index] > av2[index]) return 1;
+            if (av1[index] != av2[index])
+                return av1[index] > av2[index] ? 1 : -1;
         }
 
-        return -1;
+        return 0;
     }
 
-    const ValidClient = 200;
-    const WarningClient = 199;
-    const InvalidClient = 400;
+    Config.codes = {
+        ValidClient: 200,
+        WarningClient: 199,
+        InvalidClient: 666,
+        SystemNotRunning: 667
+    }
+    Config.validateClient = function (config, version) {
 
+        let result = Config.codes.ValidClient;
+
+        if (!config)
+            return result; 
+
+        if(!config.running)
+            return Config.codes.SystemNotRunning; 
+
+        if (config.clientCurrentVersion === version) {
+            result = Config.codes.ValidClient;;
+        }
+        else if (Config.compareVersion(version, config.clientMinimumVersion) == 1) {
+            result = Config.codes.WarningClient;
+        } else {
+            result = Config.codes.InvalidClient;
+        }
+
+        return result;
+
+    }
 
     Config.clientValidation = async function (req, version) {
 
 
-        let result = ValidClient;
-
         let config = await Config.singleton();
-        if (!config)
-            return { result };
-
-        if (config.clientCurrentVersion === version) {
-            result = ValidClient;
-        }
-        else if (compareVersion(version, config.clientMinimumVersion) == 1) {
-            result = WarningClient;
-        } else {
-            result = InvalidClient;
-        }
-
+        let result = Config.validateClient(config, version);
         return { result };
+
 
     }
 
