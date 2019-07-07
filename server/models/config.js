@@ -52,7 +52,7 @@ module.exports = function (Config) {
         if (config.clientCurrentVersion === version) {
             result = Config.codes.ValidClient;;
         }
-        else if (Config.compareVersion(version, config.clientMinimumVersion) == 1) {
+        else if (Config.compareVersion(version, config.clientMinimumVersion) >= 0) {
             result = Config.codes.WarningClient;
         } else {
             result = Config.codes.InvalidClient;

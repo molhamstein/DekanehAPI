@@ -291,7 +291,7 @@ module.exports = function (Orders) {
 
     if (isAdmin == false) {
       if (user.clientType == 'consumer') {
-        if (totalPrice < 10000)
+        if (totalPrice < 5000)
           throw (ERROR(602, 'total price is low'));
       } else {
         if (totalPrice < 20000)
