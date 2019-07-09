@@ -55,6 +55,38 @@
           "verb": "post"
         }
       ]
+    } ,
+    "setRunning": {
+      "isStatic": true,
+      "accepts": [
+        {
+          "arg": "req",
+          "http": {
+            "source": "req"
+          }
+        },
+        {
+          "arg": "value",
+          "type": "boolean",
+          "required": true,
+          "description": "running value"
+        }
+      ],
+      "returns": [
+        {
+          "arg": "result",
+          "type": "array",
+          "root": true,
+          "description": ""
+        }
+      ],
+      "description": "Change running value",
+      "http": [
+        {
+          "path": "/running",
+          "verb": "put"
+        }
+      ]
     }
   }
 }

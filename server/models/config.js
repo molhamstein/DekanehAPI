@@ -69,7 +69,12 @@ module.exports = function (Config) {
         let result = Config.validateClient(config, version);
         return { result };
 
-
+    }
+    Config.setRunning = async function (req,  value){
+        let config = await Config.singleton(); 
+        config.running = value; 
+        await config.save(); 
+        return config ; 
     }
 
 
