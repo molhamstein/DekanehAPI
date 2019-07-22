@@ -9,7 +9,6 @@ module.exports = async function (app) {
         let md = new MobileDetect(agent);
         if (md.mobile()) {
             let version = req.headers['client-version'];
-            version = '1.0.0';
 
             let result = ConfigModel.validateClient(config, version);
             console.log(result);

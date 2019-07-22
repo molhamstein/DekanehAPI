@@ -46,6 +46,9 @@ module.exports = function (Config) {
         if (!config)
             return result; 
 
+        if(!version) // @todo return unvalid 
+            return result; 
+
         if(!config.running)
             return Config.codes.SystemNotRunning; 
 
