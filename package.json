@@ -36,7 +36,7 @@
     "node-thumbnail": "^0.14.0",
     "nodemailer": "^4.7.0",
     "onesignal-node": "^2.0.1",
-    "pug": "^2.0.3",
+    "pug": "^3.0.1",
     "sendmail": "^1.4.1",
     "serve-favicon": "^2.0.1",
     "sharp": "^0.21.0",
