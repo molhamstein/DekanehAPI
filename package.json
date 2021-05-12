@@ -34,7 +34,7 @@
     "mongo-xlsx": "^1.0.12",
     "node-imagemagick": "^0.1.8",
     "node-thumbnail": "^0.14.0",
-    "nodemailer": "^4.7.0",
+    "nodemailer": "^6.4.16",
     "onesignal-node": "^2.0.1",
     "pug": "^2.0.3",
     "sendmail": "^1.4.1",
